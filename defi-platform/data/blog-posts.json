@@ -1,0 +1,80 @@
+[
+  {
+    "slug": "understanding-algorithmic-interest-rates",
+    "title": "Understanding Algorithmic Interest Rates in DeFi",
+    "excerpt": "Learn how Peridot's algorithmic interest rate model works to balance supply and demand in decentralized finance markets.",
+    "coverImage": "/blog/algorithmic-interest-rates.jpg",
+    "date": "2025-04-05",
+    "author": {
+      "name": "Alex Johnson",
+      "picture": "/team/alex-johnson.jpg"
+    },
+    "category": "Education",
+    "tags": ["Interest Rates", "DeFi", "Algorithmic Models", "Market Dynamics"]
+  },
+  {
+    "slug": "benefits-of-cross-chain-lending",
+    "title": "The Benefits of Cross-Chain Lending and Borrowing",
+    "excerpt": "Explore how cross-chain functionality enhances liquidity and provides more options for DeFi users.",
+    "coverImage": "/blog/cross-chain-lending.jpg",
+    "date": "2025-03-28",
+    "author": {
+      "name": "Sarah Chen",
+      "picture": "/team/sarah-chen.jpg"
+    },
+    "category": "Features",
+    "tags": ["Cross-Chain", "Interoperability", "DeFi", "Liquidity"]
+  },
+  {
+    "slug": "risk-management-defi-collateralization",
+    "title": "Risk Management in DeFi: Collateralization and Liquidation",
+    "excerpt": "A deep dive into how collateralization ratios work and how the liquidation process protects the protocol.",
+    "coverImage": "/blog/risk-management.jpg",
+    "date": "2025-03-15",
+    "author": {
+      "name": "Michael Rodriguez",
+      "picture": "/team/michael-rodriguez.jpg"
+    },
+    "category": "Security",
+    "tags": ["Risk Management", "Liquidation", "Collateralization", "Security"]
+  },
+  {
+    "slug": "peridot-governance-community-decisions",
+    "title": "Peridot Governance: How Community Decisions Shape the Protocol",
+    "excerpt": "An overview of the governance process and how token holders can participate in protocol decisions.",
+    "coverImage": "/blog/governance.jpg",
+    "date": "2025-03-05",
+    "author": {
+      "name": "Emma Wilson",
+      "picture": "/team/emma-wilson.jpg"
+    },
+    "category": "Governance",
+    "tags": ["Governance", "DAO", "Community", "Voting"]
+  },
+  {
+    "slug": "yield-farming-strategies-peridot",
+    "title": "Yield Farming Strategies Using Peridot",
+    "excerpt": "Discover effective strategies for maximizing your returns through yield farming on Peridot.",
+    "coverImage": "/blog/yield-farming.jpg",
+    "date": "2025-02-22",
+    "author": {
+      "name": "David Park",
+      "picture": "/team/david-park.jpg"
+    },
+    "category": "Strategies",
+    "tags": ["Yield Farming", "Strategies", "Returns", "Optimization"]
+  },
+  {
+    "slug": "future-defi-interoperability",
+    "title": "The Future of DeFi: Interoperability and Cross-Chain Solutions",
+    "excerpt": "How cross-chain protocols like Peridot are shaping the future of decentralized finance.",
+    "coverImage": "/blog/future-defi.jpg",
+    "date": "2025-02-10",
+    "author": {
+      "name": "Sophia Martinez",
+      "picture": "/team/sophia-martinez.jpg"
+    },
+    "category": "Industry",
+    "tags": ["Interoperability", "Future", "Cross-Chain", "Industry Trends"]
+  }
+]
