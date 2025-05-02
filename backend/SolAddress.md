@@ -1,0 +1,9 @@
+Testnet:
+spl token: 9znRz6rDCxhE5nYGZqTwmLHKy2ycPxu2yE3S5k2qmvuR
+spl token account: AiKy7k3zyMu5gJ7MobHTfjTZKEaajHHwKhyKZaeTUYea
+PDA ADdress: 8WRCfaAMASji1kWKBe9VuYKJr4wNoVz8NYYRa6Nw5Efq
+
+Devnet:
+Token: FTmRNssUmboCLqRjuNVErLVPKnwpu9Fe2Nav4mFKBJuw
+token account: 8ii5xnhJSzvRNj96e74L3FjwkFNBy9bgc9msMn9qxCHS
+pda address: 6vCEymvz1GsVs5oVWtGMkD9Zuq6D4wxdA3EKfJgQS3EU
