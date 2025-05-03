@@ -1,0 +1,223 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+
+    --card: 0 0% 98%;
+    --card-foreground: 240 10% 3.9%;
+
+    --popover: 0 0% 98%;
+    --popover-foreground: 240 10% 3.9%;
+
+    --primary: 108 33% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 96 31% 88%;
+    --secondary-foreground: 240 5.9% 10%;
+
+    --accent: 95 33% 76%;
+    --accent-foreground: 240 5.9% 10%;
+
+    --muted: 0 0% 92%;
+    --muted-foreground: 240 3.8% 46.1%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 85%;
+    --input: 0 0% 85%;
+    --ring: 108 33% 48%;
+
+    --radius: 0.5rem;
+
+    --text: 240 10% 3.9%;
+    --background: 0 0% 100%;
+    --primary: 108 33% 48%;
+    --secondary: 96 31% 88%;
+    --accent: 95 33% 76%;
+  }
+
+  .dark {
+    --background: 90 25% 3%;
+    --foreground: 94 23% 94%;
+
+    --card: 90 25% 5%;
+    --card-foreground: 94 23% 94%;
+
+    --popover: 90 25% 5%;
+    --popover-foreground: 94 23% 94%;
+
+    --primary: 108 33% 58%;
+    --primary-foreground: 90 25% 3%;
+
+    --secondary: 96 31% 28%;
+    --secondary-foreground: 94 23% 94%;
+
+    --accent: 95 33% 36%;
+    --accent-foreground: 94 23% 94%;
+
+    --muted: 90 25% 10%;
+    --muted-foreground: 94 10% 75%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 94 23% 94%;
+
+    --border: 90 25% 15%;
+    --input: 90 25% 15%;
+    --ring: 108 33% 58%;
+
+    --text: 94 23% 94%;
+    --background: 90 25% 3%;
+    --primary: 108 33% 58%;
+    --secondary: 96 31% 28%;
+    --accent: 95 33% 36%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-poppins;
+    color: hsl(var(--text)); /* Add explicit color to ensure text is visible */
+    background-color: hsl(var(--background)); /* Add explicit background color */
+    font-family: Arial, Helvetica, sans-serif;
+    touch-action: manipulation; /* Prevent double-tap zoom on iOS */
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-poppins font-semibold;
+  }
+}
+
+.gradient-text {
+  background: linear-gradient(to right, hsl(var(--primary)), hsl(var(--accent)));
+  -webkit-background-clip: text;
+  color: transparent; /* Changed from -webkit-text-fill-color: transparent */
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.1); /* Added subtle text shadow for better visibility */
+}
+
+.dark .gradient-text {
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.1); /* Different shadow for dark mode */
+}
+
+.hero-gradient {
+  background: radial-gradient(circle at center, hsl(var(--secondary), 0.3), transparent 70%);
+}
+
+.card-hover {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(127, 183, 113, 0.1);
+}
+
+.slider-thumb::-webkit-slider-thumb {
+  @apply bg-primary;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.slider-track {
+  @apply bg-secondary/50 h-2 rounded-full;
+}
+
+.slider-progress {
+  @apply bg-primary h-2 rounded-full absolute left-0 top-0;
+}
+
+/* CSS-based marquee animations for low-performance devices */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes marquee-reverse {
+  0% {
+    transform: translateX(-50%);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  animation: marquee 30s linear infinite;
+  min-width: 200%;
+}
+
+.animate-marquee-reverse {
+  display: inline-flex;
+  animation: marquee-reverse 30s linear infinite;
+  min-width: 200%;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+  }
+}
+
+/* Make the hero section text smaller on mobile screens */
+@media (max-width: 640px) {
+  .text-4xl.md\:text-5xl.lg\:text-6xl, 
+  .text-4xl.md\:text-5xl.lg\:text-6xl div {
+    font-size: 2rem !important; /* Force smaller font size on mobile for "Lend & Borrow Crypto" */
+    line-height: 1.2;
+  }
+}
+
+/* Add more padding to the "How Peridot Works" section */
+@media (max-width: 768px) {
+  /* Increase padding for the numbered cards */
+  .py-20.bg-muted .grid-cols-1.lg\:grid-cols-3 > div {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+  
+  /* Adjust position of the number circles */
+  .py-20.bg-muted .absolute.-top-6.-left-6 {
+    left: -0.5rem;
+  }
+}
+
+/* Fix FAQ questions alignment - targeting multiple selectors to ensure it works */
+.text-lg.font-medium.py-4.group,
+[data-state="open"],
+[data-state="closed"] {
+  text-align: left !important;
+}
+
+.text-lg.font-medium.py-4.group > span,
+[data-state="open"] > span,
+[data-state="closed"] > span {
+  text-align: left !important;
+  display: block !important;
+  width: 100% !important;
+}
