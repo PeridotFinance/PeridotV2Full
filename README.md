@@ -1,6 +1,8 @@
-# Peridot V2 Contracts
+# Peridot V2 
 
-This repository contains the smart contracts for Peridot V2, a decentralized lending protocol, potentially with cross-chain capabilities facilitated by a Hub and Spoke architecture.
+This repository contains the smart contracts & Frontend for Peridot V2, a decentralized lending protocol, potentially with cross-chain capabilities facilitated by a Hub and Spoke architecture.
+
+# Backend
 
 ## Overview
 
