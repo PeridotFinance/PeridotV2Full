@@ -1,0 +1,10 @@
+[workspace]
+members = [
+    "peridot",
+    # Add other potential rust projects here if they exist
+]
+
+[profile.release]
+lto = true
+opt-level = 's'
+strip = "debuginfo" 
