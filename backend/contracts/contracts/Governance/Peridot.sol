@@ -12,7 +12,7 @@ contract Peridot {
     uint8 public constant decimals = 18;
 
     /// @notice Total number of tokens in circulation
-    uint public constant totalSupply = 10000000e18; // 10 million Peridot
+    uint public constant totalSupply = 1000000000e18; // 1 Billion Peridot
 
     /// @notice Allowance amounts on behalf of others
     mapping(address => mapping(address => uint96)) internal allowances;
