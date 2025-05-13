@@ -99,7 +99,7 @@ export function SiteHeader() {
     if (isAppRoute) {
       return (
         <>
-          <Link href="/app" className="text-text/80 hover:text-primary transition-colors">
+          <Link href="/" className="text-text/80 hover:text-primary transition-colors">
             Home
           </Link>
           <Link href="/app/bridge" className="text-text/80 hover:text-primary transition-colors">
@@ -116,9 +116,11 @@ export function SiteHeader() {
           <Link href="/how-it-works" className="text-text/80 hover:text-primary transition-colors">
             How It Works
           </Link>
-          <Link
-            href="https://peridot-finance.gitbook.io/peridot-protocol/contact"
+          <a
+            href="https://peridot-finance.gitbook.io/peridot-protocol"
             className="text-text/80 hover:text-primary transition-colors inline-flex items-center"
+            target="_blank"
+            rel="noopener noreferrer"
           >
             Docs
             <svg
@@ -131,7 +133,8 @@ export function SiteHeader() {
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M18 13v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h6m5-5h5m0 0v5m0-5L10 14" />
             </svg>
-          </Link>
+          </a>
+
           <Link href="/blog" className="text-text/80 hover:text-primary transition-colors">
             Blog
           </Link>
