@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion"
@@ -21,14 +21,22 @@ import {
   Globe,
   Users,
   ExternalLink,
+  MousePointerClick,
+  MousePointer,
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { SubscribePopup } from "@/components/SubscribePopup"
 
 // Interactive 3D card component with performance optimizations
-const InteractiveCard = ({ children, className }) => {
+const InteractiveCard = ({ 
+  children, 
+  className 
+}: { 
+  children: React.ReactNode; 
+  className?: string;
+}) => {
   const { isLowPerfDevice } = useReducedMotion()
-  const cardRef = useRef(null)
+  const cardRef = useRef<HTMLDivElement>(null)
   const [rotateX, setRotateX] = useState(0)
   const [rotateY, setRotateY] = useState(0)
   const [scale, setScale] = useState(1)
@@ -43,7 +51,7 @@ const InteractiveCard = ({ children, className }) => {
     )
   }
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return
     const card = cardRef.current
     const rect = card.getBoundingClientRect()
@@ -85,7 +93,13 @@ const InteractiveCard = ({ children, className }) => {
 }
 
 // Optimized parallax text effect
-const ParallaxText = ({ children, baseVelocity = 100 }) => {
+const ParallaxText = ({ 
+  children, 
+  baseVelocity = 100 
+}: { 
+  children: React.ReactNode; 
+  baseVelocity?: number;
+}) => {
   const { isLowPerfDevice } = useReducedMotion()
   const baseX = useMotionValue(0)
   const { scrollY } = useScroll()
@@ -116,12 +130,12 @@ const ParallaxText = ({ children, baseVelocity = 100 }) => {
 
   // Create a more robust animation with Framer Motion
   const [contentWidth, setContentWidth] = useState(0)
-  const containerRef = useRef(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   
   useEffect(() => {
     if (containerRef.current) {
       // Measure the width of one copy of the content
-      const firstChild = containerRef.current.firstChild
+      const firstChild = containerRef.current.firstChild as HTMLElement
       if (firstChild) {
         setContentWidth(firstChild.offsetWidth)
       }
@@ -130,7 +144,7 @@ const ParallaxText = ({ children, baseVelocity = 100 }) => {
 
   useEffect(() => {
     let prevT = 0
-    let ticker = null
+    let ticker: number | null = null
 
     // Initialize starting point based on direction
     if (direction > 0) {
@@ -138,7 +152,7 @@ const ParallaxText = ({ children, baseVelocity = 100 }) => {
       baseX.set(-contentWidth)
     }
 
-    const tick = (t) => {
+    const tick = (t: number) => {
       if (prevT) {
         const delta = (t - prevT) / 1000
         let newX = baseX.get() + delta * velocity.get()
@@ -194,7 +208,13 @@ const ParallaxText = ({ children, baseVelocity = 100 }) => {
 }
 
 // Optimized 3D isomorphic text component
-const IsomorphicText = ({ text, className }) => {
+const IsomorphicText = ({ 
+  text, 
+  className 
+}: { 
+  text: string; 
+  className?: string; 
+}) => {
   const { isLowPerfDevice } = useReducedMotion()
   const isMobile = useMobile()
   const letters = text.split("")
@@ -206,7 +226,7 @@ const IsomorphicText = ({ text, className }) => {
 
   return (
     <div className={cn("relative", className)}>
-      {letters.map((letter, index) => (
+      {letters.map((letter: string, index: number) => (
         <motion.span
           key={index}
           className="inline-block relative"
@@ -235,7 +255,13 @@ const IsomorphicText = ({ text, className }) => {
 }
 
 // Simplified magnetic button effect
-const MagneticButton = ({ children, className, ...props }) => {
+interface MagneticButtonProps {
+  children: React.ReactNode;
+  className?: string;
+  [key: string]: any;
+}
+
+const MagneticButton = ({ children, className = "", ...props }: MagneticButtonProps) => {
   const { isLowPerfDevice } = useReducedMotion()
 
   // Skip animation on low performance devices
@@ -270,7 +296,14 @@ const MagneticButton = ({ children, className, ...props }) => {
 }
 
 // Optimized feature card
-const FeatureCard = ({ icon: Icon, title, description, delay = 0 }) => {
+interface FeatureCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  delay?: number;
+}
+
+const FeatureCard = ({ icon: Icon, title, description, delay = 0 }: FeatureCardProps) => {
   const { isLowPerfDevice } = useReducedMotion()
 
   // Simplified version for low performance devices
@@ -360,7 +393,14 @@ const ScrollIndicator = () => {
 }
 
 // Optimized floating elements animation
-const FloatingElement = ({ children, xOffset = 0, yOffset = 0, duration = 3 }) => {
+interface FloatingElementProps {
+  children: React.ReactNode;
+  xOffset?: number;
+  yOffset?: number;
+  duration?: number;
+}
+
+const FloatingElement = ({ children, xOffset = 0, yOffset = 0, duration = 3 }: FloatingElementProps) => {
   const { isLowPerfDevice } = useReducedMotion()
 
   // Skip animation on low performance devices
@@ -388,7 +428,13 @@ const FloatingElement = ({ children, xOffset = 0, yOffset = 0, duration = 3 }) =
 }
 
 // Optimized animated value visualization component
-const AnimatedValueVisualization = ({ value, icon, description }) => {
+interface AnimatedValueVisualizationProps {
+  value: string;
+  icon: string;
+  description: string;
+}
+
+const AnimatedValueVisualization = ({ value, icon, description }: AnimatedValueVisualizationProps) => {
   const [isHovered, setIsHovered] = useState(false)
   const isMobile = useMobile()
   const { isLowPerfDevice } = useReducedMotion()
@@ -703,7 +749,15 @@ const AnimatedValueVisualization = ({ value, icon, description }) => {
 }
 
 // Optimized donut chart
-const DonutChart = ({ value, max = 100, size = 120, strokeWidth = 10, color = "var(--primary)" }) => {
+interface DonutChartProps {
+  value: number;
+  max?: number;
+  size?: number;
+  strokeWidth?: number;
+  color?: string;
+}
+
+const DonutChart = ({ value, max = 100, size = 120, strokeWidth = 10, color = "var(--primary)" }: DonutChartProps) => {
   const { isLowPerfDevice } = useReducedMotion()
   const percentage = (value / max) * 100
   const radius = (size - strokeWidth) / 2
@@ -711,10 +765,10 @@ const DonutChart = ({ value, max = 100, size = 120, strokeWidth = 10, color = "v
   const strokeDashoffset = circumference - (percentage / 100) * circumference
 
   const [displayPercentage, setDisplayPercentage] = useState(0)
-  const [isAnimating, setIsAnimating] = useState(false) // Add a state to track animation
+  const [isAnimating, setIsAnimating] = useState(false) 
 
   // Use a ref to track the animation frame ID
-  const animationFrameIdRef = useRef(null)
+  const animationFrameIdRef = useRef<number | null>(null)
 
   useEffect(() => {
     // Skip animation on low performance devices
@@ -791,7 +845,12 @@ const DonutChart = ({ value, max = 100, size = 120, strokeWidth = 10, color = "v
 }
 
 // Token component with optimized hover effect
-const TokenIcon = ({ name, image }) => {
+interface TokenIconProps {
+  name: string;
+  image: string;
+}
+
+const TokenIcon = ({ name, image }: TokenIconProps) => {
   const { isLowPerfDevice } = useReducedMotion()
 
   if (isLowPerfDevice) {
@@ -819,17 +878,67 @@ const TokenIcon = ({ name, image }) => {
   )
 }
 
+// Simple toggle button to disable parallax effects
+interface ParallaxToggleProps {
+  isEnabled: boolean;
+  onToggle: () => void;
+}
+
+const ParallaxToggle = ({ isEnabled, onToggle }: ParallaxToggleProps) => {
+  return (
+    <button
+      onClick={onToggle}
+      className="fixed top-2 right-2 z-50 p-2 text-xs flex items-center gap-1 bg-card/80 backdrop-blur-sm rounded-full border border-border/50 shadow-sm hover:bg-card transition-colors duration-200"
+      title={isEnabled ? "Disable motion effects" : "Enable motion effects"}
+      aria-label={isEnabled ? "Disable motion effects" : "Enable motion effects"}
+    >
+      {isEnabled ? (
+        <MousePointerClick className="h-3 w-3 text-primary" />
+      ) : (
+        <MousePointer className="h-3 w-3 text-text/50" />
+      )}
+      <span className="sr-only md:not-sr-only md:inline-block">
+        {isEnabled ? "Reduce motion" : "Enable motion"}
+      </span>
+    </button>
+  );
+};
+
 export default function Home() {
   const { scrollYProgress } = useScroll()
   const isMobile = useMobile()
   const { isLowPerfDevice, prefersReducedMotion } = useReducedMotion()
   const heroRef = useRef(null)
   const { theme } = useTheme()
+  const [disableParallax, setDisableParallax] = useState(false)
+
+  // Handle toggle for parallax effects
+  const toggleParallax = useCallback(() => {
+    setDisableParallax(prev => !prev);
+    // Save preference to localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('disableParallax', (!disableParallax).toString());
+    }
+  }, [disableParallax]);
+
+  // Load user preference from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedPreference = localStorage.getItem('disableParallax');
+      if (savedPreference !== null) {
+        setDisableParallax(savedPreference === 'true');
+      } else if (prefersReducedMotion) {
+        // If user has reducedMotion preference, respect it
+        setDisableParallax(true);
+      }
+    }
+  }, [prefersReducedMotion]);
 
   // Memoize token data to prevent unnecessary re-renders
   const tokenRow1 = useMemo(
     () => [
       { name: "Ethereum", image: "/tokenimages/eth.png" },
+      { name: "Stellar", image: "/tokenimages/stellar.png" },
       { name: "Polygon", image: "/tokenimages/matic.png" },
       { name: "Avalanche", image: "/tokenimages/avax.png" },
       { name: "Solana", image: "/tokenimages/sol.png" },
@@ -840,6 +949,7 @@ export default function Home() {
 
   const tokenRow2 = useMemo(
     () => [
+      { name: "Stellar", image: "/tokenimages/stellar.png" },
       { name: "Arbitrum", image: "/tokenimages/arb.png" },
       { name: "Cosmos", image: "/tokenimages/cosm.png" },
       { name: "USDC", image: "/tokenimages/usdc.png" },
@@ -850,63 +960,119 @@ export default function Home() {
   )
 
   // Optimize mouse tracking for performance
-  const mouseX = useMotionValue(0)
-  const mouseY = useMotionValue(0)
+  const mouseX = useMotionValue(0.5) // Initialize at center
+  const mouseY = useMotionValue(0.5) // Initialize at center
 
   // Parallax effect for hero section - disable on low performance devices
   const heroY = useTransform(scrollYProgress, [0, 0.5], [0, isLowPerfDevice ? 0 : -150])
   const heroOpacity = useTransform(scrollYProgress, [0, 0.25], [1, 0])
 
+  // Check for FPS issues and disable effects if needed
+  useEffect(() => {
+    if (disableParallax || isLowPerfDevice) return;
+    
+    // Simple FPS tracking to detect performance issues
+    let frameCount = 0;
+    let lastTime = performance.now();
+    let lowFPSCount = 0;
+    
+    const checkFPS = () => {
+      const now = performance.now();
+      const elapsed = now - lastTime;
+      if (elapsed >= 1000) { // Every second
+        const fps = frameCount / (elapsed / 1000);
+        if (fps < 30) { // If FPS drops below 30
+          lowFPSCount++;
+          if (lowFPSCount >= 3) { // If we get 3 consecutive low FPS readings
+            setDisableParallax(true);
+            return; // Stop checking
+          }
+        } else {
+          lowFPSCount = 0; // Reset counter if FPS is good
+        }
+        
+        frameCount = 0;
+        lastTime = now;
+      }
+      frameCount++;
+      requestAnimationFrame(checkFPS);
+    };
+    
+    const fpsCheckId = requestAnimationFrame(checkFPS);
+    return () => cancelAnimationFrame(fpsCheckId);
+  }, [disableParallax, isLowPerfDevice]);
+
   // Optimize mouse movement tracking
   useEffect(() => {
-    // Define the handler outside of the conditional to avoid hook ordering issues
+    // Skip on low performance devices or if parallax is disabled
+    if (isLowPerfDevice || disableParallax) {
+      return () => {}; // Return an empty cleanup function
+    }
+
+    let rafId = null;
+    let lastUpdateTime = 0;
+    const THROTTLE_MS = 200; // Even higher throttle time
+
     const handleMouseMove = (e) => {
-      const x = e.clientX / window.innerWidth
-      const y = e.clientY / window.innerHeight
+      const currentTime = performance.now();
+      if (currentTime - lastUpdateTime < THROTTLE_MS) return;
+      
+      lastUpdateTime = currentTime;
+      
+      // Schedule the update on the next frame
+      rafId = requestAnimationFrame(() => {
+        const x = e.clientX / window.innerWidth;
+        const y = e.clientY / window.innerHeight;
+        
+        // Smoother value updates with dampening
+        const currentX = mouseX.get();
+        const currentY = mouseY.get();
+        const newX = currentX + (x - currentX) * 0.2; // Apply dampening factor
+        const newY = currentY + (y - currentY) * 0.2;
+        
+        mouseX.set(newX);
+        mouseY.set(newY);
+      });
+    };
 
-      // Update motion values directly instead of state
-      mouseX.set(x)
-      mouseY.set(y)
-    }
-
-    // Skip on low performance devices
-    if (isLowPerfDevice) {
-      return () => {} // Return an empty cleanup function
-    }
-
-    // Use a throttled function to reduce updates
-    let lastUpdateTime = 0
-    const THROTTLE_MS = 50 // Only update every 50ms
-
-    const throttledHandleMouseMove = (e) => {
-      const currentTime = Date.now()
-      if (currentTime - lastUpdateTime < THROTTLE_MS) return
-
-      lastUpdateTime = currentTime
-      handleMouseMove(e)
-    }
-
-    const addMouseMoveListener = () => {
-      window.addEventListener("mousemove", throttledHandleMouseMove)
-    }
-
-    const removeMouseMoveListener = () => {
-      window.removeEventListener("mousemove", throttledHandleMouseMove)
-    }
-
-    addMouseMoveListener()
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
 
     return () => {
-      removeMouseMoveListener()
-    }
-  }, [mouseX, mouseY, isLowPerfDevice])
+      window.removeEventListener("mousemove", handleMouseMove);
+      if (rafId) cancelAnimationFrame(rafId);
+    };
+  }, [mouseX, mouseY, isLowPerfDevice, disableParallax]);
 
-  // Optimize background transform
-  const backgroundX = useTransform(mouseX, [0, 1], ["-2%", "2%"])
-  const backgroundY = useTransform(mouseY, [0, 1], ["-2%", "2%"])
+  // Optimize background transform - use more subtle movement
+  const backgroundX = useTransform(mouseX, [0, 1], ["-0.5%", "0.5%"]); // Even more subtle movement
+  const backgroundY = useTransform(mouseY, [0, 1], ["-0.5%", "0.5%"]);
+  
+  // Memoize the background component to prevent unnecessary re-renders
+  const BackgroundEffect = useMemo(() => {
+    if (isLowPerfDevice || disableParallax) return null;
+    
+    return (
+      <motion.div
+        className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 z-0"
+        style={{
+          x: backgroundX,
+          y: backgroundY,
+          scale: 1.05, // Reduced scale for better performance
+        }}
+        transition={{ 
+          type: "tween", // Changed from spring to tween for better performance
+          ease: "linear",
+          duration: 0.2
+        }}
+      />
+    );
+  }, [backgroundX, backgroundY, isLowPerfDevice, disableParallax]);
 
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Parallax Toggle */}
+      <ParallaxToggle isEnabled={!disableParallax} onToggle={toggleParallax} />
+      
       {/* Subscribe Popup */}
       <SubscribePopup />
       
@@ -920,17 +1086,7 @@ export default function Home() {
         }}
       >
         {/* Dynamic background - simplified for mobile */}
-        {!isLowPerfDevice && (
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 z-0"
-            style={{
-              x: backgroundX,
-              y: backgroundY,
-              scale: 1.1,
-            }}
-            transition={{ type: "spring", damping: 25, stiffness: 100 }}
-          />
-        )}
+        {BackgroundEffect}
 
         {/* Floating elements - only on desktop */}
         {!isLowPerfDevice && (
@@ -1061,7 +1217,7 @@ export default function Home() {
                     >
                       <div className="p-4">
                         <p className="text-sm text-primary font-medium mb-2">Total Value Locked</p>
-                        <AnimatedValueVisualization value="$1.2B+" icon="tvl" description="Across all supported chains" />
+                        <AnimatedValueVisualization value="$1.2B*" icon="tvl" description="Across all supported chains" />
                       </div>
                     </motion.div>
 
@@ -1072,7 +1228,7 @@ export default function Home() {
                     >
                       <div className="p-4">
                         <p className="text-sm text-primary font-medium mb-2">Total Users</p>
-                        <AnimatedValueVisualization value="125K+" icon="users" description="Active platform users" />
+                        <AnimatedValueVisualization value="125K*" icon="users" description="Active platform users" />
                       </div>
                     </motion.div>
 
@@ -1083,7 +1239,7 @@ export default function Home() {
                     >
                       <div className="p-4">
                         <p className="text-sm text-primary font-medium mb-2">Supported Chains</p>
-                        <AnimatedValueVisualization value="8+" icon="chains" description="Cross-chain compatibility" />
+                        <AnimatedValueVisualization value="8*" icon="chains" description="Cross-chain compatibility" />
                       </div>
                     </motion.div>
 
@@ -1094,7 +1250,7 @@ export default function Home() {
                     >
                       <div className="p-4">
                         <p className="text-sm text-primary font-medium mb-2">Interest Earned</p>
-                        <AnimatedValueVisualization value="$45M+" icon="interest" description="Total user earnings" />
+                        <AnimatedValueVisualization value="$45M*" icon="interest" description="Total user earnings" />
                       </div>
                     </motion.div>
                   </div>
@@ -1106,6 +1262,11 @@ export default function Home() {
                       <div className="absolute -bottom-8 -left-8 w-16 h-16 bg-accent/20 rounded-full blur-xl animate-pulse" />
                     </>
                   )}
+
+                  {/* Disclaimer text */}
+                  <div className="mt-4 text-xs text-text/50 text-center">
+                    * These metrics represent projected values based on our platform's design and market analysis. Actual values will be updated in real-time once the platform is live.
+                  </div>
                 </InteractiveCard>
               </motion.div>
             )}

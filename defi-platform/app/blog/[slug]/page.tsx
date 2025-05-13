@@ -1,7 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Calendar, Clock, Tag, User, ArrowLeft, Twitter, Linkedin, LinkIcon, ArrowRight, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -10,12 +10,22 @@ import PostPreview from "@/components/blog/post-preview"
 import type { TableOfContentsItem } from "@/types/blog"
 import "./blog-content.css"
 
+// Update Props type to specify Promise for params
 type Props = {
-  params: { slug: string }
+  params: Promise<{ slug: string }>
+}
+
+// Move viewport properties to a separate viewport export
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const post = getPostBySlug(params.slug)
+  // Properly handle params as a Promise
+  const resolvedParams = await params
+  const post = getPostBySlug(resolvedParams.slug)
 
   if (!post) {
     return {
@@ -54,7 +64,9 @@ export async function generateStaticParams() {
 }
 
 export default async function BlogPost({ params }: Props) {
-  const post = getPostBySlug(params.slug)
+  // Properly handle params as a Promise
+  const resolvedParams = await params
+  const post = getPostBySlug(resolvedParams.slug)
 
   if (!post) {
     notFound()

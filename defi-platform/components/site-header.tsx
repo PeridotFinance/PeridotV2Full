@@ -247,11 +247,7 @@ export function SiteHeader() {
 
           <div className="hidden md:flex items-center space-x-4">
             <ThemeToggle />
-            {!isBridgePage && (
-              <Button asChild variant="outline" size="sm" className="rounded-xl">
-                <Link href="/app">Connect Wallet</Link>
-              </Button>
-            )}
+
             <Button asChild size="sm" className="bg-primary text-background hover:bg-primary/90 rounded-xl">
               <Link href="/app">Launch App</Link>
             </Button>
@@ -291,13 +287,7 @@ export function SiteHeader() {
                 <div className="flex justify-start py-2">
                   <ThemeToggle />
                 </div>
-                {!isBridgePage && (
-                  <Button asChild variant="outline" size="sm" className="rounded-xl w-full">
-                    <Link href="/app" onClick={() => setIsMenuOpen(false)}>
-                      Connect Wallet
-                    </Link>
-                  </Button>
-                )}
+
                 <Button asChild size="sm" className="bg-primary text-background hover:bg-primary/90 rounded-xl w-full">
                   <Link href="/app" onClick={() => setIsMenuOpen(false)}>
                     Launch App

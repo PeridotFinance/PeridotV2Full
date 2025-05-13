@@ -64,7 +64,7 @@ export function getTableOfContents(content: string) {
   const headingLines = content.split("\n").filter((line) => line.match(/^#{2,3} /))
 
   return headingLines.map((heading) => {
-    const level = heading.match(/^#{2,3} /)[0].trim().length
+    const level = heading.match(/^#{2,3} /)![0].trim().length
     const title = heading.replace(/^#{2,3} /, "")
     const slug = title
       .toLowerCase()

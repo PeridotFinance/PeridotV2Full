@@ -1,11 +1,11 @@
 ---
 title: "What is DeFi Lending?"
 excerpt: "Discover how decentralized finance is revolutionizing the lending landscape with transparent, accessible, and borderless financial services."
-coverImage: "/blog/defi-lending.jpg"
+coverImage: "/blog/titleimages/whatisdefilending.jpg"
 date: "2025-04-15"
 author:
-  name: "Alex Johnson"
-  picture: "/team/alex-johnson.jpg"
+  name: "Asyncsan"
+  picture: "/blog/author/asyncsan.jpg"
 category: "Education"
 tags: ["DeFi", "Lending", "Crypto", "Blockchain", "Finance"]
 ---
@@ -74,52 +74,3 @@ As the DeFi ecosystem matures, we can expect:
 - Cross-chain lending opportunities
 - Integration with traditional finance systems
 
-## Formatting Guide for Blog Posts
-
-### Using Lists for Better Readability
-
-When writing blog posts, you can use different types of lists to organize information:
-
-#### Unordered Lists
-Use bullet points for items where order doesn't matter:
-- First item
-- Second item
-- Third item
-
-#### Ordered Lists
-Use numbers when sequence is important:
-1. First step
-2. Second step
-3. Third step
-
-### Other Formatting Options
-
-#### Emphasis
-Use *italics* or **bold** to emphasize important points.
-
-#### Blockquotes
-> Use blockquotes to highlight quotes or important statements.
-
-#### Code Blocks
-For technical content, use code blocks:
-```
-function example() {
-  return "This is code formatting";
-}
-```
-
-#### Tables
-| Header 1 | Header 2 |
-|----------|----------|
-| Cell 1   | Cell 2   |
-| Cell 3   | Cell 4   |
-
-#### Images
-Include images with captions for visual explanation:
-![Alt Text](/path/to/image.jpg)
-*Caption for the image*
-
-#### Links
-Create [hyperlinks to related content](/blog/related-post) to provide additional context.
-
-By using these formatting options, you can create engaging, readable content that effectively communicates complex DeFi concepts to your audience. 

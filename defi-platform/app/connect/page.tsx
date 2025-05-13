@@ -1,16 +1,35 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Check, Info } from "lucide-react"
 import Image from "next/image"
-import { useWallet } from "@/components/wallet/wallet-provider"
 import { useRouter } from "next/navigation"
 
 export default function ConnectPage() {
-  const { isConnected, connectMetaMask, connectPhantom, connectSolflare, isConnecting } = useWallet()
   const router = useRouter()
+  const [isConnected, setIsConnected] = useState(false)
+
+  // Check if wallet is connected
+  useEffect(() => {
+    // AppKit exposes connection state on the window
+    const checkConnection = () => {
+      if (typeof window !== 'undefined' && (window as any).reown?.state?.isConnected) {
+        setIsConnected(true)
+      }
+    }
+
+    // Check on load
+    checkConnection()
+
+    // Listen for connection changes
+    window.addEventListener('reown:accountsChanged', checkConnection)
+    
+    return () => {
+      window.removeEventListener('reown:accountsChanged', checkConnection)
+    }
+  }, [])
 
   // Redirect to app if already connected
   useEffect(() => {
@@ -35,64 +54,9 @@ export default function ConnectPage() {
               <CardTitle>Choose a Wallet</CardTitle>
               <CardDescription>Select a wallet to connect to Peridot</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                variant="outline"
-                className="w-full flex justify-start items-center h-16"
-                onClick={connectMetaMask}
-                disabled={isConnecting}
-              >
-                <div className="w-10 h-10 mr-4 flex items-center justify-center">
-                  <Image
-                    src="/placeholder.svg?height=40&width=40&query=metamask"
-                    alt="MetaMask"
-                    width={40}
-                    height={40}
-                  />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">MetaMask</div>
-                  <div className="text-xs text-text/60">Connect to Ethereum, Polygon, Avalanche, BSC</div>
-                </div>
-                {isConnecting && <span className="ml-auto animate-spin">⟳</span>}
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full flex justify-start items-center h-16"
-                onClick={connectPhantom}
-                disabled={isConnecting}
-              >
-                <div className="w-10 h-10 mr-4 flex items-center justify-center">
-                  <Image src="/placeholder.svg?height=40&width=40&query=phantom" alt="Phantom" width={40} height={40} />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Phantom</div>
-                  <div className="text-xs text-text/60">Connect to Solana</div>
-                </div>
-                {isConnecting && <span className="ml-auto animate-spin">⟳</span>}
-              </Button>
-
-              <Button
-                variant="outline"
-                className="w-full flex justify-start items-center h-16"
-                onClick={connectSolflare}
-                disabled={isConnecting}
-              >
-                <div className="w-10 h-10 mr-4 flex items-center justify-center">
-                  <Image
-                    src="/placeholder.svg?height=40&width=40&query=solflare"
-                    alt="Solflare"
-                    width={40}
-                    height={40}
-                  />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Solflare</div>
-                  <div className="text-xs text-text/60">Connect to Solana</div>
-                </div>
-                {isConnecting && <span className="ml-auto animate-spin">⟳</span>}
-              </Button>
+            <CardContent className="space-y-4 flex justify-center">
+              {/* AppKit Web Component handles all wallet connections */}
+              <appkit-button />
             </CardContent>
           </Card>
 

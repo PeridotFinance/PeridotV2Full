@@ -11,9 +11,9 @@ export default function Security() {
       <section className="py-16 md:py-24 hero-gradient">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">Security at CrossLend</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">Security at Peridot Finance</h1>
             <p className="text-lg text-text/80 mb-8">
-              Our comprehensive approach to securing your assets and the CrossLend protocol.
+              Our comprehensive approach to securing your assets and the Peridot Finance protocol.
             </p>
             <Button asChild size="lg" className="bg-primary text-background hover:bg-primary/90">
               <Link href="#audits">
@@ -31,7 +31,7 @@ export default function Security() {
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl font-bold mb-8 text-center">Our Security Approach</h2>
             <p className="text-text/80 mb-8">
-              At CrossLend, security is our highest priority. We employ a multi-layered approach to protect user assets
+              At Peridot Finance, security is our highest priority. We employ a multi-layered approach to protect user assets
               and ensure the integrity of our protocol across all supported blockchains. Our security strategy includes:
             </p>
 
@@ -274,7 +274,7 @@ export default function Security() {
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl font-bold mb-6 text-center">Bug Bounty Program</h2>
             <p className="text-text/80 mb-8 text-center">
-              Help us improve the security of CrossLend by finding and reporting vulnerabilities.
+              Help us improve the security of Peridot Finance by finding and reporting vulnerabilities.
             </p>
 
             <Card className="bg-card border-border/50 mb-8">
@@ -328,7 +328,7 @@ export default function Security() {
 
             <div className="text-center">
               <Button asChild size="lg" className="bg-primary text-background hover:bg-primary/90">
-                <Link href="https://hackerone.com/crosslend" target="_blank" rel="noopener noreferrer">
+                <Link href="https://hackerone.com/Peridot Finance" target="_blank" rel="noopener noreferrer">
                   Submit a Vulnerability
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -345,9 +345,9 @@ export default function Security() {
             <h2 className="text-3xl font-bold mb-8 text-center">Security FAQ</h2>
             <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-semibold mb-2">How does CrossLend secure cross-chain transactions?</h3>
+                <h3 className="text-xl font-semibold mb-2">How does Peridot Finance secure cross-chain transactions?</h3>
                 <p className="text-text/80">
-                  CrossLend uses a combination of trusted relayers, multi-signature validation, and on-chain
+                  Peridot Finance uses a combination of trusted relayers, multi-signature validation, and on-chain
                   verification to secure cross-chain messages. Each cross-chain transaction requires confirmation from
                   multiple independent validators before execution, and includes cryptographic proofs that can be
                   verified on-chain.
@@ -356,17 +356,17 @@ export default function Security() {
 
               <div>
                 <h3 className="text-xl font-semibold mb-2">
-                  What happens if a blockchain CrossLend supports is attacked?
+                  What happens if a blockchain Peridot Finance supports is attacked?
                 </h3>
                 <p className="text-text/80">
-                  CrossLend implements chain-specific circuit breakers that automatically pause operations on a
+                  Peridot Finance implements chain-specific circuit breakers that automatically pause operations on a
                   particular chain if abnormal activity is detected. This isolation mechanism prevents contagion across
                   the protocol while allowing operations to continue normally on unaffected chains.
                 </p>
               </div>
 
               <div>
-                <h3 className="text-xl font-semibold mb-2">How does CrossLend protect against oracle manipulation?</h3>
+                <h3 className="text-xl font-semibold mb-2">How does Peridot Finance protect against oracle manipulation?</h3>
                 <p className="text-text/80">
                   Our price oracle system aggregates data from multiple independent sources and implements time-weighted
                   average prices (TWAP) to resist manipulation. Additionally, we employ deviation thresholds that
@@ -377,7 +377,7 @@ export default function Security() {
               <div>
                 <h3 className="text-xl font-semibold mb-2">What security measures protect user funds?</h3>
                 <p className="text-text/80">
-                  CrossLend is non-custodial, meaning users always maintain control of their assets through smart
+                  Peridot Finance is non-custodial, meaning users always maintain control of their assets through smart
                   contracts. The protocol's conservative risk parameters, including collateral factors and liquidation
                   thresholds, are designed to protect the solvency of the system even during extreme market conditions.
                 </p>
@@ -396,7 +396,7 @@ export default function Security() {
               Have security concerns or questions? Our security team is available to assist you.
             </p>
             <Button asChild size="lg" className="bg-primary text-background hover:bg-primary/90">
-              <Link href="mailto:security@crosslend.com">security@crosslend.com</Link>
+              <Link href="mailto:security@Peridot Finance.com">security@Peridot Finance.com</Link>
             </Button>
           </div>
         </div>

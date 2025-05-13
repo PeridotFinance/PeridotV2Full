@@ -118,7 +118,7 @@ export default function Footer() {
 
         <div className="mt-12 border-t border-border/40 pt-8">
           <p className="text-center text-xs text-text/60">
-            &copy; {new Date().getFullYear()} CrossLend. All rights reserved.
+            &copy; {new Date().getFullYear()} Peridot Finance. All rights reserved.
           </p>
 
         </div>
