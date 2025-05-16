@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package peridot.metaplex.v1;
+
+import "google/protobuf/timestamp.proto";
+
+message MetaplexEvents {
+    repeated MetaplexEvent events = 1;
+}
+
+message MetaplexEvent {
+    string tx_hash = 1;
+    uint64 block_slot = 2;
+    google.protobuf.Timestamp block_time = 3;
+    uint32 instruction_index = 4;
+    string payer_address = 5; // Address that paid for the transaction
+
+    // Account keys relevant to the specific instruction
+    string token_mint_account = 6; // For Create: the mint being given metadata. For Update: can be derived or stored.
+    string metadata_account = 7; // The PDA of the metadata account
+    string update_authority = 8; // Authority for the metadata
+
+    oneof event_type {
+        CreateMetadataAccountV3Data create_metadata_v3 = 20;
+        UpdateMetadataAccountV2Data update_metadata_v2 = 21;
+    }
+}
+
+message MetaplexCreator {
+    string address = 1;
+    bool verified = 2;
+    uint32 share = 3;
+}
+
+message MetaplexCollection {
+    bool verified = 1;
+    string key = 2; // The mint address of the collection NFT
+}
+
+enum MetaplexUseMethod {
+    BURN = 0;
+    MULTIPLE = 1;
+    SINGLE = 2;
+}
+
+message MetaplexUses {
+    MetaplexUseMethod use_method = 1;
+    uint64 remaining = 2;
+    uint64 total = 3;
+}
+
+// Corresponds to the DataV2 struct in Metaplex mpl-token-metadata
+message MetaplexTokenMetadata {
+    string name = 1;
+    string symbol = 2;
+    string uri = 3;
+    uint32 seller_fee_basis_points = 4;
+    repeated MetaplexCreator creators = 5;
+    optional MetaplexCollection collection = 6;
+    optional MetaplexUses uses = 7;
+}
+
+// Corresponds to CollectionDetails enum/struct in Metaplex
+message MetaplexCollectionDetails {
+    // Currently, only V1 is prominent, representing a sized collection.
+    message V1 {
+        uint64 size = 1;
+    }
+    oneof details {
+        V1 v1 = 1;
+    }
+}
+
+message CreateMetadataAccountV3Data {
+    // mint, mint_authority, payer, update_authority are in the accounts for the instruction
+    // metadata_pda is derived/known
+    MetaplexTokenMetadata data = 1;
+    bool is_mutable = 2;
+    optional MetaplexCollectionDetails collection_details = 3;
+}
+
+message UpdateMetadataAccountV2Data {
+    // metadata_pda, update_authority (signer) are in the accounts
+    optional MetaplexTokenMetadata data = 1; // Option because not all fields are required for update
+    optional string new_update_authority = 2;
+    optional bool primary_sale_happened = 3;
+    optional bool is_mutable = 4; // Can only be flipped to false
+} 

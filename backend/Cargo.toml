@@ -1,6 +1,6 @@
 [workspace]
 members = [
-    "peridot",
+    "graph/peridot",
     # Add other potential rust projects here if they exist
 ]
 

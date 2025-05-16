@@ -1,0 +1,29 @@
+[package]
+name = "peridot"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "peridot"
+path = "src/lib.rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+substreams = "0.5.18"
+substreams-solana = "0.0.10"
+prost = "0.11.0"
+prost-types = "0.11.0"
+borsh = "0.10.3"
+solana-program = "1.18.18"
+bs58 = "0.5.0"
+hex = "0.4.3"
+mpl-token-metadata = "^4.1.2"
+
+[build-dependencies]
+substreams-common = "0.1"
+anyhow = "1.0.53"
+
+[profile.release]
+lto = true
+opt-level = 's'
+strip = "debuginfo" 

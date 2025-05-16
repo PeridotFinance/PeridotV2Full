@@ -1,0 +1,70 @@
+specVersion: v0.1.0
+package:
+  name: peridot-spl-token
+  version: v0.2.2
+
+imports:
+  solana: https://spkg.io/streamingfast/solana-common-v0.3.3.spkg
+
+protobuf:
+  files:
+    - spl_token_events.proto
+    - wormhole_events.proto
+    - metaplex.v1.proto
+  importPaths:
+    - ./proto
+  excludePaths:
+    - sf/substreams/rpc
+    - sf/substreams/v1
+    - sf/substreams/sink
+    - sf/substreams/index
+    - sf/substreams/index/v1
+    - instructions.proto
+    - transactions.proto
+    - google
+
+binaries:
+  default:
+    type: wasm/rust-v1+wasm-bindgen-shims
+    file: ./target/wasm32-unknown-unknown/release/substreams.wasm
+
+modules:
+  - name: map_filtered_transactions
+    use: solana:transactions_by_programid_without_votes
+    initialBlock: 0
+
+  - name: map_spl_mint_burn
+    kind: map
+    inputs:
+      - map: map_filtered_transactions
+    output:
+      type: proto:spl_token.v1.MintOrBurnEvents
+
+  - name: map_filtered_wormhole_transactions
+    use: solana:transactions_by_programid_without_votes
+    initialBlock: 0
+
+  - name: map_wormhole_events
+    kind: map
+    inputs:
+      - map: map_filtered_wormhole_transactions
+    output:
+      type: proto:wormhole.v1.WormholeEvents
+
+  - name: map_filtered_metaplex_transactions
+    use: solana:transactions_by_programid_without_votes
+    initialBlock: 0
+
+  - name: map_metaplex_events
+    kind: map
+    inputs:
+      - map: map_filtered_metaplex_transactions
+    output:
+      type: proto:peridot.metaplex.v1.MetaplexEvents
+
+network: devnet.sol.streamingfast.io:443
+
+params:
+  map_filtered_transactions: program:TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA
+  map_filtered_wormhole_transactions: program:3u8hJhpWcB8GfnpnLCuRztPD6qgqbtT6NBKMLVMqYc6N
+  map_filtered_metaplex_transactions: program:metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s

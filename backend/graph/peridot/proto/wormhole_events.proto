@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package wormhole.v1;
+
+message WormholeEvents {
+    repeated WormholeEvent events = 1;
+}
+
+enum InstructionType {
+    UNSPECIFIED = 0;
+    POST_MESSAGE = 1;
+    POST_VAA = 2;
+    POST_MESSAGE_UNRELIABLE = 3;
+}
+
+message WormholeEvent {
+    string tx_signature = 1;
+    uint64 block_slot = 2;
+    int64 block_time = 3;
+    InstructionType instruction_type = 4;
+    uint32 instruction_index = 5; // Index of this instruction in the transaction
+
+    // Specific event data
+    oneof event_data {
+        PostedMessageData posted_message = 6;
+        PostedVAAData posted_vaa = 7;
+        PostedMessageUnreliableData posted_message_unreliable = 8;
+    }
+}
+
+message PostedMessageData {
+    string emitter = 1; // The account that initiated the message (from transaction accounts)
+    uint32 nonce = 2;
+    bytes payload = 3;
+    uint32 consistency_level = 4; // 0 for Confirmed, 1 for Finalized
+    string payer = 5; // Payer of the transaction fee for this instruction
+}
+
+// For PostMessageUnreliable, structure is the same as PostMessage
+message PostedMessageUnreliableData {
+    string emitter = 1;
+    uint32 nonce = 2;
+    bytes payload = 3;
+    uint32 consistency_level = 4;
+    string payer = 5;
+}
+
+message PostedVAAData {
+    // VAA Header fields
+    uint32 version = 1;
+    uint32 guardian_set_index = 2;
+
+    // VAA Body fields
+    uint32 vaa_timestamp = 3; // Renamed to avoid conflict with block_time
+    uint32 vaa_nonce = 4;     // Renamed to avoid conflict
+    uint32 emitter_chain = 5;
+    bytes emitter_address = 6; // This is typically [u8; 32]
+    uint64 sequence = 7;
+    uint32 consistency_level = 8;
+    bytes payload = 9;
+    string payer = 10; // Payer of the transaction fee for this instruction
+} 

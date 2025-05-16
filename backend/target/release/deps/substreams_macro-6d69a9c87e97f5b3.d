@@ -1,0 +1,10 @@
+/home/josh/PeridotV2Full/backend/target/release/deps/libsubstreams_macro-6d69a9c87e97f5b3.so: /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/lib.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/assertions.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/config.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/errors.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/handler.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/store.rs
+
+/home/josh/PeridotV2Full/backend/target/release/deps/substreams_macro-6d69a9c87e97f5b3.d: /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/lib.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/assertions.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/config.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/errors.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/handler.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/store.rs
+
+/home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/lib.rs:
+/home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/assertions.rs:
+/home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/config.rs:
+/home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/errors.rs:
+/home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/handler.rs:
+/home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/substreams-macro-0.6.1/src/store.rs:

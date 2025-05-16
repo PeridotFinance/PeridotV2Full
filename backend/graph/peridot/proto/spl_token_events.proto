@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package spl_token.v1; // Package name reflecting the content
+
+// Wrapper message containing a list of mint or burn events
+message MintOrBurnEvents {
+    repeated MintOrBurnEvent events = 1;
+}
+
+// Represents a single mint or burn event
+message MintOrBurnEvent {
+    string tx_signature = 1;      // Transaction ID where the event occurred
+    uint64 block_slot = 2;        // Block number
+    int64 block_time = 3;         // Unix timestamp of the block
+    uint32 instruction_index = 4; // Index of the mint/burn instruction within the transaction
+    EventType event_type = 5;     // Enum indicating MINT or BURN
+    string program_id = 6;        // Should be the SPL Token Program ID
+    string mint_account = 7;      // The token mint address (e.g., address of USDC)
+    string token_account = 8;     // The specific token account being minted to or burned from
+    string authority = 9;         // The authority that signed for the mint/burn (mint authority or token account owner/delegate)
+    uint64 amount = 10;           // The amount of tokens minted or burned (raw u64)
+}
+
+// Enum to differentiate between Mint and Burn events
+enum EventType {
+    UNKNOWN = 0;
+    MINT = 1;
+    BURN = 2;
+} 

@@ -1,0 +1,9 @@
+{
+  "generator": "sol-transactions",
+  "state": {
+    "name": "peridot",
+    "chainName": "",
+    "initialBlockSet": true,
+    "filter": "program:TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA || program:metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
+  }
+}

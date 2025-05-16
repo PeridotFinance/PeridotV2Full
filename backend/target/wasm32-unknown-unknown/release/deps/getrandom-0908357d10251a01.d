@@ -1,0 +1,11 @@
+/home/josh/PeridotV2Full/backend/target/wasm32-unknown-unknown/release/deps/libgetrandom-0908357d10251a01.rmeta: /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/lib.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/util.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error_impls.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/wasm32_bindgen.rs
+
+/home/josh/PeridotV2Full/backend/target/wasm32-unknown-unknown/release/deps/libgetrandom-0908357d10251a01.rlib: /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/lib.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/util.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error_impls.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/wasm32_bindgen.rs
+
+/home/josh/PeridotV2Full/backend/target/wasm32-unknown-unknown/release/deps/getrandom-0908357d10251a01.d: /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/lib.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/util.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error_impls.rs /home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/wasm32_bindgen.rs
+
+/home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/lib.rs:
+/home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error.rs:
+/home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/util.rs:
+/home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/error_impls.rs:
+/home/josh/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/getrandom-0.1.16/src/wasm32_bindgen.rs:
