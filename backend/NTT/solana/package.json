@@ -1,0 +1,78 @@
+{
+  "name": "@wormhole-foundation/sdk-solana-ntt",
+  "version": "0.5.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wormhole-foundation/example-native-token-transfers.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wormhole-foundation/example-native-token-transfers"
+  },
+  "homepage": "https://github.com/wormhole-foundation/example-native-token-transfers#readme",
+  "directories": {
+    "test": "tests"
+  },
+  "license": "Apache-2.0",
+  "main": "./dist/cjs/ts/index.js",
+  "types": "./dist/cjs/ts/index.d.ts",
+  "module": "./dist/esm/ts/index.js",
+  "description": "NTT SDK for Solana",
+  "files": [
+    "dist/esm",
+    "dist/cjs"
+  ],
+  "keywords": [
+    "wormhole",
+    "sdk",
+    "typescript",
+    "ntt",
+    "solana"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "sideEffects": true,
+  "scripts": {
+    "build:cjs": "tsc -p ./tsconfig.cjs.json  && echo '{\"type\":\"commonjs\"}' > dist/cjs/package.json",
+    "build:esm": "tsc -p ./tsconfig.esm.json",
+    "build": "npm run build:esm && npm run build:cjs",
+    "rebuild": "npm run clean && npm run build",
+    "clean": "rm -rf ./dist",
+    "test:ci": "jest --config ./jest.config.ts",
+    "build:contracts": "make build"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.5",
+    "nock": "^13.3.3",
+    "ts-jest": "^29.1.2",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.7.2"
+  },
+  "dependencies": {
+    "@coral-xyz/anchor": "0.29.0",
+    "@coral-xyz/borsh": "0.29.0",
+    "@solana/spl-token": "0.4.0",
+    "@solana/web3.js": "^1.95.8",
+    "bn.js": "5.2.1",
+    "@wormhole-foundation/sdk-definitions-ntt": "0.5.0"
+  },
+  "peerDependencies": {
+    "@wormhole-foundation/sdk-base": "^1.0.0",
+    "@wormhole-foundation/sdk-definitions": "^1.0.0",
+    "@wormhole-foundation/sdk-solana": "^1.0.0",
+    "@wormhole-foundation/sdk-solana-core": "^1.0.0"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/ts/index.d.ts",
+        "default": "./dist/esm/ts/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/ts/index.d.ts",
+        "default": "./dist/cjs/ts/index.js"
+      }
+    }
+  }
+}

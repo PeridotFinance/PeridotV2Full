@@ -1,0 +1,22 @@
+[package]
+name = "ntt-messages"
+version = "3.0.0"
+edition = "2021"
+
+[features]
+default = [ "wormhole" ]
+wormhole = []
+hash = [ "solana-program" ]
+anchor = [ "anchor-lang" ]
+
+[lints]
+workspace = true
+
+[dependencies]
+anchor-lang = { workspace = true, optional = true }
+wormhole-io.workspace = true
+solana-program = { workspace = true, optional = true }
+
+[dev-dependencies]
+
+hex.workspace = true

@@ -1,0 +1,80 @@
+name: EVM CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - main
+
+env:
+  FOUNDRY_PROFILE: ci
+
+defaults:
+  run:
+    working-directory: ./evm
+
+jobs:
+  check:
+    strategy:
+      fail-fast: true
+
+    name: forge test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run Forge build
+        run: |
+          make push0-test
+        id: build
+
+      - name: Run Forge tests
+        run: |
+          make forge-test
+        id: test
+
+      - name: Run Forge fmt
+        run: |
+          make lint
+        id: check
+
+      - name: Run size test
+        run: |
+          make size-test
+
+  echidna:
+    name: echidna
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run Forge build
+        run: |
+          make build
+        id: build
+
+      - name: Install Echidna
+        run: |
+          curl -LO https://github.com/crytic/echidna/releases/download/v2.2.3/echidna-2.2.3-x86_64-linux.tar.gz
+          mkdir echidna-bin
+          tar -xzf echidna-2.2.3-x86_64-linux.tar.gz -C echidna-bin
+          pip install crytic-compile
+
+      - name: Run Echidna
+        run: |
+          echidna-bin/echidna ./echidna --config echidna.yaml

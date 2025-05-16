@@ -1,0 +1,97 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: solana-devnet
+  labels:
+    app: solana-devnet
+spec:
+  ports:
+    - port: 8899
+      name: rpc
+      protocol: TCP
+    - port: 9900
+      name: faucet
+      protocol: TCP
+  clusterIP: None
+  selector:
+    app: solana-devnet
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: solana-devnet
+spec:
+  selector:
+    matchLabels:
+      app: solana-devnet
+  serviceName: solana-devnet
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: solana-devnet
+    spec:
+      terminationGracePeriodSeconds: 1
+      containers:
+        - name: solana-devnet
+          image: solana-test-validator
+          command:
+            - solana-test-validator
+            - --bpf-program
+            - Bridge1p5gheXUvJ6jGWGeCsgPKgnE3YgdGKRVCMY9o
+            - /opt/solana/deps/bridge.so
+            - --account
+            - FKoMTctsC7vJbEqyRiiPskPnuQx2tX1kurmvWByq5uZP
+            - /opt/solana/deps/bridge_config.json
+            - --account
+            - GXBsgBD3LDn3vkRZF6TfY5RqgajVZ4W5bMAdiAaaUARs
+            - /opt/solana/deps/fee_collector.json
+            - --account
+            - 6MxkvoEwgB9EqQRLNhvYaPGhfcLtBtpBqdQugr3AZUgD
+            - /opt/solana/deps/guardian_set.json
+            - --upgradeable-program
+            - NTTManager111111111111111111111111111111111
+            - /opt/solana/deps/example_native_token_transfers.so
+            - 7HrnXGAzG6mV93Lumk7yfyrNk2bpstq8YyesqojLj8mG
+            - --upgradeable-program
+            - NTTManager222222222222222222222222222222222
+            - /opt/solana/deps/example_native_token_transfers_2.so
+            - 6sbzC1eH4FTujJXWj51eQe25cYvr4xfXbJ1vAj7j2k5J
+            - -q
+          ports:
+            - containerPort: 8001
+              name: gossip
+              protocol: UDP
+            - containerPort: 8003
+              name: tpu
+              protocol: UDP
+            - containerPort: 8004
+              name: tpufwd
+              protocol: UDP
+            - containerPort: 8000
+              name: tvu
+              protocol: UDP
+            - containerPort: 8002
+              name: tvufwd
+              protocol: UDP
+            - containerPort: 8006
+              name: repair
+              protocol: UDP
+            - containerPort: 8007
+              name: serverepair
+              protocol: UDP
+            - containerPort: 8899
+              name: rpc
+              protocol: TCP
+            - containerPort: 8900
+              name: pubsub
+              protocol: TCP
+            - containerPort: 9900
+              name: faucet
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              port: rpc
+              path: /health
+            periodSeconds: 1

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.26;
 
 import {Script, console} from "forge-std/Script.sol";
-import {PeridotHub} from "../contracts/PeridotHub.sol";
+import {PeridotHub} from "../contracts/Wormhole/PeridotHub.sol";
 import {EIP1967Proxy} from "../contracts/proxy/Proxy.sol"; // Import the proxy
 
 /**

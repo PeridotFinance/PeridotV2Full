@@ -2,7 +2,7 @@
 pragma solidity ^0.8.26;
 
 import "forge-std/Test.sol";
-import "../contracts/PeridotHub.sol";
+import "../contracts/Wormhole/PeridotHub.sol";
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 
 // Mock ERC20 token for testing

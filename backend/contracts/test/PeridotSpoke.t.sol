@@ -2,7 +2,7 @@
 pragma solidity ^0.8.26;
 
 import "../lib/forge-std/src/Test.sol";
-import {PeridotSpoke} from "../contracts/PeridotSpoke.sol";
+import {PeridotSpoke} from "../contracts/Wormhole/PeridotSpoke.sol";
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
 import "../lib/wormhole-solidity-sdk/src/Utils.sol";
 

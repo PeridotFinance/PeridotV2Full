@@ -1,0 +1,68 @@
+# NOTE: we use the backpackapp base image so we can use solana. You would think
+# that the solana installer script just works, but you would be wrong. It seems
+# to have been broken recently since the migration to the anza url.
+# The old installer url returns a 403. So we instead rely on solana binaries cached on docker hub. Everything is fine.
+FROM backpackapp/build:v0.30.1@sha256:c160fe32cba7c463981110b2aac2924de4833c06a0af6473a830ead880c4ef3b as base
+
+RUN apt update
+
+RUN apt install -y python3
+RUN apt install -y build-essential
+RUN apt install -y git
+RUN apt install -y curl
+RUN apt install -y unzip
+
+RUN curl -fsSL https://bun.sh/install | bash
+
+RUN curl -L https://foundry.paradigm.xyz | bash
+RUN bash -ci "foundryup"
+
+RUN apt install -y jq
+
+FROM base as base-solana
+
+RUN cargo install --git https://github.com/coral-xyz/anchor --tag v0.29.0 avm --locked --force
+RUN avm install 0.29.0
+RUN avm use 0.29.0
+
+FROM base as cli-remote
+# NOTE: when invoking the installer outside of the source tree, it clones the
+# repo and installs that way.
+# This build stage tests that path.
+COPY cli/install.sh cli/install.sh
+RUN bash -ci "./cli/install.sh"
+RUN bash -ci "which ntt"
+
+FROM base-solana as cli-local
+# NOTE: when invoking the installer inside of the source tree, it installs from
+# the local source tree.
+# This build stage tests that path.
+WORKDIR /app
+COPY tsconfig.json tsconfig.json
+COPY tsconfig.esm.json tsconfig.esm.json
+COPY tsconfig.cjs.json tsconfig.cjs.json
+COPY package.json package.json
+COPY package-lock.json package-lock.json
+COPY sdk sdk
+COPY solana/package.json solana/package.json
+COPY solana/ts solana/ts
+COPY evm/ts evm/ts
+COPY solana/tsconfig.*.json solana/
+COPY cli/package.json cli/package.json
+COPY cli/package-lock.json cli/package-lock.json
+COPY cli/src cli/src
+COPY cli/install.sh cli/install.sh
+RUN bash -ci "./cli/install.sh"
+RUN bash -ci "which ntt"
+
+FROM cli-local as cli-local-test
+COPY cli/test cli/test
+COPY evm evm
+RUN bash -ci "./cli/test/sepolia-bsc.sh"
+
+FROM cli-local as cli-local-test-solana
+COPY cli/test cli/test
+# evm/script needed for the cli, at least for now
+COPY evm/script evm/script
+COPY solana solana
+RUN bash -ci "./cli/test/solana.sh --use-tmp-dir"

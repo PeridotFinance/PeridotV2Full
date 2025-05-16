@@ -2,14 +2,14 @@
 pragma solidity ^0.8.26;
 
 // UPGRADEABLE IMPORTS
-import {Initializable} from "../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
-import {OwnableUpgradeable} from "../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
-import "../lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../lib/wormhole-solidity-sdk/src/interfaces/IWormhole.sol";
-import "../lib/wormhole-solidity-sdk/src/interfaces/IWormholeRelayer.sol";
-import {ITokenBridge} from "../lib/wormhole-solidity-sdk/src/interfaces/ITokenBridge.sol";
-import "../lib/wormhole-solidity-sdk/src/interfaces/IWormholeReceiver.sol";
+import {Initializable} from "../../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "../../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
+import "../../lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import "../../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../../lib/wormhole-solidity-sdk/src/interfaces/IWormhole.sol";
+import "../../lib/wormhole-solidity-sdk/src/interfaces/IWormholeRelayer.sol";
+import {ITokenBridge} from "../../lib/wormhole-solidity-sdk/src/interfaces/ITokenBridge.sol";
+import "../../lib/wormhole-solidity-sdk/src/interfaces/IWormholeReceiver.sol";
 
 // Inherit from Initializable and OwnableUpgradeable
 contract PeridotSpoke is

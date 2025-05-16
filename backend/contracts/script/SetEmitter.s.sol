@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
-import "../contracts/PeridotHub.sol"; // Import the Hub interface/contract
+import "../contracts/Wormhole/PeridotHub.sol"; // Import the Hub interface/contract
 
 contract SetSpokeEmitter is Script {
     // --- CONFIGURATION ---

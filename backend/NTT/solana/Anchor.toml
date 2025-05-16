@@ -1,0 +1,52 @@
+[toolchain]
+anchor_version = "0.29.0"
+solana_version = "1.18.26"
+
+[features]
+seeds = false
+skip-lint = false
+
+[programs.localnet]
+dummy_transfer_hook = "BgabMDLaxsyB7eGMBt9L22MSk9KMrL4zY2iNe14kyFP5"
+example_native_token_transfers = "NTtWn9GbQbgG1Z9TuphamC7jfYesn6bp8raZAtyz3hE"
+ntt_transceiver = "Ee6jpX9oq2EsGuqGb6iZZxvtcpmMGZk8SAUbnQy4jcHR"
+ntt_quoter = "9jFBLvMZZERVmeY4tbq5MejbXRE18paGEuoB6xVJZgGe"
+wormhole_governance = "wgvEiKVzX9yyEoh41jZAdC6JqGUTS4CFXbFGBV5TKdZ"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "localnet"
+wallet = "keys/test.json"
+
+[scripts]
+test = "npm run test:ci"
+
+[test]
+startup_wait = 5000
+shutdown_wait = 2000
+upgradeable = true
+
+[[test.genesis]]
+address = "worm2ZoG2kUd4vFXhvjh93UUH596ayRfgQ2MgjNMTth"
+program = "programs/example-native-token-transfers/tests/fixtures/mainnet_core_bridge.so"
+
+[test.validator]
+bind_address = "0.0.0.0"
+url = "https://api.mainnet-beta.solana.com"
+ledger = ".anchor/test-ledger"
+rpc_port = 8899
+ticks_per_slot = 16
+
+[[test.validator.account]]
+address = "2yVjuQwpsvdsrywzsJJVs9Ueh4zayyo5DYJbBNc3DDpn"
+filename = "tests/accounts/mainnet/core_bridge_config.json"
+
+[[test.validator.account]]
+address = "9bFNrXNb2WTx8fMHXCheaZqkLZ3YCCaiqTftHxeintHy"
+filename = "tests/accounts/mainnet/core_bridge_fee_collector.json"
+
+[[test.validator.account]]
+address = "DS7qfSAgYsonPpKoAjcGhX9VFjXdGkiHjEDkTidf8H2P"
+filename = "tests/accounts/mainnet/guardian_set_0.json"

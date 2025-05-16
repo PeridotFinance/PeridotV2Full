@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
-import "../contracts/PeridotSpoke.sol"; // Import the Spoke contract
+import "../contracts/Wormhole/PeridotSpoke.sol"; // Import the Spoke contract
 import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "../lib/wormhole-solidity-sdk/src/interfaces/IWormholeRelayer.sol"; // For quoting fee
 

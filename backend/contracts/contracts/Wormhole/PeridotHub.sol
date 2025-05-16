@@ -2,21 +2,21 @@
 pragma solidity ^0.8.26;
 
 // UPGRADEABLE IMPORTS - Make sure you have openzeppelin-contracts-upgradeable installed
-import {Initializable} from "../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
-import {OwnableUpgradeable} from "../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
-import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
-import "../lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../lib/wormhole-solidity-sdk/src/interfaces/IWormhole.sol";
-import "../lib/wormhole-solidity-sdk/src/interfaces/IWormholeReceiver.sol";
-import {ITokenBridge as WormholeTokenBridge} from "../lib/wormhole-solidity-sdk/src/interfaces/ITokenBridge.sol";
-import "../lib/wormhole-solidity-sdk/src/interfaces/IWormholeRelayer.sol";
+import {Initializable} from "../../lib/openzeppelin-contracts-upgradeable/contracts/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "../../lib/openzeppelin-contracts-upgradeable/contracts/access/OwnableUpgradeable.sol";
+import "../../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+import "../../lib/openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import "../../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import "../../lib/wormhole-solidity-sdk/src/interfaces/IWormhole.sol";
+import "../../lib/wormhole-solidity-sdk/src/interfaces/IWormholeReceiver.sol";
+import {ITokenBridge as WormholeTokenBridge} from "../../lib/wormhole-solidity-sdk/src/interfaces/ITokenBridge.sol";
+import "../../lib/wormhole-solidity-sdk/src/interfaces/IWormholeRelayer.sol";
 
-import "./PeridottrollerInterface.sol";
-import "./PTokenInterfaces.sol";
-import "./PToken.sol";
-import "./PErc20.sol";
-import "./PeridottrollerG7.sol";
+import "../PeridottrollerInterface.sol";
+import "../PTokenInterfaces.sol";
+import "../PToken.sol";
+import "../PErc20.sol";
+import "../PeridottrollerG7.sol";
 
 interface PeridottrollerLensInterface {
     function markets(address) external view returns (bool, uint);
