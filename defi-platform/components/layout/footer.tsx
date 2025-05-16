@@ -50,14 +50,15 @@ export default function Footer() {
                   Markets
                 </Link>
               </li>
-              <li>
-                <Link href="/governance" className="text-sm text-text/70 hover:text-primary">
-                  Governance
-                </Link>
-              </li>
+
               <li>
                 <Link href="/analytics" className="text-sm text-text/70 hover:text-primary">
                   Analytics
+                </Link>
+              </li>
+              <li>
+                <Link href="/solana-dashboard" className="text-sm text-text/70 hover:text-primary">
+                  Peridot Dashboard
                 </Link>
               </li>
             </ul>
@@ -66,10 +67,15 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Resources</h3>
             <ul className="mt-4 space-y-2">
-              <li>
-                <Link href="/docs" className="text-sm text-text/70 hover:text-primary">
-                  Documentation
-                </Link>
+            <li>
+                <a
+                  href="https://peridot-finance.gitbook.io/peridot-protocol"
+                  className="text-text/70 hover:text-primary transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Documentation1
+                </a>
               </li>
               <li>
                 <Link href="/whitepaper" className="text-sm text-text/70 hover:text-primary">

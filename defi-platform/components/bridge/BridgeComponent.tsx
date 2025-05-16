@@ -131,19 +131,17 @@ const BridgeComponent = ({ className }: BridgeComponentProps) => {
 
   // Define the configuration options with proper types
   const config: Partial<WormholeConnectConfig> = {
-    // network: "Mainnet",
     network: network,
-    chains: ["Ethereum", "Solana", "Avalanche", "Polygon","PolygonSepolia", "Arbitrum", "Optimism", "Base", "Scroll", "Gnosis", "ArbitrumSepolia", "BaseSepolia"],
+    chains: ["Ethereum", "Solana", "Avalanche", "Polygon", "PolygonSepolia", "Arbitrum", "Optimism", "Base", "Gnosis", "ArbitrumSepolia", "BaseSepolia"],
     rpcs: {
-      // Optional: provide your own RPC endpoints for better reliability
-      // Ethereum: "https://rpc.ankr.com/eth/your-key-here",
-      // Solana: "https://api.mainnet-beta.solana.com",
+      // Add RPC endpoints for better reliability
+      Solana: solanaTestnetContracts.rpcUrl,
+      ArbitrumSepolia: "https://sepolia-rollup.arbitrum.io/rpc",
+      BaseSepolia: "https://sepolia.base.org",
     },
-    tokensConfig: tokensConfig, // Add the tokensConfig here
+    tokensConfig: tokensConfig,
     routes: [
-      ...DEFAULT_ROUTES,
       ...nttRoutes(nttConfigForRoutes)
-      // any other custom routes or default routes if needed
     ]
   }
 

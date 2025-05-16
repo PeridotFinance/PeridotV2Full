@@ -76,9 +76,14 @@ export function SiteFooter() {
             <h3 className="font-bold text-lg mb-4">Resources</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/docs" className="text-text/70 hover:text-primary transition-colors">
+                <a
+                  href="https://peridot-finance.gitbook.io/peridot-protocol"
+                  className="text-text/70 hover:text-primary transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   Documentation
-                </Link>
+                </a>
               </li>
               <li>
                 <Link href="/blog" className="text-text/70 hover:text-primary transition-colors">
@@ -109,8 +114,8 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/press" className="text-text/70 hover:text-primary transition-colors">
-                  Press
+                <Link href="/solana-dashboard" className="text-sm text-text/70 hover:text-primary">
+                Peridot Dashboard
                 </Link>
               </li>
             </ul>

@@ -76,15 +76,13 @@ export const soneiumMinatoTestnetContracts = {
 
 export const solanaTestnetContracts = {
   chainNameWormhole: "Solana", // Wormhole Connect specific chain name
-  chainNameReadable: "Solana Testnet",
-  // chainId: ???, // Solana doesn't use numeric chain IDs in the same way as EVM
-  prdtSplTokenMint: "9znRz6rDCxhE5nYGZqTwmLHKy2ycPxu2yE3S5k2qmvuR",
-  prdtSplTokenAccount: "AiKy7k3zyMu5gJ7MobHTfjTZKEaajHHwKhyKZaeTUYea", // Associated Token Account for the PDA, for reference
-  prdtNttManagerPda: "8WRCfaAMASji1kWKBe9VuYKJr4wNoVz8NYYRa6Nw5Efq", // This is likely the manager address for NTT
-
-  // Placeholders for USDT on Solana Testnet - Please fill these in if available
-  usdtSplTokenMint: "PLACEHOLDER_USDT_SPL_TOKEN_MINT_ON_SOLANA_TESTNET",
-  usdtNttManagerPda: "PLACEHOLDER_USDT_NTT_MANAGER_PDA_ON_SOLANA_TESTNET",
+  chainNameReadable: "Solana Testnet", // Updated to reflect it's devnet
+  rpcUrl: "https://api.devnet.solana.com", // Solana devnet RPC endpoint
+  prdtSplTokenMint: "FTmRNssUmboCLqRjuNVErLVPKnwpu9Fe2Nav4mFKBJuw", // Updated Peridot token address for devnet
+  prdtSplTokenAccount: "AiKy7k3zyMu5gJ7MobHTfjTZKEaajHHwKhyKZaeTUYea",
+  prdtNttManagerPda: "8WRCfaAMASji1kWKBe9VuYKJr4wNoVz8NYYRa6Nw5Efq",
+  usdtSplTokenMint: "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
+  usdtNttManagerPda: "8WRCfaAMASji1kWKBe9VuYKJr4wNoVz8NYYRa6Nw5Efq",
 };
 
 // Note: For chains not listed in Wormhole Connect's default mainnet/testnet configurations

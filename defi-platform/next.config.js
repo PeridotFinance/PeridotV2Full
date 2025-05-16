@@ -16,6 +16,28 @@ const nextConfig = {
       }
     ],
   },
+  // Add security headers
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
+          },
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'same-site',
+          },
+        ],
+      },
+    ];
+  },
   // Add webpack externals for AppKit compatibility
   webpack: (config, { isServer }) => {
     // Fixes npm packages that depend on `fs` module

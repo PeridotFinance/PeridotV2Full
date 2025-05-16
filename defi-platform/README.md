@@ -8,6 +8,7 @@ Peridot Finance is a cutting-edge decentralized finance (DeFi) platform built wi
 
 *   **Cross-Chain Token Bridging:** Powered by **Wormhole Connect**, enabling users to transfer assets across various blockchain networks (e.g., Ethereum, Solana, Arbitrum Sepolia, Base Sepolia) efficiently.
 *   **DeFi Lending & Borrowing:** Allows users to supply their crypto assets to earn interest or borrow funds against their collateral. The platform aims to provide competitive rates and robust risk management.
+*   **Peridot Dashboard:** Provides real-time Solana network statistics (fetched using `@solana/web3.js`) and key Peridot project analytics, offering insights into network health and project growth.
 *   **User Communication:**
     *   **Contact Form:** A dedicated system for users to reach out to the Peridot team with inquiries.
     *   **Email Subscriptions:** Users can subscribe to newsletters for updates, articles, and insights about Peridot and the DeFi space.
@@ -18,6 +19,7 @@ Peridot Finance is a cutting-edge decentralized finance (DeFi) platform built wi
 *   **Frontend:** Next.js (App Router), React, TypeScript, Tailwind CSS, Shadcn/UI
 *   **Blockchain Integration:**
     *   Wormhole Connect SDK for cross-chain bridging.
+    *   `@solana/web3.js`: Used for interacting with the Solana blockchain to fetch real-time network statistics (e.g., slot, block height, TPS) for the Peridot Dashboard.
     *   Ethers.js / Viem / Wagmi (likely, based on typical DeFi dApp structure for wallet interactions and contract calls - verify specific usage).
 *   **Backend (API Routes):** Next.js API Routes, Node.js
 *   **Email Services:** Nodemailer (for contact form submissions)
@@ -97,7 +99,7 @@ The `BridgeComponent.tsx` (located in `defi-platform/components/bridge/`) is cen
 Peridot Finance serves as a DeFi lending and borrowing platform. Users can:
 *   Supply assets to liquidity pools to earn interest.
 *   Borrow assets by providing collateral.
-The platform aims to ensure security through measures like over-collateralization and robust price oracle systems, as detailed on the `/security` page.
+The platform aims to ensure security through measures like over-collateralization and robust price oracle systems.
 
 *(Further details on specific smart contracts, interest rate models, and liquidation mechanisms would require deeper dives into the backend and smart contract codebase, which is not fully visible here.)*
 

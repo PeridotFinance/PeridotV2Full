@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { SubscribePopup } from "@/components/SubscribePopup"
+import { usePostHog } from "posthog-js/react" // Added import
 
 // Interactive 3D card component with performance optimizations
 const InteractiveCard = ({ 
@@ -905,13 +906,16 @@ const ParallaxToggle = ({ isEnabled, onToggle }: ParallaxToggleProps) => {
 };
 
 export default function Home() {
-  const { scrollYProgress } = useScroll()
-  const isMobile = useMobile()
-  const { isLowPerfDevice, prefersReducedMotion } = useReducedMotion()
+  const { resolvedTheme } = useTheme();
+  const isMobile = useMobile();
+  // Revert useReducedMotion to its likely original form based on the error
+  const { isLowPerfDevice, prefersReducedMotion } = useReducedMotion(); 
+  const [showPopup, setShowPopup] = useState(false); 
+  const [isParallaxEnabled, setIsParallaxEnabled] = useState(!isLowPerfDevice);
+  const posthog = usePostHog();
+  const { scrollYProgress } = useScroll();
+  const [disableParallax, setDisableParallax] = useState(false);
   const heroRef = useRef(null)
-  const { theme } = useTheme()
-  const [disableParallax, setDisableParallax] = useState(false)
-
   // Handle toggle for parallax effects
   const toggleParallax = useCallback(() => {
     setDisableParallax(prev => !prev);
@@ -920,19 +924,24 @@ export default function Home() {
       localStorage.setItem('disableParallax', (!disableParallax).toString());
     }
   }, [disableParallax]);
-
-  // Load user preference from localStorage on mount
+  // Existing useEffect for popup
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedPreference = localStorage.getItem('disableParallax');
+    const timer = setTimeout(() => setShowPopup(true), 15000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Adjust this useEffect dependency based on the reverted useReducedMotion
+  useEffect(() => {
+    const handleParallaxToggle = () => {
+      const savedPreference = localStorage.getItem("disableParallax");
       if (savedPreference !== null) {
         setDisableParallax(savedPreference === 'true');
-      } else if (prefersReducedMotion) {
-        // If user has reducedMotion preference, respect it
+      } else if (prefersReducedMotion) { // Use prefersReducedMotion here
         setDisableParallax(true);
       }
-    }
-  }, [prefersReducedMotion]);
+    };
+    handleParallaxToggle();
+  }, [prefersReducedMotion]); // Use prefersReducedMotion in dependency array
 
   // Memoize token data to prevent unnecessary re-renders
   const tokenRow1 = useMemo(
@@ -1915,7 +1924,7 @@ export default function Home() {
                   variant="outline"
                   className="bg-background/10 border-text/20 hover:bg-background/20 rounded-xl"
                 >
-                  <Link href="/docs" className="flex items-center">
+                  <Link href="https://peridot-finance.gitbook.io/peridot-protocol" className="flex items-center">
                     Read Documentation
                     <motion.div
                       className="ml-2"
@@ -1931,6 +1940,8 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+
+
     </div>
   )
 }
