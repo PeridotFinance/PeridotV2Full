@@ -48,8 +48,16 @@ interface EasyModeProps {
 export const EasyMode = ({ onExitEasyMode }: EasyModeProps) => {
   const isMobile = useMobile()
   const [activeTab, setActiveTab] = useState<"dashboard" | "history" | "wallet">("dashboard")
-  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>("welcome")
-  const [onboardingComplete, setOnboardingComplete] = useState<boolean>(false)
+  
+  // Initialize onboardingComplete from localStorage
+  const [onboardingComplete, setOnboardingComplete] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("easyModeOnboardingComplete") === "true";
+    }
+    return false;
+  });
+  const [onboardingStep, setOnboardingStep] = useState<OnboardingStep>(onboardingComplete ? "complete" : "welcome");
+  
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>("bank")
   const [paymentAmount, setPaymentAmount] = useState<string>("1000")
   const [isProcessing, setIsProcessing] = useState<boolean>(false)
@@ -68,10 +76,16 @@ export const EasyMode = ({ onExitEasyMode }: EasyModeProps) => {
     const timer = setTimeout(() => {
       setIsLoading(false)
       // Focus on main heading when loaded for accessibility
-      mainHeadingRef.current?.focus()
+      if (onboardingComplete) {
+        // If onboarding is already complete, mainHeadingRef might be for the dashboard title
+        mainHeadingRef.current?.focus()
+      } else {
+        // If in onboarding, focus the onboarding step title
+        mainHeadingRef.current?.focus()
+      }
     }, 800)
     return () => clearTimeout(timer)
-  }, [])
+  }, [onboardingComplete])
 
   // Handle keyboard escape to exit easy mode
   useEffect(() => {
@@ -90,7 +104,9 @@ export const EasyMode = ({ onExitEasyMode }: EasyModeProps) => {
     total: "$15,423.82",
     supplied: "$12,450.00",
     borrowed: "$4,971.50",
-    available: "$8,502.32"
+    available: "$8,502.32",
+    potentialEarnings: { value: "$1,200.00", description: "next 12 months" },
+    investmentGrowth: { value: "+8.5%", description: "YTD" }
   }
   
   // Sample transaction history
@@ -104,11 +120,27 @@ export const EasyMode = ({ onExitEasyMode }: EasyModeProps) => {
       status: "completed"
     },
     {
+      id: "tx5",
+      type: "deposit",
+      asset: "BTC",
+      amount: 0.25,
+      date: "2023-11-20",
+      status: "completed"
+    },
+    {
       id: "tx2",
       type: "interest",
       asset: "USDC",
       amount: 12.50,
       date: "2023-11-15",
+      status: "completed"
+    },
+    {
+      id: "tx6",
+      type: "interest",
+      asset: "Staked SOL",
+      amount: 25.75,
+      date: "2023-11-22",
       status: "completed"
     },
     {
@@ -126,6 +158,14 @@ export const EasyMode = ({ onExitEasyMode }: EasyModeProps) => {
       amount: 1000,
       date: "2023-11-10",
       status: "pending"
+    },
+    {
+      id: "tx7",
+      type: "repayment",
+      asset: "DAI",
+      amount: 250,
+      date: "2023-11-25",
+      status: "completed"
     }
   ]
 
@@ -142,6 +182,9 @@ export const EasyMode = ({ onExitEasyMode }: EasyModeProps) => {
       // Simulate completion after 2 seconds
       setTimeout(() => {
         setOnboardingComplete(true)
+        if (typeof window !== "undefined") {
+          localStorage.setItem("easyModeOnboardingComplete", "true");
+        }
         setActiveTab("dashboard")
         // Focus on appropriate element after completion
         setTimeout(() => mainHeadingRef.current?.focus(), 100)
@@ -164,6 +207,9 @@ export const EasyMode = ({ onExitEasyMode }: EasyModeProps) => {
   const handleStartOnboarding = () => {
     // Reset onboarding state
     setOnboardingComplete(false)
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("easyModeOnboardingComplete"); // Clear the flag
+    }
     setOnboardingStep("welcome")
     // Focus management
     setTimeout(() => nextButtonRef.current?.focus(), 100)
@@ -576,7 +622,7 @@ export const EasyMode = ({ onExitEasyMode }: EasyModeProps) => {
       <ExitEasyModeButton />
       
       <h1 
-        className="text-3xl font-bold mb-6"
+        className="text-2xl font-bold mb-6"
         ref={mainHeadingRef}
         tabIndex={-1}
       >
@@ -586,18 +632,77 @@ export const EasyMode = ({ onExitEasyMode }: EasyModeProps) => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader className="p-4 pb-2">
-            <CardTitle className="text-sm text-gray-500">Total Balance</CardTitle>
+            <CardTitle ref={mainHeadingRef} tabIndex={-1}>My Financial Snapshot</CardTitle>
           </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{demoBalances.total}</p>
-            <div className="flex items-center text-xs text-green-500 mt-1">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              <span>+2.14%</span>
+          <CardContent className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">Total Balance</p>
+              <p className="text-lg font-bold">{demoBalances.total}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Available to Invest</p>
+              <p className="text-lg font-bold">{demoBalances.available}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Total Supplied</p>
+              <p className="text-sm">{demoBalances.supplied}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Total Borrowed</p>
+              <p className="text-sm">{demoBalances.borrowed}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Potential Earnings</p>
+              <p className="text-sm text-green-500">{demoBalances.potentialEarnings.value}</p>
+              <p className="text-xxs text-muted-foreground">{demoBalances.potentialEarnings.description}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Investment Growth</p>
+              <p className="text-sm text-green-500">{demoBalances.investmentGrowth.value}</p>
+              <p className="text-xxs text-muted-foreground">{demoBalances.investmentGrowth.description}</p>
             </div>
           </CardContent>
         </Card>
         
-        {/* More cards can go here */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="flex overflow-x-auto space-x-3 p-4 sm:grid sm:grid-cols-3 sm:gap-3 sm:space-x-0">
+              <Button variant="outline" className="flex flex-col h-auto items-center justify-center text-center gap-1 p-3 flex-shrink-0 w-36 sm:w-full">
+                <PiggyBank className="h-5 w-5 text-primary" />
+                <span className="text-xs font-medium">Deposit Funds</span>
+                <span className="text-xxs text-muted-foreground leading-tight">Add money to your account</span>
+              </Button>
+              <Button variant="outline" className="flex flex-col h-auto items-center justify-center text-center gap-1 p-3 flex-shrink-0 w-36 sm:w-full">
+                <LineChart className="h-5 w-5 text-primary" />
+                <span className="text-xs font-medium">Explore Investments</span>
+                <span className="text-xxs text-muted-foreground leading-tight">Discover earning opportunities</span>
+              </Button>
+              <Button variant="outline" className="flex flex-col h-auto items-center justify-center text-center gap-1 p-3 flex-shrink-0 w-36 sm:w-full">
+                <TrendingUp className="h-5 w-5 text-primary" />
+                <span className="text-xs font-medium">View Earnings Potential</span>
+                <span className="text-xxs text-muted-foreground leading-tight">See how much you can make</span>
+              </Button>
+               <Button variant="outline" className="flex flex-col h-auto items-center justify-center text-center gap-1 p-3 flex-shrink-0 w-36 sm:w-full">
+                <BarChart4 className="h-5 w-5 text-primary" />
+                <span className="text-xs font-medium">Manage Portfolio</span>
+                <span className="text-xxs text-muted-foreground leading-tight">Adjust your investments</span>
+              </Button>
+              <Button variant="outline" className="flex flex-col h-auto items-center justify-center text-center gap-1 p-3 flex-shrink-0 w-36 sm:w-full">
+                <RefreshCw className="h-5 w-5 text-primary" />
+                <span className="text-xs font-medium">Track Spending</span>
+                <span className="text-xxs text-muted-foreground leading-tight">Review your expenses</span>
+              </Button>
+               <Button variant="outline" className="flex flex-col h-auto items-center justify-center text-center gap-1 p-3 flex-shrink-0 w-36 sm:w-full">
+                <HelpCircle className="h-5 w-5 text-primary" />
+                <span className="text-xs font-medium">Learn & Grow</span>
+                <span className="text-xxs text-muted-foreground leading-tight">Financial education</span>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
       <Tabs 
