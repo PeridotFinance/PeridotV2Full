@@ -23,7 +23,6 @@ Peridot Finance is a cutting-edge decentralized finance (DeFi) platform built wi
     *   Ethers.js / Viem / Wagmi (likely, based on typical DeFi dApp structure for wallet interactions and contract calls - verify specific usage).
 *   **Backend (API Routes):** Next.js API Routes, Node.js
 *   **Email Services:** Nodemailer (for contact form submissions)
-*   **Analytics:** PostHog (Client-side and Server-side)
 *   **Database:** PostgreSQL (for email subscriptions)
 *   **Styling:** Tailwind CSS, CSS Modules (globals.css)
 *   **UI Components:** Custom components, Shadcn/UI, Lucide Icons, Framer Motion for animations.
@@ -122,8 +121,6 @@ User interactions and page views are tracked using PostHog for product analytics
 
 The platform relies on several environment variables for its core functionalities:
 
-*   `NEXT_PUBLIC_POSTHOG_KEY`: Public key for PostHog client-side integration.
-*   `NEXT_PUBLIC_POSTHOG_HOST`: PostHog API host (e.g., `https://us.posthog.com` or your self-hosted instance).
 *   `EMAIL_USER`: Gmail username for sending contact form emails.
 *   `EMAIL_PASSWORD`: Gmail password (or app password) for the `EMAIL_USER`.
 *   **Database Credentials (for PostgreSQL used by `app/api/subscribe/route.js`):**
@@ -142,7 +139,6 @@ Ensure these are set up in your `.env.local` file for local development.
 *   Node.js (version specified in `.nvmrc` if available, or latest LTS)
 *   pnpm (or npm/yarn, though `pnpm-lock.yaml` is present)
 *   Access to a PostgreSQL database (for the subscription feature)
-*   PostHog account and API keys (for analytics)
 *   Gmail account credentials (for the contact form)
 
 ### Installation
@@ -163,8 +159,6 @@ Ensure these are set up in your `.env.local` file for local development.
     Create a `.env.local` file in the `defi-platform` directory and populate it with the necessary keys and credentials (see Configuration section above).
     Example `.env.local`:
     ```env
-    NEXT_PUBLIC_POSTHOG_KEY=your_posthog_public_key
-    NEXT_PUBLIC_POSTHOG_HOST=https://us.posthog.com
     EMAIL_USER=your_gmail_address@gmail.com
     EMAIL_PASSWORD=your_gmail_app_password
 
@@ -195,17 +189,6 @@ The `package.json` in the `defi-platform` directory contains various scripts for
 *   `lint`: Lints the codebase (e.g., using ESLint, Prettier).
 
 Refer to the `scripts` section in `defi-platform/package.json` for a full list.
-
-## ☁️ Deployment
-
-*   The application is built as a standard Next.js project and can be deployed to any platform that supports Node.js and Next.js (e.g., Vercel, Netlify, AWS Amplify, self-hosted Docker).
-*   Ensure all necessary environment variables are configured on the deployment platform.
-*   The PostHog ingest endpoint (`/ingest`) might need specific proxy configuration depending on the deployment platform if you're not using PostHog Cloud's direct ingestion.
-
-## 🤝 Contributing
-
-Contributions are welcome! Please follow the standard fork-and-pull-request workflow. Ensure your code adheres to the project's linting standards and all tests pass.
-(Further details on contribution guidelines can be added here).
 
 ## 📄 License
 

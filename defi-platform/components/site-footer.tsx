@@ -95,6 +95,11 @@ export function SiteFooter() {
                   FAQ
                 </Link>
               </li>
+              <li>
+                <Link href="/glossary" className="text-text/70 hover:text-primary transition-colors">
+                  Glossary
+                </Link>
+              </li>
 
             </ul>
           </div>
@@ -113,8 +118,9 @@ export function SiteFooter() {
                   Contact
                 </Link>
               </li>
+
               <li>
-                <Link href="/solana-dashboard" className="text-sm text-text/70 hover:text-primary">
+                <Link href="/solana-dashboard" className="text-text/70 hover:text-primary transition-colors">
                 Peridot Dashboard
                 </Link>
               </li>

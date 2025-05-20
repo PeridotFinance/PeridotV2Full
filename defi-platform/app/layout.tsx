@@ -1,14 +1,14 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Poppins } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
-import { PostHogProvider } from "@/components/PostHogProvider"
 import "./globals.css"
 import { headers } from 'next/headers'
 import ContextProvider from '@/context'
 import { Toaster } from "@/components/ui/toaster"
+import { PostHogProvider } from './providers'
 
 // Load Poppins font with multiple weights
 const poppins = Poppins({
@@ -44,8 +44,15 @@ export const metadata: Metadata = {
     shortcut: "/peridot.ico",
     apple: "/peridot.ico",
   },
-  viewport: "width=device-width, initial-scale=1, viewport-fit=cover",
   generator: 'v0.dev'
+}
+
+export const generateViewport = (): Viewport => {
+  return {
+    width: 'device-width',
+    initialScale: 1,
+    viewportFit: 'cover',
+  }
 }
 
 export default async function RootLayout({
@@ -59,11 +66,11 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={poppins.variable}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+        {/* Viewport meta tag will be injected by Next.js via generateViewport */}
       </head>
       <body className="font-poppins">
-        <ContextProvider cookies={cookies}>
-          <PostHogProvider>
+        <PostHogProvider>
+          <ContextProvider cookies={cookies}>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
               <div className="flex flex-col min-h-screen">
                 <SiteHeader />
@@ -72,15 +79,9 @@ export default async function RootLayout({
                 <Toaster />
               </div>
             </ThemeProvider>
-          </PostHogProvider>
-        </ContextProvider>
+          </ContextProvider>
+        </PostHogProvider>
       </body>
     </html>
   )
 }
-
-
-import './globals.css'
-
-
-import './globals.css'

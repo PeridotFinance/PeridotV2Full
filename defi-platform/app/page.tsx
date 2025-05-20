@@ -26,7 +26,38 @@ import {
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { SubscribePopup } from "@/components/SubscribePopup"
-import { usePostHog } from "posthog-js/react" // Added import
+import dynamic from "next/dynamic" // Added import for dynamic
+import { CookieConsentBanner } from "@/components/CookieConsentBanner"
+
+// Dynamically import SubscribePopup
+const DynamicSubscribePopup = dynamic(() => import("@/components/SubscribePopup").then(mod => mod.SubscribePopup), {
+  loading: () => <p>Loading...</p>, // Optional loading component
+  ssr: false // Disable server-side rendering for this component if it's client-side only
+})
+
+// Dynamically import FeaturesSection
+const DynamicFeaturesSection = dynamic(() => import("@/components/landing/FeaturesSection").then(mod => mod.FeaturesSection), {
+  loading: () => <p>Loading section...</p>,
+  ssr: false
+})
+
+// Dynamically import HowItWorksSection
+const DynamicHowItWorksSection = dynamic(() => import("@/components/landing/HowItWorksSection").then(mod => mod.HowItWorksSection), {
+  loading: () => <p>Loading section...</p>,
+  ssr: false
+})
+
+// Dynamically import FAQSection
+const DynamicFAQSection = dynamic(() => import("@/components/landing/FAQSection").then(mod => mod.FAQSection), {
+  loading: () => <p>Loading section...</p>,
+  ssr: false
+})
+
+// Dynamically import CTASection
+const DynamicCTASection = dynamic(() => import("@/components/landing/CTASection").then(mod => mod.CTASection), {
+  loading: () => <p>Loading section...</p>,
+  ssr: false
+})
 
 // Interactive 3D card component with performance optimizations
 const InteractiveCard = ({ 
@@ -912,7 +943,6 @@ export default function Home() {
   const { isLowPerfDevice, prefersReducedMotion } = useReducedMotion(); 
   const [showPopup, setShowPopup] = useState(false); 
   const [isParallaxEnabled, setIsParallaxEnabled] = useState(!isLowPerfDevice);
-  const posthog = usePostHog();
   const { scrollYProgress } = useScroll();
   const [disableParallax, setDisableParallax] = useState(false);
   const heroRef = useRef(null)
@@ -1082,8 +1112,11 @@ export default function Home() {
       {/* Parallax Toggle */}
       <ParallaxToggle isEnabled={!disableParallax} onToggle={toggleParallax} />
       
+      {/* Cookie Consent Banner */}
+      <CookieConsentBanner />
+
       {/* Subscribe Popup */}
-      <SubscribePopup />
+      <DynamicSubscribePopup />
       
       {/* Hero Section */}
       <motion.section
@@ -1341,606 +1374,16 @@ export default function Home() {
 
       {/* Rest of the page content - optimized for performance */}
       {/* Features Section */}
-      <section className="py-20 bg-background relative overflow-hidden">
-        {/* Content remains the same but with optimized components */}
-        {/* ... */}
-        <div className="absolute inset-0 pointer-events-none">
-          <FloatingElement xOffset={-100} yOffset={100} duration={7}>
-            <div className="w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl absolute -left-64 top-1/4" />
-          </FloatingElement>
-          <FloatingElement xOffset={100} yOffset={-50} duration={8}>
-            <div className="w-[600px] h-[600px] rounded-full bg-accent/5 blur-3xl absolute -right-96 bottom-0" />
-          </FloatingElement>
-        </div>
-
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            className="text-center max-w-3xl mx-auto mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-          >
-            <motion.h2
-              className="text-3xl font-bold mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              Why Choose <span className="gradient-text">Peridot</span>?
-            </motion.h2>
-            <motion.p
-              className="text-text/70"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              Our platform offers unique advantages for both lenders and borrowers in the DeFi ecosystem.
-            </motion.p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <FeatureCard
-              icon={Coins}
-              title="Get Liquidity Without Selling"
-              description="Borrow cash or stablecoins while still holding your crypto."
-              delay={0.1}
-            />
-
-            <FeatureCard
-              icon={ArrowUpDown}
-              title="Earn Interest on Idle Assets"
-              description="Put your crypto to work and earn money on assets you're just holding."
-              delay={0.2}
-            />
-
-            <FeatureCard
-              icon={Lock}
-              title="Trustless and Transparent"
-              description="No middleman; everything runs on smart contracts you can check on-chain."
-              delay={0.3}
-            />
-
-            <FeatureCard
-              icon={BarChart3}
-              title="Instant Access to Funds"
-              description="Quickly get the cash you need without long waits or paperwork."
-              delay={0.4}
-            />
-
-            <FeatureCard
-              icon={Shield}
-              title="Market-Driven Rates"
-              description="Interest rates adjust automatically based on demand, keeping things fair."
-              delay={0.5}
-            />
-
-            <FeatureCard
-              icon={Wallet}
-              title="Secure Borrowing"
-              description="Your loans are backed by collateral, reducing risk for both you and the system."
-              delay={0.6}
-            />
-
-            <FeatureCard
-              icon={Globe}
-              title="Open Ecosystem"
-              description="Anyone can join without permission, and the platform works well with other dApps."
-              delay={0.7}
-            />
-
-            <FeatureCard
-              icon={Users}
-              title="Community Governance"
-              description="Over time, you can help decide how the platform evolves through decentralized governance."
-              delay={0.8}
-            />
-          </div>
-        </div>
-      </section>
+      <DynamicFeaturesSection />
 
       {/* How It Works Section */}
-      <section className="py-20 bg-muted relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <FloatingElement xOffset={50} yOffset={-50} duration={6}>
-            <div className="w-[400px] h-[400px] rounded-full bg-primary/5 blur-3xl absolute right-0 top-0" />
-          </FloatingElement>
-        </div>
-
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            className="text-center max-w-3xl mx-auto mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-          >
-            <motion.h2
-              className="text-3xl font-bold mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              How <span className="gradient-text">Peridot</span> Works
-            </motion.h2>
-            <motion.p
-              className="text-text/70"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              Our platform creates efficient money markets for crypto assets with algorithmically determined interest
-              rates.
-            </motion.p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <motion.div
-              className="bg-card border border-border/50 rounded-xl p-6 relative"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-              whileHover={{ y: -5 }}
-            >
-              <div className="absolute -top-6 -left-6 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-background font-bold text-xl shadow-lg">
-                <motion.span
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-                >
-                  1
-                </motion.span>
-              </div>
-              <motion.div
-                className="absolute -z-10 inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-xl opacity-0"
-                whileHover={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              />
-              <h3 className="text-xl font-bold mb-4 mt-2">Supply Assets</h3>
-              <p className="text-text/70 mb-4">Deposit your crypto to start earning interest.</p>
-              <ul className="space-y-3 text-sm text-text/70">
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.1 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Receive tokens (cTokens) that show your deposit</span>
-                </motion.li>
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.2 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Your balance automatically grows with interest</span>
-                </motion.li>
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.3 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Withdraw your crypto whenever you want—no waiting period</span>
-                </motion.li>
-              </ul>
-            </motion.div>
-
-            <motion.div
-              className="bg-card border border-border/50 rounded-xl p-6 relative"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              whileHover={{ y: -5 }}
-            >
-              <div className="absolute -top-6 -left-6 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-background font-bold text-xl shadow-lg">
-                <motion.span
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: 0.3 }}
-                >
-                  2
-                </motion.span>
-              </div>
-              <motion.div
-                className="absolute -z-10 inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-xl opacity-0"
-                whileHover={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              />
-              <h3 className="text-xl font-bold mb-4 mt-2">Collateralize</h3>
-              <p className="text-text/70 mb-4">
-                Your deposited crypto acts as collateral, letting you borrow other assets.
-              </p>
-              <ul className="space-y-3 text-sm text-text/70">
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.3 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Each asset has a limit on how much you can borrow</span>
-                </motion.li>
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.4 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Keep a healthy balance so you don't risk liquidation</span>
-                </motion.li>
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.5 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Supports collateral from different blockchains for extra flexibility</span>
-                </motion.li>
-              </ul>
-            </motion.div>
-
-            <motion.div
-              className="bg-card border border-border/50 rounded-xl p-6 relative"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              whileHover={{ y: -5 }}
-            >
-              <div className="absolute -top-6 -left-6 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-background font-bold text-xl shadow-lg">
-                <motion.span
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: 0.6 }}
-                >
-                  3
-                </motion.span>
-              </div>
-              <motion.div
-                className="absolute -z-10 inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-xl opacity-0"
-                whileHover={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              />
-              <h3 className="text-xl font-bold mb-4 mt-2">Borrow Assets</h3>
-              <p className="text-text/70 mb-4">
-                Borrow up to your allowed limit based on the value of your collateral.
-              </p>
-              <ul className="space-y-3 text-sm text-text/70">
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.5 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Borrow up to your allowed limit based on collateral value</span>
-                </motion.li>
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.6 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>The interest rate you pay changes automatically with market demand</span>
-                </motion.li>
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.7 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>You can repay your loan at any time, including the accrued interest</span>
-                </motion.li>
-              </ul>
-            </motion.div>
-          </div>
-
-          <motion.div
-            className="text-center mt-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <MagneticButton>
-              <Button
-                asChild
-                size="lg"
-                className="bg-primary text-background hover:bg-primary/90 rounded-xl group relative overflow-hidden"
-              >
-                <Link href="/how-it-works" className="flex items-center">
-                  Learn More About Our Protocol
-                  <motion.div
-                    className="ml-2"
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                  </motion.div>
-                </Link>
-              </Button>
-            </MagneticButton>
-          </motion.div>
-        </div>
-      </section>
+      <DynamicHowItWorksSection />
 
       {/* FAQ Section */}
-      <section className="py-20 bg-background relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <FloatingElement xOffset={-50} yOffset={100} duration={8}>
-            <div className="w-[400px] h-[400px] rounded-full bg-primary/5 blur-3xl absolute left-0 bottom-0" />
-          </FloatingElement>
-        </div>
-
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            className="text-center max-w-3xl mx-auto mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-            <p className="text-text/70">Find answers to common questions about Peridot and how to use our platform.</p>
-          </motion.div>
-
-          <motion.div
-            className="max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <Accordion type="single" collapsible className="space-y-4">
-              <AccordionItem value="item-1" className="bg-card border border-border/50 rounded-xl px-6 overflow-hidden">
-                <AccordionTrigger className="text-lg font-medium py-4 group">
-                  <span>What is Peridot?</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-text/80 pb-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    Peridot is a decentralized cross-chain lending and borrowing platform that enables users to earn
-                    interest on their crypto assets and borrow against their collateral. The platform uses algorithmic
-                    interest rates based on supply and demand to create efficient money markets for various crypto
-                    assets across multiple blockchains.
-                  </motion.div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-2" className="bg-card border border-border/50 rounded-xl px-6 overflow-hidden">
-                <AccordionTrigger className="text-lg font-medium py-4 group">
-                  <span>How do I start using Peridot?</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-text/80 pb-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    To start using Peridot, you need to connect your wallet (such as MetaMask, Phantom, or other
-                    supported wallets) to our platform. Once connected, you can supply assets to earn interest or borrow
-                    against your collateral. Visit our "Launch App" page and click on "Connect Wallet" to get started.
-                  </motion.div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-3" className="bg-card border border-border/50 rounded-xl px-6 overflow-hidden">
-                <AccordionTrigger className="text-lg font-medium py-4 group">
-                  <span>What blockchains does Peridot support?</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-text/80 pb-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    Peridot currently supports Ethereum, Polygon, Avalanche, Binance Smart Chain, Arbitrum, Optimism,
-                    Solana, and more. We're continuously working to add support for additional blockchains to enhance
-                    cross-chain functionality and provide users with more options.
-                  </motion.div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-4" className="bg-card border border-border/50 rounded-xl px-6 overflow-hidden">
-                <AccordionTrigger className="text-lg font-medium py-4 group">
-                  <span>How are interest rates determined?</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-text/80 pb-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    Interest rates on Peridot are determined algorithmically based on the utilization rate of each
-                    asset. When demand for borrowing an asset is high (high utilization), interest rates increase to
-                    incentivize more supply. When demand is low, rates decrease to encourage more borrowing. This
-                    dynamic adjustment ensures optimal capital efficiency and fair rates for all users.
-                  </motion.div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-5" className="bg-card border border-border/50 rounded-xl px-6 overflow-hidden">
-                <AccordionTrigger className="text-lg font-medium py-4 group">
-                  <span>Is Peridot secure?</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-text/80 pb-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    Peridot prioritizes security through multiple measures: our smart contracts have undergone rigorous
-                    security audits by leading firms, we implement robust risk management protocols, and we maintain a
-                    conservative approach to collateral factors. Additionally, our non-custodial architecture means
-                    users always maintain control of their assets.
-                  </motion.div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            <motion.div
-              className="text-center mt-8"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <Button asChild variant="outline" className="rounded-xl group">
-                <Link href="/faq" className="flex items-center">
-                  View All FAQs
-                  <motion.div
-                    className="ml-2"
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                  </motion.div>
-                </Link>
-              </Button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+      <DynamicFAQSection />
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-secondary to-accent/70 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <motion.div
-            className="absolute inset-0 bg-[url('/interconnected-geometric-finance.png')] bg-no-repeat bg-cover opacity-5"
-            animate={{
-              backgroundPosition: ["0% 0%", "100% 100%"],
-            }}
-            transition={{
-              duration: 50,
-              repeat: Number.POSITIVE_INFINITY,
-              repeatType: "reverse",
-            }}
-          />
-        </div>
-
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            className="max-w-3xl mx-auto text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-          >
-            <motion.h2
-              className="text-3xl font-bold mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              Ready to Start Earning?
-            </motion.h2>
-            <motion.p
-              className="text-lg mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              Join thousands of users already earning interest and accessing liquidity on Peridot.
-            </motion.p>
-            <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <MagneticButton>
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-primary text-background hover:bg-primary/90 rounded-xl group relative overflow-hidden"
-                >
-                  <Link href="/app" className="flex items-center">
-                    <span className="relative z-10">Launch App</span>
-                    <motion.div
-                      className="relative z-10 ml-2"
-                      animate={{ x: [0, 4, 0] }}
-                      transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
-                    >
-                      <ArrowRight className="h-4 w-4" />
-                    </motion.div>
-                    <motion.div
-                      className="absolute inset-0 bg-primary-foreground/10"
-                      initial={{ x: "-100%" }}
-                      whileHover={{ x: "100%" }}
-                      transition={{ duration: 0.6 }}
-                    />
-                  </Link>
-                </Button>
-              </MagneticButton>
-
-              <MagneticButton>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="bg-background/10 border-text/20 hover:bg-background/20 rounded-xl"
-                >
-                  <Link href="https://peridot-finance.gitbook.io/peridot-protocol" className="flex items-center">
-                    Read Documentation
-                    <motion.div
-                      className="ml-2"
-                      animate={{ x: [0, 4, 0] }}
-                      transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
-                    >
-                      <ArrowRight className="h-4 w-4" />
-                    </motion.div>
-                  </Link>
-                </Button>
-              </MagneticButton>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
+      <DynamicCTASection />
 
     </div>
   )

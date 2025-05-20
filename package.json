@@ -2,6 +2,7 @@
   "dependencies": {
     "@types/pg": "^8.11.13",
     "pg": "^8.15.1",
-    "postgres": "^3.4.5"
+    "postgres": "^3.4.5",
+    "react-wordcloud": "^1.2.7"
   }
 }

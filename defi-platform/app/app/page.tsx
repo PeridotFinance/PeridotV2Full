@@ -351,21 +351,33 @@ const MiniChart = ({
   const pathRef = useRef(null)
   const isInView = useInView(pathRef, { once: true })
 
-  // Normalize data for the chart
-  const maxValue = Math.max(...data.map((d) => d.value))
-  const minValue = Math.min(...data.map((d) => d.value))
-  const range = maxValue - minValue
-
   // Create SVG path
   const createPath = () => {
-    const points = data.map((d, i) => {
-      const x = (i / (data.length - 1)) * width
-      const y = height - ((d.value - minValue) / range) * height
-      return `${x},${y}`
-    })
+    if (!data || data.length < 2) { // Need at least 2 points to draw a line
+      return ""; 
+    }
 
-    return `M${points.join(" L")}`
-  }
+    const values = data.map(d => d.value);
+    const maxValue = Math.max(...values);
+    const minValue = Math.min(...values);
+    let range = maxValue - minValue;
+
+    // If range is 0 (all points are the same), draw a horizontal line in the middle.
+    if (range === 0) {
+      const y = height / 2;
+      // Ensure x coordinates are distinct for a line
+      return `M${(0).toFixed(2)},${y.toFixed(2)} L${width.toFixed(2)},${y.toFixed(2)}`;
+    }
+
+    const points = data.map((d, i) => {
+      const x = (i / (data.length - 1)) * width;
+      const yValue = d.value - minValue;
+      const y = height - ((yValue / range) * height);
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    });
+
+    return `M${points.join(" L")}`;
+  };
 
   return (
     <svg width={width} height={height} className="overflow-visible">
@@ -513,8 +525,14 @@ const AssetRow = ({
   const [isHovered, setIsHovered] = useState(false)
   const { theme } = useTheme()
   const isDark = theme === "dark"
+  const [clientChartData, setClientChartData] = useState<Array<{day: number; value: number}>>([]);
 
-  const chartData = generateChartData(30, 0.05, asset.change24h ? asset.change24h > 0 : true)
+  useEffect(() => {
+    // Generate chart data on the client side
+    const generatedData = generateChartData(30, 0.05, asset.change24h ? asset.change24h > 0 : true);
+    setClientChartData(generatedData);
+  }, [asset.id, asset.change24h]); // Regenerate if asset or its relevant properties change
+
   const chartColor = asset.change24h && asset.change24h > 0 ? "#22c55e" : "#ef4444"
 
   return (
@@ -624,7 +642,7 @@ const AssetRow = ({
         <TableCell className="whitespace-nowrap">
           <div className="flex items-center space-x-2">
             <div>{asset.liquidity}</div>
-            <MiniChart data={chartData} color={chartColor} />
+            <MiniChart data={clientChartData} color={chartColor} />
           </div>
         </TableCell>
       )}
@@ -1299,7 +1317,7 @@ export default function AppPage() {
                   <CardContent className="p-0">
                     {/* Add scroll wrapper for the table */}
                     <div className="overflow-x-auto">
-                      <Table className="min-w-[600px]"> { /* Ensure minimum width */}
+                      <Table className="min-w-[600px]">
                         <TableHeader>
                           <TableRow>
                              {/* Add whitespace-nowrap to prevent wrapping */}
@@ -1361,7 +1379,7 @@ export default function AppPage() {
                    <CardContent className="p-0">
                      {/* Add scroll wrapper for the table */}
                      <div className="overflow-x-auto">
-                       <Table className="min-w-[600px]"> { /* Ensure minimum width */}
+                       <Table className="min-w-[600px]">
                          <TableHeader>
                            <TableRow>
                              {/* Add whitespace-nowrap to prevent wrapping */}
