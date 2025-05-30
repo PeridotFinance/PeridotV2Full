@@ -445,10 +445,51 @@ export function calculateEstimatedEarnings(
   return position.type === "supply" ? estimatedAmount : -estimatedAmount
 }
 
-// Export consistent demo totals for use in main app
-export const DEMO_TOTALS = {
-  totalSupplied: 37978.40, // Sum of all supply positions
-  totalBorrowed: 4700.00,  // Sum of all borrow positions
-  netAPY: 4.2, // Weighted average
-  borrowLimitUsed: 32.5, // Based on collateral ratios
-} 
+// Export consistent demo totals for use in main app - now calculated dynamically
+export const DEMO_TOTALS = (() => {
+  // Calculate based on demo positions
+  const supplyPositions = DEMO_POSITIONS.filter(p => p.type === "supply")
+  const borrowPositions = DEMO_POSITIONS.filter(p => p.type === "borrow")
+  
+  const totalSupplied = supplyPositions.reduce((sum, p) => sum + p.amountUSD, 0)
+  const totalBorrowed = borrowPositions.reduce((sum, p) => sum + p.amountUSD, 0)
+  
+  // Calculate collateral value (only positions with collateralEnabled)
+  const collateralValue = supplyPositions
+    .filter(p => p.collateralEnabled)
+    .reduce((sum, p) => {
+      // Apply realistic collateral factors based on asset type
+      let collateralFactor = 0.75; // Default
+      if (p.asset.symbol === "USDC") collateralFactor = 0.85;
+      else if (p.asset.symbol === "ETH") collateralFactor = 0.75;
+      else if (p.asset.symbol === "SOL") collateralFactor = 0.70;
+      else if (p.asset.symbol === "BTC") collateralFactor = 0.75;
+      
+      return sum + (p.amountUSD * collateralFactor);
+    }, 0);
+  
+  // Calculate weighted average APYs
+  const supplyAPY = totalSupplied > 0 
+    ? supplyPositions.reduce((sum, p) => sum + (p.apy * p.amountUSD), 0) / totalSupplied 
+    : 0
+  const borrowAPY = totalBorrowed > 0 
+    ? borrowPositions.reduce((sum, p) => sum + (p.apy * p.amountUSD), 0) / totalBorrowed 
+    : 0
+  
+  // Net APY calculation - proper calculation based on position weights
+  const netAPY = totalSupplied > 0 
+    ? supplyAPY - (borrowAPY * totalBorrowed / totalSupplied)
+    : supplyAPY;
+  
+  // Borrow limit used percentage
+  const borrowLimitUsed = collateralValue > 0 ? (totalBorrowed / collateralValue) * 100 : 0;
+  
+  return {
+    totalSupplied: Math.round(totalSupplied * 100) / 100, // Round to 2 decimals
+    totalBorrowed: Math.round(totalBorrowed * 100) / 100,
+    netAPY: Math.round(netAPY * 100) / 100,
+    borrowLimitUsed: Math.round(borrowLimitUsed * 100) / 100,
+    collateralValue: Math.round(collateralValue * 100) / 100,
+    healthFactor: totalBorrowed > 0 ? Math.round((collateralValue * 1.25 / totalBorrowed) * 100) / 100 : 999, // Using 1.25 as liquidation threshold multiplier
+  }
+})() 

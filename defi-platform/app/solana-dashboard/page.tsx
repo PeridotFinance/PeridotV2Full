@@ -9,6 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useTheme } from "next-themes";
+import { ConnectWalletButton } from "@/components/wallet/connect-wallet-button";
+import { MultiChainStatus } from "@/components/wallet/multi-chain-status";
+import { useSolana } from "@/hooks/use-solana";
 
 // Example user data - initial placeholder
 const initialUserWallet = "Gzj2Zq3PwyLkhq6vVhLDG84biifQq496wVrTAD6QpNvo";
@@ -70,6 +73,13 @@ const SolanaDashboardPage = () => {
   const { theme, resolvedTheme } = useTheme();
   const isDarkMode = theme === "dark" || resolvedTheme === "dark";
 
+  // Multi-chain wallet integration
+  const { 
+    isConnected: isSolanaConnected, 
+    publicKey: solanaPublicKey,
+    getBalance: getSolanaBalance 
+  } = useSolana();
+
   const rpcEndpoint = useMemo(() => {
     if (stats.network === "mainnet-beta") {
       return "https://mainnet.helius-rpc.com/?api-key=2d1ee62f-778a-426c-b525-9599b68a2414";
@@ -78,6 +88,13 @@ const SolanaDashboardPage = () => {
   }, [stats.network]);
 
   const connection = useMemo(() => new Connection(rpcEndpoint, "confirmed"), [rpcEndpoint]);
+
+  // Auto-populate wallet address if Solana wallet is connected
+  useEffect(() => {
+    if (isSolanaConnected && solanaPublicKey) {
+      setInputWalletAddress(solanaPublicKey.toString());
+    }
+  }, [isSolanaConnected, solanaPublicKey]);
 
   // Fetch core Solana stats (slot, block height, etc.)
   useEffect(() => {
@@ -194,6 +211,45 @@ const SolanaDashboardPage = () => {
           Real-time statistics from the Solana {stats.network} network and Peridot project analytics.
         </p>
       </header>
+
+      {/* Multi-Chain Wallet Connection Section */}
+      <div className="mb-8">
+        <h2 className={cn("text-2xl font-semibold text-center mb-6", textPrimaryClass)}>
+          Multi-Chain Wallet Connection
+        </h2>
+        <div className="flex flex-col lg:flex-row items-center justify-center gap-6 mb-6">
+          <div className="flex flex-col items-center gap-4">
+            <ConnectWalletButton className="w-fit" />
+            <p className={cn("text-sm text-center max-w-md", textSecondaryClass)}>
+              Connect your wallet to access both EVM and Solana networks. 
+              Switch between networks directly in your wallet.
+            </p>
+          </div>
+          <MultiChainStatus />
+        </div>
+        
+        {isSolanaConnected && (
+          <Card className={cn("max-w-2xl mx-auto", cardClasses)}>
+            <CardHeader>
+              <CardTitle className={cn("text-lg flex items-center gap-2", textPrimaryClass)}>
+                🟣 Connected Solana Wallet
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <p className={cn("text-sm", textSecondaryClass)}>
+                  <span className="font-medium">Address:</span> {solanaPublicKey?.toString()}
+                </p>
+                <p className={cn("text-sm", textSecondaryClass)}>
+                  Your wallet is now connected and will be auto-populated in forms below.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      <Separator className={cn("my-8", isDarkMode ? "bg-gray-700" : "bg-gray-300")} />
 
       {error && (
         <Card className={cn("mb-6 bg-red-500/10 border-red-500/30", cardClasses)}>
@@ -324,11 +380,40 @@ const SolanaDashboardPage = () => {
                         className={cn(isDarkMode ? "bg-gray-700 border-gray-600 text-white" : "bg-white border-gray-300")}
                     />
                 </div>
-                <Button onClick={handleFetchOpenOrders} className="w-full sm:w-auto" disabled={isOpenOrdersLoading || !inputWalletAddress}>
-                    {isOpenOrdersLoading ? "Fetching Orders..." : "Fetch Open Orders"}
-                </Button>
+                <div className="flex gap-2 w-full sm:w-auto">
+                  {isSolanaConnected && solanaPublicKey && (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setInputWalletAddress(solanaPublicKey.toString());
+                        if (activeWalletAddress) {
+                          setActiveWalletAddress("");
+                          setOpenOrders([]);
+                          setOpenOrdersError(null);
+                        }
+                      }}
+                      className="w-full sm:w-auto"
+                    >
+                      Use Connected
+                    </Button>
+                  )}
+                  <Button onClick={handleFetchOpenOrders} className="w-full sm:w-auto" disabled={isOpenOrdersLoading || !inputWalletAddress}>
+                      {isOpenOrdersLoading ? "Fetching Orders..." : "Fetch Open Orders"}
+                  </Button>
+                </div>
             </div>
-            {activeWalletAddress && <p className={cn("text-sm mt-2", textSecondaryClass)}>Showing orders for: <span className={textPrimaryClass}>{activeWalletAddress}</span></p>}
+            {activeWalletAddress && (
+              <div className="mt-2 flex items-center gap-2">
+                <p className={cn("text-sm", textSecondaryClass)}>
+                  Showing orders for: <span className={textPrimaryClass}>{activeWalletAddress}</span>
+                </p>
+                {isSolanaConnected && solanaPublicKey && activeWalletAddress === solanaPublicKey.toString() && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                    Connected Wallet
+                  </span>
+                )}
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             {openOrdersError && (

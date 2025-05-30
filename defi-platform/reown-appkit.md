@@ -296,3 +296,150 @@ export default ReadContractExample;
 2.  **Type Safety**: Use explicit types where needed (like for `networks`) to prevent TypeScript errors.
 3.  **Async/Await**: Remember to use `await` when calling async functions like `headers()`.
 4.  **Client Components**: Components using hooks (`useReadContract`, `useState`, etc.) or AppKit initialization (`createAppKit`) often need the `'use client'` directive at the top.
+
+AppKit Solana provides a set of React components and hooks to easily connect Solana wallets with your application.
+
+On top of your app set up the following configuration, making sure that all functions are called outside any React component to avoid unwanted rerenders.
+
+
+Copy
+// App.tsx
+import { createAppKit } from "@reown/appkit/react";
+import { SolanaAdapter } from "@reown/appkit-adapter-solana/react";
+import { solana, solanaTestnet, solanaDevnet } from "@reown/appkit/networks";
+
+// 0. Set up Solana Adapter
+const solanaWeb3JsAdapter = new SolanaAdapter();
+
+// 1. Get projectId from https://cloud.reown.com
+const projectId = "YOUR_PROJECT_ID";
+
+// 2. Create a metadata object - optional
+const metadata = {
+  name: "AppKit",
+  description: "AppKit Solana Example",
+  url: "https://example.com", // origin must match your domain & subdomain
+  icons: ["https://avatars.githubusercontent.com/u/179229932"],
+};
+
+// 3. Create modal
+createAppKit({
+  adapters: [solanaWeb3JsAdapter],
+  networks: [solana, solanaTestnet, solanaDevnet],
+  metadata: metadata,
+  projectId,
+  features: {
+    analytics: true, // Optional - defaults to your Cloud configuration
+  },
+});
+
+export default function App() {
+  return <YourApp />;
+}
+​
+Trigger the modal
+Wagmi
+Ethers v5
+Ethers
+Solana
+Bitcoin
+To open AppKit you can use our default web components or build your own logic using AppKit hooks. In this example we are going to use the <appkit-button> component.
+
+Web components are global html elements that don’t require importing.
+
+
+Copy
+export default function ConnectButton() {
+  return <appkit-button />
+}
+​
+Smart Contract Interaction
+Wagmi
+Ethers
+Solana
+@Solana/web3.js library allows for seamless interaction with wallets and smart contracts on the Solana blockchain.
+
+For a practical example of how it works, you can refer to our lab dApp.
+
+
+Copy
+import {
+  SystemProgram,
+  PublicKey,
+  Keypair,
+  Transaction,
+  TransactionInstruction,
+  LAMPORTS_PER_SOL
+} from '@solana/web3.js'
+import { useAppKitAccount, useAppKitProvider } from '@reown/appkit/react'
+import { useAppKitConnection, type Provider } from '@reown/appkit-adapter-solana/react'
+
+function deserializeCounterAccount(data?: Buffer): { count: number } {
+  if (data?.byteLength !== 8) {
+    throw Error('Need exactly 8 bytes to deserialize counter')
+  }
+
+  return {
+    count: Number(data[0])
+  }
+}
+
+const { address } = useAppKitAccount()
+const { connection } = useAppKitConnection()
+const { walletProvider } = useAppKitProvider<Provider>('solana')
+
+async function onIncrementCounter() {
+  const PROGRAM_ID = new PublicKey('Cb5aXEgXptKqHHWLifvXu5BeAuVLjojQ5ypq6CfQj1hy')
+
+  const counterKeypair = Keypair.generate()
+  const counter = counterKeypair.publicKey
+
+  const balance = await connection.getBalance(walletProvider.publicKey)
+  if (balance < LAMPORTS_PER_SOL / 100) {
+    throw Error('Not enough SOL in wallet')
+  }
+
+  const COUNTER_ACCOUNT_SIZE = 8
+  const allocIx: TransactionInstruction = SystemProgram.createAccount({
+    fromPubkey: walletProvider.publicKey,
+    newAccountPubkey: counter,
+    lamports: await connection.getMinimumBalanceForRentExemption(COUNTER_ACCOUNT_SIZE),
+    space: COUNTER_ACCOUNT_SIZE,
+    programId: PROGRAM_ID
+  })
+
+  const incrementIx: TransactionInstruction = new TransactionInstruction({
+    programId: PROGRAM_ID,
+    keys: [
+      {
+        pubkey: counter,
+        isSigner: false,
+        isWritable: true
+      }
+    ],
+    data: Buffer.from([0x0])
+  })
+
+  const tx = new Transaction().add(allocIx).add(incrementIx)
+
+  tx.feePayer = walletProvider.publicKey
+  tx.recentBlockhash = (await connection.getLatestBlockhash('confirmed')).blockhash
+
+  await walletProvider.signAndSendTransaction(tx, [counterKeypair])
+
+  const counterAccountInfo = await connection.getAccountInfo(counter, {
+    commitment: 'confirmed'
+  })
+
+  if (!counterAccountInfo) {
+    throw new Error('Expected counter account to have been created')
+  }
+
+  const counterAccount = deserializeCounterAccount(counterAccountInfo?.data)
+
+  if (counterAccount.count !== 1) {
+    throw new Error('Expected count to have been 1')
+  }
+
+  console.log(`[alloc+increment] count is: ${counterAccount.count}`);
+}

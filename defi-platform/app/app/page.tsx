@@ -38,10 +38,14 @@ import {
   Users,
   AlertTriangle,
   Loader2,
+  ChevronDown,
+  Wifi,
+  WifiOff,
 } from "lucide-react"
 import Image from "next/image"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from 'wagmi'
 import { ConnectWalletButton } from "@/components/wallet/connect-wallet-button"
 import { motion, AnimatePresence, useInView } from "framer-motion"
@@ -84,11 +88,11 @@ import { useUserPositions, DEMO_TOTALS } from '../hooks/useUserPositions'
 import { PositionManagementCard } from '../components/dashboard/PositionManagementCard'
 import { MarketInsightsWrapper } from '../components/dashboard/MarketInsightsWrapper'
 // Import new network configuration
-import { supportedNetworks, soneiumMinato, getPeridottrollerAddress, getNetworkConfig, isSupportedNetwork, networkContracts } from '../../config/networks'
+import { supportedNetworks, soneiumMinato, getPeridottrollerAddress, getNetworkConfig, isSupportedNetwork, networkContracts, getNetworkDisplayInfo } from '../../config/networks'
 // Import NetworkSwitcher component
 import { NetworkSwitcher } from '../../components/network/NetworkSwitcher'
-import { NetworkStatusBadge } from '../../components/network/NetworkStatusBadge'
 import { NetworkDemo } from '../../components/network/NetworkDemo'
+import { useSolana } from '@/hooks/use-solana'
 
 // Define Peridottroller address for Soneium Minato
 // const peridottrollerAddressSoneiumMinato = '0xB911C192ed1d6428A12F2Cf8F636B00c34e68a2a' as `0x${string}`;
@@ -893,6 +897,9 @@ export default function AppPage() {
     return <EasyMode onExitEasyMode={toggleEasyMode} />;
   }
 
+  // Add Solana connection detection
+  const { isConnected: isSolanaConnected } = useSolana()
+
   // Pro Mode Return Statement
   return (
     <TooltipProvider>
@@ -911,184 +918,266 @@ export default function AppPage() {
         </AnimatePresence>
 
         {/* Header section with Title and Easy Mode Toggle */} 
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
-          <div>
-             {/* Keep Title if desired */}
-             <div className="flex items-center gap-3">
-               <div>
-                 <h1 className="text-2xl md:text-3xl font-bold">Peridot DeFi</h1>
-                 <p className="text-sm text-muted-foreground">Cross-chain lending & borrowing</p>
-               </div>
-               <NetworkStatusBadge />
-             </div>
-             
-             
-             { /* Display Block Number */}
-             {isConnected && isCurrentNetworkSupported && (
-              <div className="mt-2 p-2 border rounded-md bg-background">
-                <p className="text-xs text-muted-foreground">{networkConfig.chainNameReadable} Status:</p>
-                {isLoadingBlockNumber && <p className="text-sm">Fetching block number...</p>}
-                {blockNumberError && <p className="text-sm text-red-500">Error fetching block number: {blockNumberError.shortMessage || blockNumberError.message}</p>}
-                {blockNumber && <p className="text-sm">Current Block: {blockNumber.toString()}</p>}
+        <div className="flex flex-col gap-4 mb-4">
+          {/* Title Section */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              {/* Keep Title if desired */}
+              <div className="flex items-center gap-3">
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-bold">Peridot DeFi</h1>
+                  <p className="text-sm text-muted-foreground">Cross-chain lending & borrowing</p>
+                </div>
               </div>
-            )}
-            {isConnected && !isCurrentNetworkSupported && (
-              <div className="mt-2 p-2 border rounded-md bg-amber-500/10">
-                <p className="text-sm text-amber-700">Network Debug Info:</p>
-                <p className="text-xs">Detected Chain ID: {currentChainId}</p>
-                <p className="text-xs">Detected Chain Name: {chain?.name}</p>
-                <p className="text-xs">Supported Networks: {supportedNetworks.map(n => `${n.name} (${n.id})`).join(', ')}</p>
-                <p className="text-xs mt-1">Please switch to a supported network to access Peridot features.</p>
-              </div>
-            )}
-
-          </div>
-          <div className="flex items-center gap-2 mt-2 md:mt-0">
-            
-            {/* Quick Network Switcher for Testing */}
-            <div className="flex items-center gap-1 border rounded-xl px-2 py-1 bg-background">
-              <span className="text-xs text-muted-foreground mr-1">Quick Switch:</span>
-              {isSwitchingNetwork && <Loader2 className="h-3 w-3 animate-spin text-blue-500" />}
-              {supportedNetworks.map((network) => {
-                const isCurrentNetwork = chain?.id === network.id
-                return (
-                  <Button
-                    key={network.id}
-                    variant={isCurrentNetwork ? "default" : "ghost"}
-                    size="sm"
-                    className="h-6 px-2 text-xs"
-                    onClick={() => {
-                      if (!isCurrentNetwork && switchChain) {
-                        switchChain({ chainId: network.id })
-                      }
-                    }}
-                    disabled={isCurrentNetwork || isSwitchingNetwork}
-                  >
-                    {network.name.split(' ')[0]} {/* Show first word only for space */}
-                  </Button>
-                )
-              })}
             </div>
             
-            
-            {/* Demo Mode Toggle Button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-1 border rounded-xl px-3 py-1.5 bg-background relative">
-                  <Label htmlFor="demo-mode-switch" className="text-xs cursor-pointer">Demo Mode</Label>
-                  <Switch id="demo-mode-switch" checked={isDemoMode} onCheckedChange={toggleDemoMode} />
-                  <HelpCircle className="h-3 w-3 text-muted-foreground ml-1" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent><p className="max-w-xs text-xs">Toggle Demo Mode. Live data is coming soon!</p></TooltipContent>
-            </Tooltip>
-             {/* Easy Mode Toggle Button */} 
-            <Tooltip>
-              <TooltipTrigger asChild>
-                 <div className="flex items-center gap-1 border rounded-xl px-3 py-1.5 bg-background relative">
-                   <Label htmlFor="easy-mode-switch" className="text-xs cursor-pointer">Easy Mode</Label>
-                   <Switch id="easy-mode-switch" checked={isEasyMode} onCheckedChange={toggleEasyMode} />
-                   <HelpCircle className="h-3 w-3 text-muted-foreground ml-1" />
-                 </div>
-               </TooltipTrigger>
-               <TooltipContent><p className="max-w-xs text-xs">Switch to Easy Mode for a simplified interface.</p></TooltipContent>
-            </Tooltip>
-             {/* Refresh Button */}
-            <Button variant="outline" size="sm" onClick={handleRefresh} className="h-8 px-3">
-               <RefreshCw className="h-3.5 w-3.5 mr-1" /> <span className="text-xs">Refresh</span>
-             </Button>
-             {/* Conditionally show Connect Button based on path if needed, or always show */}
-            <ConnectWalletButton className="w-full md:w-auto" /> 
-          </div>
-        </div>
-
-        {/* Summary Cards Section - Restoring Structure */} 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 md:gap-3 mb-3">
-          {/* Supply Balance Card */}
-          <Card className="bg-card border-border/50 overflow-hidden shadow-sm">
-            <CardHeader className="p-3 pb-0">
-              <CardTitle className="text-sm text-green-400 flex items-center justify-between">
-                Supply Balance
-                 {/* Add refresh icon if needed */}
-                 <Button variant="ghost" size="icon" className="h-6 w-6 -mr-1 -mt-1">
-                  <RefreshCw className="h-3 w-3" /> 
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-1">
-              <div className="text-xl md:text-2xl font-bold">
-                <AnimatedCounter value={totalSupplied} prefix="$" duration={0.8} />
-              </div>
-              <div className="flex items-center text-xs text-green-400">
-                <TrendingUp className="h-3 w-3 mr-1" /> +2.14% last 24h
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Borrow Balance Card */} 
-          <Card className="bg-card border-border/50 overflow-hidden shadow-sm">
-             <CardHeader className="p-3 pb-0">
-              <CardTitle className="text-sm text-green-400 flex items-center justify-between">
-                Borrow Balance
-                 <Button variant="ghost" size="icon" className="h-6 w-6 -mr-1 -mt-1">
-                  <RefreshCw className="h-3 w-3" /> 
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-1">
-               <div className="text-xl md:text-2xl font-bold">
-                 <AnimatedCounter value={totalBorrowed} prefix="$" duration={0.8} />
-               </div>
-               <div className="flex items-center text-xs text-green-400">
-                 +0.89% last 24h <TrendingUp className="h-3 w-3 ml-1" />
-               </div>
-             </CardContent>
-          </Card>
-
-
-
-          {/* Account Liquidity Card - New Card Added Here */}
-          <Card className="bg-card border-border/50 overflow-hidden shadow-sm">
-            <CardHeader className="p-3 pb-0">
-              <CardTitle className="text-sm text-blue-400 flex items-center justify-between">
-                Account Liquidity
-                <Button variant="ghost" size="icon" className="h-6 w-6 -mr-1 -mt-1">
-                  <RefreshCw className="h-3 w-3" />
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-1">
-              {isLoadingAccountLiquidity && <p className="text-sm">Loading...</p>}
-              {accountLiquidityError && <p className="text-sm text-red-500">Error</p>}
-              {accountLiquidityData && (
-                <div>
-                  <div className="text-xl md:text-2xl font-bold">
-                    {/* Liquidity is the second value in the returned array, convert from Wei (18 decimals) */}
-                    <AnimatedCounter value={parseFloat((Number(accountLiquidityData[1]) / 1e18).toFixed(2))} prefix="$" duration={0.8} />
-                  </div>
-
-                  {Number(accountLiquidityData[2]) > 0 && (
-                     <div className="text-xs text-orange-500 mt-1">
-                      Shortfall: ${(Number(accountLiquidityData[2]) / 1e18).toFixed(2)}
+            {/* Controls Section - Horizontally Scrollable on Mobile */}
+            <div className="flex-shrink-0">
+              <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 min-w-0">
+                <div className="flex items-center gap-2 flex-nowrap">
+                  {/* Quick Network Switcher */}
+                  {isSolanaConnected ? (
+                    // Solana Network Display
+                    <div className="flex items-center gap-2 border rounded-xl px-3 py-2 bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-purple-500/20 flex-shrink-0">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent whitespace-nowrap">
+                        Solana Network
+                      </span>
+                      {isSwitchingNetwork && <Loader2 className="h-3 w-3 animate-spin text-purple-500" />}
+                    </div>
+                  ) : (
+                    // EVM Network Switcher
+                    <div className="flex-shrink-0">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "h-8 justify-between gap-2 min-w-[140px] rounded-xl border-border/50 bg-background/50 backdrop-blur-sm hover:bg-background/80 transition-all duration-200",
+                              !isCurrentNetworkSupported && "border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20",
+                              isSwitchingNetwork && "cursor-wait"
+                            )}
+                            disabled={isSwitchingNetwork}
+                          >
+                            <div className="flex items-center gap-2">
+                              {isSwitchingNetwork ? (
+                                <Loader2 className="h-3 w-3 animate-spin text-blue-500" />
+                              ) : (
+                                <>
+                                  <div className={cn(
+                                    "w-2 h-2 rounded-full transition-colors duration-200",
+                                    isCurrentNetworkSupported ? "bg-emerald-500 shadow-emerald-500/50 shadow-sm" : "bg-red-500 shadow-red-500/50 shadow-sm"
+                                  )} />
+                                  {isCurrentNetworkSupported ? (
+                                    <Wifi className="h-3 w-3 text-emerald-600" />
+                                  ) : (
+                                    <WifiOff className="h-3 w-3 text-red-500" />
+                                  )}
+                                </>
+                              )}
+                              <span className="text-xs font-medium truncate">
+                                {chain ? chain.name.split(' ')[0] : 'Network'}
+                              </span>
+                              {!isCurrentNetworkSupported && (
+                                <AlertTriangle className="h-3 w-3 text-amber-500" />
+                              )}
+                            </div>
+                            <ChevronDown className="h-3 w-3 opacity-50 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        
+                        <DropdownMenuContent 
+                          align="end" 
+                          className="w-72 rounded-xl border-border/50 bg-background/95 backdrop-blur-md shadow-xl"
+                          sideOffset={8}
+                        >
+                          <DropdownMenuLabel className="flex items-center gap-2 text-sm font-semibold">
+                            <Globe className="h-4 w-4 text-blue-500" />
+                            Network Selection
+                          </DropdownMenuLabel>
+                          <DropdownMenuSeparator className="bg-border/50" />
+                          
+                          {/* Current Network Status */}
+                          {chain && (
+                            <>
+                              <div className="px-2 py-2">
+                                <div className="text-xs text-muted-foreground mb-2">Current Network</div>
+                                <div className={cn(
+                                  "flex items-center justify-between p-2 rounded-lg transition-colors",
+                                  isCurrentNetworkSupported 
+                                    ? "bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/50" 
+                                    : "bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/50"
+                                )}>
+                                  <div className="flex items-center gap-2">
+                                    <div className={cn(
+                                      "w-2 h-2 rounded-full",
+                                      isCurrentNetworkSupported ? "bg-emerald-500" : "bg-amber-500"
+                                    )} />
+                                    <span className="text-sm font-medium">{chain.name}</span>
+                                    {!isCurrentNetworkSupported && (
+                                      <AlertTriangle className="h-3 w-3 text-amber-500" />
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    ID: {chain.id}
+                                  </div>
+                                </div>
+                              </div>
+                              <DropdownMenuSeparator className="bg-border/50" />
+                            </>
+                          )}
+                          
+                          {/* Supported Networks */}
+                          <div className="px-2 py-1">
+                            <div className="text-xs text-muted-foreground mb-2">Available Networks</div>
+                            <div className="space-y-1">
+                              {supportedNetworks.map((network) => {
+                                const isCurrentNetwork = chain?.id === network.id
+                                const networkConfig = getNetworkConfig(network.id)
+                                const networkInfo = getNetworkDisplayInfo(network.id)
+                                
+                                return (
+                                  <DropdownMenuItem
+                                    key={network.id}
+                                    onClick={() => !isCurrentNetwork && switchChain && switchChain({ chainId: network.id })}
+                                    disabled={isCurrentNetwork || isSwitchingNetwork}
+                                    className={cn(
+                                      "cursor-pointer rounded-lg p-2 transition-all duration-200 hover:bg-blue-50 dark:hover:bg-blue-950/20",
+                                      isCurrentNetwork && "opacity-50 cursor-default bg-gray-50 dark:bg-gray-900/50"
+                                    )}
+                                  >
+                                    <div className="flex items-center justify-between w-full">
+                                      <div className="flex items-center gap-2">
+                                        <div className={cn(
+                                          "w-2 h-2 rounded-full transition-colors",
+                                          isCurrentNetwork ? "bg-emerald-500" : "bg-gray-400"
+                                        )} />
+                                        <div>
+                                          <div className="text-sm font-medium">{network.name}</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {networkConfig.chainNameReadable}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        {networkInfo.isTestnet && (
+                                          <div className="px-1.5 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+                                            Test
+                                          </div>
+                                        )}
+                                        {isCurrentNetwork && (
+                                          <Check className="h-3 w-3 text-emerald-500" />
+                                        )}
+                                      </div>
+                                    </div>
+                                  </DropdownMenuItem>
+                                )
+                              })}
+                            </div>
+                          </div>
+                          
+                          {/* Network Status Footer */}
+                          <DropdownMenuSeparator className="bg-border/50" />
+                          <div className="px-2 py-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">Status:</span>
+                              <span className={cn(
+                                "font-medium px-2 py-0.5 rounded-full",
+                                isCurrentNetworkSupported 
+                                  ? "text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30" 
+                                  : "text-amber-700 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/30"
+                              )}>
+                                {isCurrentNetworkSupported ? "Connected" : "Unsupported"}
+                              </span>
+                            </div>
+                          </div>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   )}
-                   <div className="flex items-center text-xs text-blue-400 mt-1">
-                     {/* Placeholder for change, can be made dynamic later */}
-                     <TrendingUp className="h-3 w-3 mr-1" /> Healthy
-                   </div>
+                  
+                  {/* Demo Mode Toggle Button */}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 border rounded-xl px-3 py-1.5 bg-background relative flex-shrink-0">
+                        <Label htmlFor="demo-mode-switch" className="text-xs cursor-pointer whitespace-nowrap">Demo Mode</Label>
+                        <Switch id="demo-mode-switch" checked={isDemoMode} onCheckedChange={toggleDemoMode} />
+                        <HelpCircle className="h-3 w-3 text-muted-foreground ml-1" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent><p className="max-w-xs text-xs">Toggle Demo Mode. Live data is coming soon!</p></TooltipContent>
+                  </Tooltip>
+                  
+                  {/* Easy Mode Toggle Button */} 
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div className="flex items-center gap-1 border rounded-xl px-3 py-1.5 bg-background relative flex-shrink-0">
+                        <Label htmlFor="easy-mode-switch" className="text-xs cursor-pointer whitespace-nowrap">Easy Mode</Label>
+                        <Switch id="easy-mode-switch" checked={isEasyMode} onCheckedChange={toggleEasyMode} />
+                        <HelpCircle className="h-3 w-3 text-muted-foreground ml-1" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent><p className="max-w-xs text-xs">Switch to Easy Mode for a simplified interface.</p></TooltipContent>
+                  </Tooltip>
+                  
+                  {/* Refresh Button */}
+                  <Button variant="outline" size="sm" onClick={handleRefresh} className="h-8 px-3 flex-shrink-0">
+                    <RefreshCw className="h-3.5 w-3.5 mr-1" /> 
+                    <span className="text-xs whitespace-nowrap">Refresh</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Network Status Display - Moved to separate row for better mobile layout */}
+          {isConnected && (
+            <div className="w-full">
+              {isCurrentNetworkSupported ? (
+                <div className="p-2 border rounded-md bg-background">
+                  <p className="text-xs text-muted-foreground">{networkConfig.chainNameReadable} Status:</p>
+                  {isLoadingBlockNumber && <p className="text-sm">Fetching block number...</p>}
+                  {blockNumberError && <p className="text-sm text-red-500">Error fetching block number: {blockNumberError.shortMessage || blockNumberError.message}</p>}
+                  {blockNumber && <p className="text-sm">Current Block: {blockNumber.toString()}</p>}
+                </div>
+              ) : (
+                <div className="p-2 border rounded-md bg-amber-500/10">
+                  <p className="text-sm text-amber-700">Network Debug Info:</p>
+                  <p className="text-xs">Detected Chain ID: {currentChainId}</p>
+                  <p className="text-xs">Detected Chain Name: {chain?.name}</p>
+                  <p className="text-xs">Supported Networks: {supportedNetworks.map(n => `${n.name} (${n.id})`).join(', ')}</p>
+                  <p className="text-xs mt-1">Please switch to a supported network to access Peridot features.</p>
                 </div>
               )}
-              {!isLoadingAccountLiquidity && !accountLiquidityError && !accountLiquidityData && isConnected && chain?.id === soneiumMinato.id && address && (
-                <p className="text-sm text-muted-foreground">No liquidity data.</p>
-              )}
-              {(!isConnected || (chain?.id !== soneiumMinato.id) || !address) && (
-                <p className="text-xs text-muted-foreground">Connect wallet to Soneium Minato to view liquidity.</p>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+          )}
         </div>
 
-        {/* Borrow Limit Progress Bar */} 
+        {/* Position Management Quick Actions - Show if user has positions */}
+        <PositionManagementCard
+          userPositions={userPositions}
+          isDemoMode={isDemoMode}
+          userHealthFactor={userHealthFactor}
+          onNavigateToPortfolio={() => setActiveTab("portfolio")}
+          onOpenSupplyModal={() => {
+            const firstSupplyAsset = supplyData.find(asset => 
+              userPositions.some(p => p.asset.symbol === asset.symbol && p.type === "supply")
+            )
+            if (firstSupplyAsset) {
+              handleOpenDetailModal(firstSupplyAsset, true)
+            }
+          }}
+          onOpenBorrowModal={() => {
+            const firstBorrowAsset = borrowData.find(asset => 
+              userPositions.some(p => p.asset.symbol === asset.symbol && p.type === "borrow")
+            )
+            if (firstBorrowAsset) {
+              handleOpenDetailModal(firstBorrowAsset, false)
+            }
+          }}
+        />
+
+        {/* Borrow Limit Progress Bar */ } 
         <Card className="bg-card border-border/50 overflow-hidden shadow-sm mb-4">
           <div className="p-3">
              <div className="flex items-center justify-between mb-1">
@@ -1114,13 +1203,11 @@ export default function AppPage() {
 
         {/* Markets Section with Tabs */}
         <Tabs defaultValue="markets" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-6 w-full md:w-auto mb-4">
+          <TabsList className="grid grid-cols-4 w-full md:w-auto mb-4">
             <TabsTrigger value="markets">Markets</TabsTrigger>
             <TabsTrigger value="cross-chain">Cross-Chain</TabsTrigger>
             <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
             <TabsTrigger value="stake">Stake</TabsTrigger>
-            <TabsTrigger value="networks">Networks</TabsTrigger>
-            <TabsTrigger value="debug">Debug</TabsTrigger>
           </TabsList>
 
           {/* Markets Tab Content */} 
@@ -1286,53 +1373,7 @@ export default function AppPage() {
           {/* Cross-Chain Tab Content */}
           <TabsContent value="cross-chain">
             <div className="space-y-6">
-              {/* Cross-Chain Overview */}
-              <AnimatedCard>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Globe className="h-5 w-5 text-blue-500" />
-                      Cross-Chain Lending Overview
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Deposit on one chain, borrow on another. Peridot's Hub & Spoke architecture enables true cross-chain DeFi.
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Hub Status */}
-                      <div className="text-center p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                        <div className="w-12 h-12 mx-auto mb-2 bg-blue-500/20 rounded-full flex items-center justify-center">
-                          <BarChart3 className="h-6 w-6 text-blue-500" />
-                        </div>
-                        <h3 className="font-semibold text-blue-500">Hub Chain</h3>
-                        <p className="text-sm text-muted-foreground mt-1">Sei Network</p>
-                        <p className="text-xs text-green-500 mt-1">✓ Active</p>
-                      </div>
-                      
-                      {/* Spoke Chains */}
-                      <div className="text-center p-4 bg-green-500/10 rounded-lg border border-green-500/20">
-                        <div className="w-12 h-12 mx-auto mb-2 bg-green-500/20 rounded-full flex items-center justify-center">
-                          <ArrowUpRight className="h-6 w-6 text-green-500" />
-                        </div>
-                        <h3 className="font-semibold text-green-500">Spoke Chains</h3>
-                        <p className="text-sm text-muted-foreground mt-1">Ethereum, Solana, Soneium</p>
-                        <p className="text-xs text-green-500 mt-1">✓ Connected</p>
-                      </div>
-                      
-                      {/* Wormhole Status */}
-                      <div className="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                        <div className="w-12 h-12 mx-auto mb-2 bg-purple-500/20 rounded-full flex items-center justify-center">
-                          <Zap className="h-6 w-6 text-purple-500" />
-                        </div>
-                        <h3 className="font-semibold text-purple-500">Wormhole Bridge</h3>
-                        <p className="text-sm text-muted-foreground mt-1">Cross-chain messaging</p>
-                        <p className="text-xs text-green-500 mt-1">✓ Operational</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedCard>
+
 
               {/* Cross-Chain Transaction Flow */}
               <AnimatedCard delay={0.1}>
@@ -1992,81 +2033,6 @@ export default function AppPage() {
             </div>
           </TabsContent>
 
-          {/* Networks Tab Content */}
-          <TabsContent value="networks">
-            <div className="space-y-6">
-              {/* Main Network Demo */}
-              <AnimatedCard>
-                <NetworkDemo />
-              </AnimatedCard>
-
-              {/* Network Architecture Overview */}
-              <AnimatedCard delay={0.1}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Globe className="h-5 w-5 text-blue-500" />
-                      Multi-Network Architecture
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {supportedNetworks.map((network, index) => {
-                        const config = networkContracts[network.id]
-                        const isCurrentNetwork = chain?.id === network.id
-                        
-                        return (
-                          <div key={network.id} className={cn(
-                            "p-4 border rounded-lg",
-                            isCurrentNetwork && "border-green-500 bg-green-50 dark:bg-green-950/20"
-                          )}>
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className={cn(
-                                "w-3 h-3 rounded-full",
-                                isCurrentNetwork ? "bg-green-500" : "bg-gray-400"
-                              )} />
-                              <h4 className="font-semibold">{network.name}</h4>
-                              {network.testnet && <Badge variant="outline" className="text-xs">Testnet</Badge>}
-                            </div>
-                            
-                            <div className="space-y-2 text-sm">
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Chain ID:</span>
-                                <span className="font-mono">{network.id}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Type:</span>
-                                <span>{network.testnet ? "Testnet" : "Mainnet"}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Native:</span>
-                                <span>{network.nativeCurrency.symbol}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span className="text-muted-foreground">Role:</span>
-                                <span className="text-xs">
-                                  {'peridottrollerG7Proxy' in config ? "Hub/Spoke" : "Spoke"}
-                                </span>
-                              </div>
-                            </div>
-                            
-                            {isCurrentNetwork && (
-                              <div className="mt-3 p-2 bg-green-100 dark:bg-green-900/30 rounded-md">
-                                <p className="text-xs text-green-700 dark:text-green-300 font-medium">
-                                  Currently Connected
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedCard>
-            </div>
-          </TabsContent>
-
           {/* Stake Tab Content - Placeholder */}
           <TabsContent value="stake">
             <AnimatedCard>
@@ -2142,38 +2108,6 @@ export default function AppPage() {
            </motion.div>
          )}
        </AnimatePresence>
-
-        {/* Position Management Quick Actions - Show if user has positions */}
-        <PositionManagementCard
-          userPositions={userPositions}
-          isDemoMode={isDemoMode}
-          userHealthFactor={userHealthFactor}
-          onNavigateToPortfolio={() => setActiveTab("portfolio")}
-          onOpenSupplyModal={() => {
-            const firstSupplyAsset = supplyData.find(asset => 
-              userPositions.some(p => p.asset.symbol === asset.symbol && p.type === "supply")
-            )
-            if (firstSupplyAsset) {
-              handleOpenDetailModal(firstSupplyAsset, true)
-            }
-          }}
-          onOpenBorrowModal={() => {
-            const firstBorrowAsset = borrowData.find(asset => 
-              userPositions.some(p => p.asset.symbol === asset.symbol && p.type === "borrow")
-            )
-            if (firstBorrowAsset) {
-              handleOpenDetailModal(firstBorrowAsset, false)
-            }
-          }}
-        />
-
-        {/* Market Insights Card */}
-        <MarketInsightsWrapper
-          markets={demoMarketData}
-          isDemoMode={isDemoMode}
-          selectedMarket={selectedMarketForInsights}
-          onMarketSelect={setSelectedMarketForInsights}
-        />
 
         {/* Network Status Section */}
         {isConnected && (

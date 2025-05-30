@@ -180,6 +180,16 @@
     touch-action: manipulation;
     -webkit-touch-callout: none;
   }
+  
+  /* Hide scrollbar but maintain functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Safari and Chrome */
+  }
 }
 
 /* Make the hero section text smaller on mobile screens */
