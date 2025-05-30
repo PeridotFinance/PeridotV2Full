@@ -35,8 +35,6 @@ import {
   BarChart4,
   History,
   PiggyBank,
-  Users,
-  AlertTriangle,
 } from "lucide-react"
 import Image from "next/image"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -74,13 +72,45 @@ import type {
 // Import extracted UI components
 import { AnimatedCounter, MiniChart, DonutChart, AnimatedCard } from '../components/ui/ChartComponents'
 import { AssetRow, AssetDetailCard } from '../components/ui/AssetComponents'
-// Import utility functions
-import { generateChartData, getColorForAsset } from '../utils/chartHelpers'
-// Import new modular components
-import { UserPositionsCard, type UserPosition } from '../components/markets/UserPositionsCard'
-import { RiskManagementCard } from '../components/markets/RiskManagementCard'
-import { MarketInsightsCard } from '../components/markets/MarketInsightsCard'
-import { useUserPositions, DEMO_TOTALS } from '../hooks/useUserPositions'
+
+  averageApy: number // weighted average or simple average
+
+// Sample chart data
+const generateChartData = (days = 30, volatility = 0.1, uptrend = true) => {
+  const data = []
+  let value = 100
+
+  for (let i = 0; i < days; i++) {
+    const change = uptrend
+      ? Math.random() * volatility - volatility * 0.3
+      : Math.random() * volatility - volatility * 0.7
+
+    // Ensure value doesn't become too low or negative, adjust minimum as needed
+    value = Math.max(value * (1 + change), 5) // Min value of 5, for example
+    data.push({ day: i, value: value })
+  }
+
+  return data
+}
+
+// Helper function for asset colors in portfolio chart
+const assetColorPalette = [
+  "#3b82f6", // blue-500
+  "#10b981", // emerald-500
+  "#f59e0b", // amber-500
+  "#ec4899", // pink-500
+  "#8b5cf6", // violet-500
+];
+let colorIndex = 0;
+const assignedColors: { [key: string]: string } = {};
+
+const getColorForAsset = (assetSymbol: string) => {
+  if (!assignedColors[assetSymbol]) {
+    assignedColors[assetSymbol] = assetColorPalette[colorIndex % assetColorPalette.length];
+    colorIndex++;
+  }
+  return assignedColors[assetSymbol];
+};
 
 // Define Peridottroller address for Soneium Minato
 const peridottrollerAddressSoneiumMinato = '0xB911C192ed1d6428A12F2Cf8F636B00c34e68a2a' as `0x${string}`;
@@ -94,12 +124,12 @@ const pTokenAddresses = {
   // Add more pToken addresses as they become available
 } as const;
 
-// Demo data constants - now using consistent values from useUserPositions
+// Demo data constants
 const DEMO_DATA = {
-  totalSupplied: DEMO_TOTALS.totalSupplied,
-  totalBorrowed: DEMO_TOTALS.totalBorrowed,
-  netAPY: DEMO_TOTALS.netAPY,
-  borrowLimitUsed: DEMO_TOTALS.borrowLimitUsed,
+  totalSupplied: 15423.82,
+  totalBorrowed: 4971.50,
+  netAPY: 3,
+  borrowLimitUsed: 64,
   portfolioSummary: {
     totalValue: 55873.21,
     change24hValue: 1234.56,
@@ -164,180 +194,6 @@ export default function AppPage() {
   const liveAccountData = useLiveAccountData(isDemoMode, address, isConnected, chain);
   const liveMarketData = useLiveMarketData(isDemoMode, isConnected, chain);
   const livePortfolioData = useLivePortfolioData(isDemoMode, address, isConnected, chain);
-
-  // User positions hook
-  const {
-    positions: userPositions,
-    isLoading: isLoadingPositions,
-    error: positionsError,
-    refetch: refetchPositions,
-    toggleCollateral: togglePositionCollateral,
-    totalSupplied: userTotalSupplied,
-    totalBorrowed: userTotalBorrowed,
-    netAPY: userNetAPY,
-    healthFactor: userHealthFactor,
-    liquidationRisk
-  } = useUserPositions({ isDemoMode, refreshTrigger: Date.now() });
-
-  // Market insights state
-  const [selectedMarketForInsights, setSelectedMarketForInsights] = useState("usdc");
-
-  // Demo market data for insights
-  const demoMarketData = useMemo(() => [
-    {
-      id: "usdc",
-      asset: {
-        name: "USD Coin",
-        symbol: "USDC",
-        icon: "/tokenimages/app/usd-coin-usdc-logo.svg",
-        chain: "Ethereum"
-      },
-      supplyAPY: 4.25,
-      borrowAPY: 6.8,
-      totalSupplied: 125000000,
-      totalBorrowed: 89000000,
-      totalReserves: 2500000,
-      utilizationRate: 71.2,
-      collateralFactor: 80,
-      liquidationThreshold: 85,
-      reserveFactor: 15,
-      userSupplied: isDemoMode ? 5000 : undefined, // Matches position data
-      userBorrowed: isDemoMode ? 3500 : undefined, // Matches position data
-      priceHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        price: 1.0 + (Math.random() - 0.5) * 0.01
-      })),
-      apyHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        supplyAPY: 4.25 + (Math.random() - 0.5) * 0.5,
-        borrowAPY: 6.8 + (Math.random() - 0.5) * 0.8
-      }))
-    },
-    {
-      id: "eth",
-      asset: {
-        name: "Ethereum",
-        symbol: "ETH",
-        icon: "/tokenimages/app/ethereum-eth-logo.svg",
-        chain: "Ethereum"
-      },
-      supplyAPY: 3.85,
-      borrowAPY: 5.2,
-      totalSupplied: 85000000,
-      totalBorrowed: 62000000,
-      totalReserves: 1800000,
-      utilizationRate: 72.9,
-      collateralFactor: 75,
-      liquidationThreshold: 80,
-      reserveFactor: 20,
-      userSupplied: isDemoMode ? 10564 : undefined, // Matches position data (3 ETH * $3521.48)
-      userBorrowed: undefined,
-      priceHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        price: 3500 + (Math.random() - 0.5) * 200
-      })),
-      apyHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        supplyAPY: 3.85 + (Math.random() - 0.5) * 0.4,
-        borrowAPY: 5.2 + (Math.random() - 0.5) * 0.6
-      }))
-    },
-    {
-      id: "sol",
-      asset: {
-        name: "Solana",
-        symbol: "SOL",
-        icon: "/tokenimages/app/solana-sol-logo.svg",
-        chain: "Solana"
-      },
-      supplyAPY: 5.2,
-      borrowAPY: 7.5,
-      totalSupplied: 45000000,
-      totalBorrowed: 32000000,
-      totalReserves: 900000,
-      utilizationRate: 71.1,
-      collateralFactor: 70,
-      liquidationThreshold: 75,
-      reserveFactor: 18,
-      userSupplied: isDemoMode ? 22414 : undefined, // Matches position data (150.5 SOL * $148.93)
-      userBorrowed: undefined,
-      priceHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        price: 149 + (Math.random() - 0.5) * 20
-      })),
-      apyHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        supplyAPY: 5.2 + (Math.random() - 0.5) * 0.6,
-        borrowAPY: 7.5 + (Math.random() - 0.5) * 0.9
-      }))
-    },
-    {
-      id: "usdt",
-      asset: {
-        name: "Tether USD",
-        symbol: "USDT",
-        icon: "/tokenimages/app/tether-usdt-logo.svg",
-        chain: "Ethereum"
-      },
-      supplyAPY: 3.1,
-      borrowAPY: 7.2,
-      totalSupplied: 95000000,
-      totalBorrowed: 68000000,
-      totalReserves: 1900000,
-      utilizationRate: 71.6,
-      collateralFactor: 75,
-      liquidationThreshold: 80,
-      reserveFactor: 20,
-      userSupplied: undefined,
-      userBorrowed: isDemoMode ? 1200 : undefined, // Matches position data
-      priceHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        price: 1.0 + (Math.random() - 0.5) * 0.008
-      })),
-      apyHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        supplyAPY: 3.1 + (Math.random() - 0.5) * 0.3,
-        borrowAPY: 7.2 + (Math.random() - 0.5) * 0.8
-      }))
-    }
-  ], [isDemoMode]);
-
-  // Risk data for risk management component
-  const riskData = useMemo(() => ({
-    healthFactor: userHealthFactor,
-    liquidationRisk: liquidationRisk,
-    totalCollateral: userTotalSupplied,
-    totalBorrowed: userTotalBorrowed,
-    borrowLimit: userTotalSupplied * 0.75, // Assuming 75% LTV
-    borrowLimitUsed: userTotalSupplied > 0 ? (userTotalBorrowed / (userTotalSupplied * 0.75)) * 100 : 0,
-    liquidationThreshold: 85,
-    priceImpactRisk: "medium" as const
-  }), [userHealthFactor, liquidationRisk, userTotalSupplied, userTotalBorrowed]);
-
-  // Position management handlers
-  const handleManagePosition = (position: UserPosition) => {
-    console.log("Managing position:", position);
-    // This would typically open a modal or navigate to a management page
-    // For now, we'll just open the asset detail modal
-    const asset = supplyData.find(a => a.symbol === position.asset.symbol) || 
-                  borrowData.find(a => a.symbol === position.asset.symbol);
-    if (asset) {
-      setSelectedAsset(asset);
-      setIsDetailSupply(position.type === "supply");
-    }
-  };
-
-  const handleAddCollateral = () => {
-    console.log("Add collateral clicked");
-    // Navigate to supply page or open supply modal
-    setActiveTab("markets");
-  };
-
-  const handleRepayDebt = () => {
-    console.log("Repay debt clicked");
-    // Navigate to repay page or open repay modal
-    setActiveTab("markets");
-  };
 
   // Refs for animations
   const heroRef = useRef<HTMLDivElement>(null)
@@ -850,38 +706,6 @@ export default function AppPage() {
              {/* Keep Title if desired */}
              <h1 className="text-2xl md:text-3xl font-bold">Peridot DeFi</h1>
              <p className="text-sm text-muted-foreground">Cross-chain lending & borrowing</p>
-             
-             {/* Add Chain Selector for Cross-Chain Functionality */}
-             <div className="mt-2 flex items-center gap-2">
-               <Label className="text-xs text-muted-foreground">Active Chains:</Label>
-               <div className="flex items-center gap-1">
-                 <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-500 border-blue-500/20">
-                   Hub: Sei
-                 </Badge>
-                 <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500/20">
-                   Spoke: Ethereum
-                 </Badge>
-                 <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-500 border-purple-500/20">
-                   Spoke: Solana
-                 </Badge>
-                 <Badge variant="outline" className="text-xs bg-orange-500/10 text-orange-500 border-orange-500/20">
-                   Spoke: Soneium
-                 </Badge>
-               </div>
-               <Tooltip>
-                 <TooltipTrigger asChild>
-                   <Button variant="ghost" size="icon" className="h-5 w-5">
-                     <HelpCircle className="h-3 w-3" />
-                   </Button>
-                 </TooltipTrigger>
-                 <TooltipContent>
-                   <p className="text-xs max-w-xs">
-                     Peridot operates across multiple chains. Deposit on any Spoke chain and borrow on another through our Hub.
-                   </p>
-                 </TooltipContent>
-               </Tooltip>
-             </div>
-             
              { /* Display Block Number */}
              {isConnected && chain?.id === soneiumMinato.id && (
               <div className="mt-2 p-2 border rounded-md bg-background">
@@ -904,6 +728,12 @@ export default function AppPage() {
                 {accountLiquidityError && <p className="text-sm text-red-500">Error fetching account liquidity: {accountLiquidityError.shortMessage || accountLiquidityError.message}</p>}
                 {accountLiquidityData && (
                   <div>
+                    {/* The getAccountLiquidity function returns three values:
+                        1. Error code (0 if no error)
+                        2. Liquidity (in USD)
+                        3. Shortfall (in USD) 
+                        We will display the liquidity. You might want to handle errors or shortfall differently.
+                    */}
                     <p className="text-xl md:text-2xl font-bold">
                       <AnimatedCounter value={parseFloat((Number(accountLiquidityData[1]) / 1e18).toFixed(2))} prefix="$" duration={0.8} />
                     </p> 
@@ -916,31 +746,6 @@ export default function AppPage() {
             )}
           </div>
           <div className="flex items-center gap-2 mt-2 md:mt-0">
-            {/* Cross-Chain Status Indicator */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-1 border rounded-xl px-3 py-1.5 bg-background relative">
-                  <Globe className="h-3 w-3 text-green-500" />
-                  <Label className="text-xs cursor-pointer text-green-500">Cross-Chain Active</Label>
-                  <HelpCircle className="h-3 w-3 text-muted-foreground ml-1" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent><p className="max-w-xs text-xs">Your assets can be used as collateral across all connected chains</p></TooltipContent>
-            </Tooltip>
-            
-            {/* Bridge Access Button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" asChild className="h-8 px-3">
-                  <Link href="/app/bridge">
-                    <ArrowUpRight className="h-3.5 w-3.5 mr-1" />
-                    <span className="text-xs">Bridge</span>
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent><p className="text-xs">Transfer assets between chains</p></TooltipContent>
-            </Tooltip>
-            
             {/* Demo Mode Toggle Button */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -1116,51 +921,33 @@ export default function AppPage() {
 
         {/* Markets Section with Tabs */}
         <Tabs defaultValue="markets" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-5 w-full md:w-auto mb-4">
+          <TabsList className="grid grid-cols-4 w-full md:w-auto mb-4">
             <TabsTrigger value="markets">Markets</TabsTrigger>
-            <TabsTrigger value="cross-chain">Cross-Chain</TabsTrigger>
             <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
             <TabsTrigger value="stake">Stake</TabsTrigger>
             <TabsTrigger value="debug">Debug</TabsTrigger>
           </TabsList>
 
           {/* Markets Tab Content */} 
-          <TabsContent value="markets" className="space-y-6">
-            {/* User Guidance Banner */}
-            {userPositions.length > 0 && (
-              <AnimatedCard delay={0.1}>
-                <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                          <Users className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-blue-900 dark:text-blue-100">
-                            You have {userPositions.length} active position{userPositions.length > 1 ? 's' : ''}
-                          </p>
-                          <p className="text-sm text-blue-700 dark:text-blue-300">
-                            Go to Portfolio tab to manage withdrawals, repayments, and collateral settings
-                          </p>
-                        </div>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setActiveTab("portfolio")}
-                        className="border-blue-200 text-blue-700 hover:bg-blue-100"
-                      >
-                        Manage Positions
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedCard>
-            )}
-
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {/* Supply Markets Card */}
+          <TabsContent value="markets">
+             {/* Search and Filter Bar */} 
+             <div className="flex items-center gap-4 mb-4">
+               <div className="relative flex-grow">
+                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                 <input 
+                   type="text"
+                   placeholder="Search assets..."
+                   value={searchTerm}
+                   onChange={(e) => setSearchTerm(e.target.value)}
+                   className="pl-10 pr-4 py-2 w-full rounded-md border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                 />
+               </div>
+               {/* Maybe add filter button back if needed */}
+             </div>
+             
+             {/* Apply grid layout only on medium screens and up */}
+             <div className="md:grid md:grid-cols-2 gap-6">
+               {/* Supply Markets Card */}
               <AnimatedCard>
                 <Card>
                   <CardHeader className="pb-2">
@@ -1281,473 +1068,167 @@ export default function AppPage() {
                    </CardContent>
                  </Card>
                </AnimatedCard>
-            </div>
+             </div>
+           </TabsContent>
+
+           {/* Placeholder Content for other tabs */}
+          <TabsContent value="portfolio">
+            <AnimatedCard>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Total Portfolio Value</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">
+                      <AnimatedCounter value={portfolioSummary.totalValue} prefix="$" duration={1} />
+                    </div>
+                    <p className={cn(
+                      "text-xs mt-1",
+                      portfolioSummary.change24hValue >= 0 ? "text-green-500" : "text-red-500"
+                    )}>
+                      {portfolioSummary.change24hValue >= 0 ? "+" : ""}
+                      <AnimatedCounter value={Math.abs(parseFloat(portfolioSummary.change24hValue.toFixed(2)))} prefix="$" duration={1} /> 
+                      ({portfolioSummary.change24hPercentage.toFixed(2)}%) 24h
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card className="md:col-span-2">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">Asset Allocation</CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-col sm:flex-row items-center justify-around pt-4">
+                    {/* Simplified Donut Chart usage: Show for the largest asset or overall health metric */}
+                    {/* For a true multi-segment chart, the DonutChart component would need an update */}
+                    {/* For now, let's show the allocation of the top asset */}
+                    {portfolioAssets.length > 0 && 
+                        <DonutChart 
+                            value={portfolioAssets[0].allocation} // Show allocation of the first (largest) asset
+                            size={120} 
+                            strokeWidth={12}
+                            color={getColorForAsset(portfolioAssets[0].symbol)}
+                        />
+                    }
+                    <div className="space-y-1 mt-3 sm:mt-0 sm:ml-4">
+                      {portfolioAssets.slice(0, 4).map(asset => (
+                        <div key={asset.id} className="flex items-center text-sm">
+                          <span className="w-3 h-3 rounded-full mr-2 flex-shrink-0" style={{ backgroundColor: getColorForAsset(asset.symbol) }}></span>
+                          <span className="font-medium mr-1">{asset.symbol}:</span> 
+                          <span className="text-muted-foreground">{asset.allocation.toFixed(1)}%</span>
+                        </div>
+                      ))}
+                      {portfolioAssets.length > 4 && (
+                        <div className="text-xs text-muted-foreground pt-1">
+                          + {portfolioAssets.length - 4} more
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </AnimatedCard>
+            <AnimatedCard delay={0.1}>
+              <Card>
+                <CardHeader>
+                  <CardTitle>My Assets</CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[30%]">Asset</TableHead>
+                          <TableHead className="text-right">Price</TableHead>
+                          <TableHead className="text-right">Amount</TableHead>
+                          <TableHead className="text-right">Value</TableHead>
+                          <TableHead className="text-right w-[15%]">Allocation</TableHead>
+                          <TableHead className="text-right w-[10%]">24h</TableHead>
+                          <TableHead className="w-[5%]"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {portfolioAssets.map((asset) => (
+                          <TableRow key={asset.id} className="group">
+                            <TableCell>
+                              <div className="flex items-center space-x-3">
+                                <Image src={asset.icon} alt={asset.name} width={28} height={28} className="rounded-full" />
+                                <div>
+                                  <div className="font-medium">{asset.name}</div>
+                                  <div className="text-xs text-muted-foreground">{asset.symbol}</div>
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">${asset.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                            <TableCell className="text-right">{asset.amount.toLocaleString()}</TableCell>
+                            <TableCell className="text-right font-medium">${asset.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end space-x-2">
+                                <span>{asset.allocation.toFixed(1)}%</span>
+                                <Progress value={asset.allocation} className="h-1.5 w-16 bg-primary/20 [&>div]:bg-primary" />
+                              </div>
+                            </TableCell>
+                            <TableCell className={cn(
+                              "text-right",
+                              asset.change24h && asset.change24h >= 0 ? "text-green-500" : "text-red-500"
+                            )}>
+                              {asset.change24h ? `${asset.change24h >= 0 ? "+" : ""}${asset.change24h.toFixed(2)}%` : "N/A"}
+                            </TableCell>
+                            <TableCell className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button variant="ghost" size="sm" className="rounded-full h-8 w-8 p-0">
+                                <TrendingUp className="h-4 w-4" /> {/* Or some other action icon */}
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            </AnimatedCard>
           </TabsContent>
 
-          {/* Cross-Chain Tab Content */}
-          <TabsContent value="cross-chain">
+          {/* Debug Tab Content */}
+          <TabsContent value="debug">
             <div className="space-y-6">
-              {/* Cross-Chain Overview */}
+              {/* Contract Information */}
               <AnimatedCard>
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Globe className="h-5 w-5 text-blue-500" />
-                      Cross-Chain Lending Overview
-                    </CardTitle>
-                    <p className="text-sm text-muted-foreground">
-                      Deposit on one chain, borrow on another. Peridot's Hub & Spoke architecture enables true cross-chain DeFi.
-                    </p>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {/* Hub Status */}
-                      <div className="text-center p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                        <div className="w-12 h-12 mx-auto mb-2 bg-blue-500/20 rounded-full flex items-center justify-center">
-                          <BarChart3 className="h-6 w-6 text-blue-500" />
-                        </div>
-                        <h3 className="font-semibold text-blue-500">Hub Chain</h3>
-                        <p className="text-sm text-muted-foreground mt-1">Sei Network</p>
-                        <p className="text-xs text-green-500 mt-1">✓ Active</p>
-                      </div>
-                      
-                      {/* Spoke Chains */}
-                      <div className="text-center p-4 bg-green-500/10 rounded-lg border border-green-500/20">
-                        <div className="w-12 h-12 mx-auto mb-2 bg-green-500/20 rounded-full flex items-center justify-center">
-                          <ArrowUpRight className="h-6 w-6 text-green-500" />
-                        </div>
-                        <h3 className="font-semibold text-green-500">Spoke Chains</h3>
-                        <p className="text-sm text-muted-foreground mt-1">Ethereum, Solana, Soneium</p>
-                        <p className="text-xs text-green-500 mt-1">✓ Connected</p>
-                      </div>
-                      
-                      {/* Wormhole Status */}
-                      <div className="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                        <div className="w-12 h-12 mx-auto mb-2 bg-purple-500/20 rounded-full flex items-center justify-center">
-                          <Zap className="h-6 w-6 text-purple-500" />
-                        </div>
-                        <h3 className="font-semibold text-purple-500">Wormhole Bridge</h3>
-                        <p className="text-sm text-muted-foreground mt-1">Cross-chain messaging</p>
-                        <p className="text-xs text-green-500 mt-1">✓ Operational</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedCard>
-
-              {/* Cross-Chain Transaction Flow */}
-              <AnimatedCard delay={0.1}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <ArrowRight className="h-5 w-5 text-green-500" />
-                      How Cross-Chain Lending Works
+                      <BarChart4 className="h-5 w-5" />
+                      Contract Information
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <div className="w-16 h-16 mx-auto mb-3 bg-blue-500/10 rounded-full flex items-center justify-center">
-                          <span className="text-2xl font-bold text-blue-500">1</span>
-                        </div>
-                        <h4 className="font-medium mb-2">Deposit on Spoke</h4>
-                        <p className="text-sm text-muted-foreground">Supply assets on your preferred chain (Ethereum, Solana, etc.)</p>
-                      </div>
-                      
-                      <div className="text-center">
-                        <div className="w-16 h-16 mx-auto mb-3 bg-purple-500/10 rounded-full flex items-center justify-center">
-                          <span className="text-2xl font-bold text-purple-500">2</span>
-                        </div>
-                        <h4 className="font-medium mb-2">Wormhole Message</h4>
-                        <p className="text-sm text-muted-foreground">Assets and intent are bridged to the Hub chain via Wormhole</p>
-                      </div>
-                      
-                      <div className="text-center">
-                        <div className="w-16 h-16 mx-auto mb-3 bg-green-500/10 rounded-full flex items-center justify-center">
-                          <span className="text-2xl font-bold text-green-500">3</span>
-                        </div>
-                        <h4 className="font-medium mb-2">Hub Processing</h4>
-                        <p className="text-sm text-muted-foreground">Hub updates your vault and calculates global liquidity</p>
-                      </div>
-                      
-                      <div className="text-center">
-                        <div className="w-16 h-16 mx-auto mb-3 bg-orange-500/10 rounded-full flex items-center justify-center">
-                          <span className="text-2xl font-bold text-orange-500">4</span>
-                        </div>
-                        <h4 className="font-medium mb-2">Borrow Anywhere</h4>
-                        <p className="text-sm text-muted-foreground">Borrow assets on any connected Spoke chain</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedCard>
-
-              {/* Cross-Chain Asset Overview */}
-              <AnimatedCard delay={0.2}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <BarChart4 className="h-5 w-5 text-green-500" />
-                      Cross-Chain Asset Distribution
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {/* Asset by Chain */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="p-4 border rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-blue-500">Ethereum</h4>
-                            <Badge variant="outline" className="text-xs">Spoke</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span>USDC Supplied:</span>
-                              <span className="font-medium">$5,420</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span>ETH Supplied:</span>
-                              <span className="font-medium">$3,210</span>
-                            </div>
-                            <div className="text-xs text-green-500 mt-2">Available for cross-chain borrowing</div>
-                          </div>
-                        </div>
-                        
-                        <div className="p-4 border rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-purple-500">Solana</h4>
-                            <Badge variant="outline" className="text-xs">Spoke</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span>SOL Supplied:</span>
-                              <span className="font-medium">$2,890</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span>USDT Borrowed:</span>
-                              <span className="font-medium text-red-500">-$1,500</span>
-                            </div>
-                            <div className="text-xs text-blue-500 mt-2">Cross-chain collateral active</div>
-                          </div>
-                        </div>
-                        
-                        <div className="p-4 border rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-orange-500">Soneium</h4>
-                            <Badge variant="outline" className="text-xs">Spoke</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span>PERC Supplied:</span>
-                              <span className="font-medium">$1,200</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span>Available:</span>
-                              <span className="font-medium">$980</span>
-                            </div>
-                            <div className="text-xs text-green-500 mt-2">Testing environment</div>
-                          </div>
-                        </div>
-                        
-                        <div className="p-4 border rounded-lg border-blue-500/50 bg-blue-500/5">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-blue-500">Sei (Hub)</h4>
-                            <Badge className="text-xs bg-blue-500/10 text-blue-500">Hub</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span>Total Collateral:</span>
-                              <span className="font-medium">$11,720</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span>Borrow Power:</span>
-                              <span className="font-medium text-green-500">$8,790</span>
-                            </div>
-                            <div className="text-xs text-blue-500 mt-2">Global accounting & liquidations</div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Quick Actions */}
-                      <div className="border-t pt-4">
-                        <h4 className="font-medium mb-3">Quick Cross-Chain Actions</h4>
-                        <div className="flex gap-2 flex-wrap">
-                          <Button size="sm" asChild>
-                            <Link href="/app/bridge">
-                              <ArrowUpRight className="h-4 w-4 mr-1" />
-                              Bridge Assets
-                            </Link>
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => setActiveTab("markets")}>
-                            <Plus className="h-4 w-4 mr-1" />
-                            Supply Assets
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => setActiveTab("markets")}>
-                            <TrendingDown className="h-4 w-4 mr-1" />
-                            Borrow Assets
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4 mr-1" />
-                            View Transactions
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedCard>
-
-              {/* Coming Soon Features */}
-              <AnimatedCard delay={0.3}>
-                <Card className="border-dashed">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-yellow-500" />
-                      Coming Soon: Advanced Cross-Chain Features
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <h4 className="font-medium mb-2">💱 Cross-Chain Yield Farming</h4>
-                        <p className="text-sm text-muted-foreground">Optimize yields by automatically moving assets to the highest-yielding opportunities across all chains.</p>
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground">Peridottroller Proxy Address</h4>
+                        <div className="font-mono text-sm bg-muted p-2 rounded">
+                          {peridottrollerAddressSoneiumMinato}
+                        </div>
                       </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <h4 className="font-medium mb-2">🔄 Auto-Rebalancing</h4>
-                        <p className="text-sm text-muted-foreground">Automatically maintain optimal collateral ratios across your cross-chain positions.</p>
+                      
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground">Implementation Address</h4>
+                        <div className="font-mono text-sm bg-muted p-2 rounded">
+                          {isLoadingImplementation && "Loading..."}
+                          {implementationError && <span className="text-red-500">Error: {implementationError.shortMessage}</span>}
+                          {implementationAddress && String(implementationAddress)}
+                          {!isLoadingImplementation && !implementationError && !implementationAddress && "Not available"}
+                        </div>
                       </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <h4 className="font-medium mb-2">⚡ Flash Cross-Chain Loans</h4>
-                        <p className="text-sm text-muted-foreground">Execute complex arbitrage strategies across multiple chains in a single transaction.</p>
+
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-muted-foreground">Oracle Address</h4>
+                        <div className="font-mono text-sm bg-muted p-2 rounded">
+                          {isLoadingOracle && "Loading..."}
+                          {oracleError && <span className="text-red-500">Error: {oracleError.shortMessage}</span>}
+                          {oracleAddress && String(oracleAddress)}
+                          {!isLoadingOracle && !oracleError && !oracleAddress && "Not available"}
+                        </div>
                       </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <h4 className="font-medium mb-2">🏛️ Cross-Chain Governance</h4>
-                        <p className="text-sm text-muted-foreground">Vote on protocol proposals from any connected chain with your cross-chain voting power.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedCard>
-            </div>
 
-            {/* Market Insights for deeper analysis */}
-            <div className="mt-6">
-              <AnimatedCard delay={0.2}>
-                <MarketInsightsCard
-                  markets={demoMarketData}
-                  isDemoMode={isDemoMode}
-                  selectedMarket={selectedMarketForInsights}
-                  onMarketSelect={setSelectedMarketForInsights}
-                />
-              </AnimatedCard>
-            </div>
-          </TabsContent>
-
-          {/* Placeholder Content for other tabs */}
-         <TabsContent value="portfolio">
-           <div className="space-y-6">
-             {/* Portfolio Overview */}
-             <AnimatedCard>
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                 <Card>
-                   <CardHeader className="pb-2">
-                     <CardTitle className="text-sm font-medium text-muted-foreground">Total Portfolio Value</CardTitle>
-                   </CardHeader>
-                   <CardContent>
-                     <div className="text-3xl font-bold">
-                       <AnimatedCounter value={portfolioSummary.totalValue} prefix="$" duration={1} />
-                     </div>
-                     <p className={cn(
-                       "text-xs mt-1",
-                       portfolioSummary.change24hValue >= 0 ? "text-green-500" : "text-red-500"
-                     )}>
-                       {portfolioSummary.change24hValue >= 0 ? "+" : ""}
-                       <AnimatedCounter value={Math.abs(parseFloat(portfolioSummary.change24hValue.toFixed(2)))} prefix="$" duration={1} /> 
-                       ({portfolioSummary.change24hPercentage.toFixed(2)}%) 24h
-                     </p>
-                   </CardContent>
-                 </Card>
-                 <Card className="md:col-span-2">
-                   <CardHeader className="pb-2">
-                     <CardTitle className="text-sm font-medium text-muted-foreground">Asset Allocation</CardTitle>
-                   </CardHeader>
-                   <CardContent className="flex flex-col sm:flex-row items-center justify-around pt-4">
-                     {/* Simplified Donut Chart usage: Show for the largest asset or overall health metric */}
-                     {/* For a true multi-segment chart, the DonutChart component would need an update */}
-                     {/* For now, let's show the allocation of the top asset */}
-                     {portfolioAssets.length > 0 && 
-                         <DonutChart 
-                             value={portfolioAssets[0].allocation} // Show allocation of the first (largest) asset
-                             size={120} 
-                             strokeWidth={12}
-                             color={getColorForAsset(portfolioAssets[0].symbol)}
-                         />
-                     }
-                     <div className="space-y-1 mt-3 sm:mt-0 sm:ml-4">
-                       {portfolioAssets.slice(0, 4).map(asset => (
-                         <div key={asset.id} className="flex items-center text-sm">
-                           <span className="w-3 h-3 rounded-full mr-2 flex-shrink-0" style={{ backgroundColor: getColorForAsset(asset.symbol) }}></span>
-                           <span className="font-medium mr-1">{asset.symbol}:</span> 
-                           <span className="text-muted-foreground">{asset.allocation.toFixed(1)}%</span>
-                         </div>
-                       ))}
-                       {portfolioAssets.length > 4 && (
-                         <div className="text-xs text-muted-foreground pt-1">
-                           + {portfolioAssets.length - 4} more
-                         </div>
-                       )}
-                     </div>
-                   </CardContent>
-                 </Card>
-               </div>
-             </AnimatedCard>
-
-             {/* User Positions */}
-             <AnimatedCard delay={0.1}>
-               <UserPositionsCard
-                 positions={userPositions}
-                 isDemoMode={isDemoMode}
-                 isLoading={isLoadingPositions}
-                 onManagePosition={handleManagePosition}
-                 onToggleCollateral={togglePositionCollateral}
-               />
-             </AnimatedCard>
-
-             {/* Risk Management */}
-             {(userTotalBorrowed > 0 || userPositions.some(p => p.type === "borrow")) && (
-               <AnimatedCard delay={0.2}>
-                 <RiskManagementCard
-                   riskData={riskData}
-                   isDemoMode={isDemoMode}
-                   onAddCollateral={handleAddCollateral}
-                   onRepayDebt={handleRepayDebt}
-                 />
-               </AnimatedCard>
-             )}
-
-             {/* Market Insights */}
-             <AnimatedCard delay={0.3}>
-               <MarketInsightsCard
-                 markets={demoMarketData}
-                 isDemoMode={isDemoMode}
-                 selectedMarket={selectedMarketForInsights}
-                 onMarketSelect={setSelectedMarketForInsights}
-               />
-             </AnimatedCard>
-
-             {/* Legacy Portfolio Assets Table */}
-             <AnimatedCard delay={0.4}>
-               <Card>
-                 <CardHeader>
-                   <CardTitle>Asset Holdings</CardTitle>
-                 </CardHeader>
-                 <CardContent className="p-0">
-                   <div className="overflow-x-auto">
-                     <Table>
-                       <TableHeader>
-                         <TableRow>
-                           <TableHead className="w-[30%]">Asset</TableHead>
-                           <TableHead className="text-right">Price</TableHead>
-                           <TableHead className="text-right">Amount</TableHead>
-                           <TableHead className="text-right">Value</TableHead>
-                           <TableHead className="text-right w-[15%]">Allocation</TableHead>
-                           <TableHead className="text-right w-[10%]">24h</TableHead>
-                           <TableHead className="w-[5%]"></TableHead>
-                         </TableRow>
-                       </TableHeader>
-                       <TableBody>
-                         {portfolioAssets.map((asset) => (
-                           <TableRow key={asset.id} className="group">
-                             <TableCell>
-                               <div className="flex items-center space-x-3">
-                                 <Image src={asset.icon} alt={asset.name} width={28} height={28} className="rounded-full" />
-                                 <div>
-                                   <div className="font-medium">{asset.name}</div>
-                                   <div className="text-xs text-muted-foreground">{asset.symbol}</div>
-                                 </div>
-                               </div>
-                             </TableCell>
-                             <TableCell className="text-right">${asset.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                             <TableCell className="text-right">{asset.amount.toLocaleString()}</TableCell>
-                             <TableCell className="text-right font-medium">${asset.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                             <TableCell className="text-right">
-                               <div className="flex items-center justify-end space-x-2">
-                                 <span>{asset.allocation.toFixed(1)}%</span>
-                                 <Progress value={asset.allocation} className="h-1.5 w-16 bg-primary/20 [&>div]:bg-primary" />
-                               </div>
-                             </TableCell>
-                             <TableCell className={cn(
-                               "text-right",
-                               asset.change24h && asset.change24h >= 0 ? "text-green-500" : "text-red-500"
-                             )}>
-                               {asset.change24h ? `${asset.change24h >= 0 ? "+" : ""}${asset.change24h.toFixed(2)}%` : "N/A"}
-                             </TableCell>
-                             <TableCell className="opacity-0 group-hover:opacity-100 transition-opacity">
-                               <Button variant="ghost" size="sm" className="rounded-full h-8 w-8 p-0">
-                                 <TrendingUp className="h-4 w-4" /> {/* Or some other action icon */}
-                               </Button>
-                             </TableCell>
-                           </TableRow>
-                         ))}
-                       </TableBody>
-                     </Table>
-                   </div>
-                 </CardContent>
-               </Card>
-             </AnimatedCard>
-           </div>
-         </TabsContent>
-
-         {/* Debug Tab Content */}
-         <TabsContent value="debug">
-           <div className="space-y-6">
-             {/* Contract Information */}
-             <AnimatedCard>
-               <Card>
-                 <CardHeader>
-                   <CardTitle className="flex items-center gap-2">
-                     <BarChart4 className="h-5 w-5" />
-                     Contract Information
-                   </CardTitle>
-                 </CardHeader>
-                 <CardContent className="space-y-4">
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <div className="space-y-2">
-                       <h4 className="text-sm font-medium text-muted-foreground">Peridottroller Proxy Address</h4>
-                       <div className="font-mono text-sm bg-muted p-2 rounded">
-                         {peridottrollerAddressSoneiumMinato}
-                       </div>
-                     </div>
-                     
-                     <div className="space-y-2">
-                       <h4 className="text-sm font-medium text-muted-foreground">Implementation Address</h4>
-                       <div className="font-mono text-sm bg-muted p-2 rounded">
-                         {isLoadingImplementation && "Loading..."}
-                         {implementationError && <span className="text-red-500">Error: {implementationError.shortMessage}</span>}
-                         {implementationAddress && String(implementationAddress)}
-                         {!isLoadingImplementation && !implementationError && !implementationAddress && "Not available"}
-                       </div>
-                     </div>
-
-                     <div className="space-y-2">
-                       <h4 className="text-sm font-medium text-muted-foreground">Oracle Address</h4>
-                       <div className="font-mono text-sm bg-muted p-2 rounded">
-                         {isLoadingOracle && "Loading..."}
-                         {oracleError && <span className="text-red-500">Error: {oracleError.shortMessage}</span>}
-                         {oracleAddress && String(oracleAddress)}
-                         {!isLoadingOracle && !oracleError && !oracleAddress && "Not available"}
-                       </div>
-                     </div>
-
-                     <div className="space-y-2">
-                       <h4 className="text-sm font-medium text-muted-foreground">Current Block Number</h4>
-                       <div className="font-mono text-sm bg-muted p-2 rounded">
-                         {isLoadingBlockNumber && "Loading..."}
-                         {blockNumberError && <span className="text-red-500">Error: {blockNumberError.shortMessage}</span>}
-                         {blockNumber && blockNumber.toString()}
-                         {!isLoadingBlockNumber && !blockNumberError && !blockNumber && "Not available"}
-                       </div>
-                     </div>
                       <div className="space-y-2">
                         <h4 className="text-sm font-medium text-muted-foreground">Current Block Number</h4>
                         <div className="font-mono text-sm bg-muted p-2 rounded">
@@ -2303,175 +1784,6 @@ export default function AppPage() {
            </motion.div>
          )}
        </AnimatePresence>
-
-        {/* Position Management Quick Actions - Show if user has positions */}
-        {userPositions.length > 0 && (
-          <AnimatedCard delay={0.6}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Position Management
-                  {isDemoMode && (
-                    <Badge variant="outline" className="text-xs">Demo</Badge>
-                  )}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Quick actions to manage your active lending and borrowing positions
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* Supply Positions Summary */}
-                  {userPositions.filter(p => p.type === "supply").length > 0 && (
-                    <div className="p-4 border rounded-lg bg-green-50/50 dark:bg-green-950/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="h-4 w-4 text-green-600" />
-                        <span className="font-medium text-green-700">Supply Positions</span>
-                      </div>
-                      <p className="text-2xl font-bold text-green-700 mb-1">
-                        {userPositions.filter(p => p.type === "supply").length}
-                      </p>
-                      <p className="text-xs text-green-600 mb-3">
-                        ${userPositions.filter(p => p.type === "supply").reduce((sum, p) => sum + p.amountUSD, 0).toLocaleString()} supplied
-                      </p>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="w-full text-xs h-7"
-                        onClick={() => setActiveTab("portfolio")}
-                      >
-                        Manage Supplies
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Borrow Positions Summary */}
-                  {userPositions.filter(p => p.type === "borrow").length > 0 && (
-                    <div className="p-4 border rounded-lg bg-red-50/50 dark:bg-red-950/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingDown className="h-4 w-4 text-red-600" />
-                        <span className="font-medium text-red-700">Borrow Positions</span>
-                      </div>
-                      <p className="text-2xl font-bold text-red-700 mb-1">
-                        {userPositions.filter(p => p.type === "borrow").length}
-                      </p>
-                      <p className="text-xs text-red-600 mb-3">
-                        ${userPositions.filter(p => p.type === "borrow").reduce((sum, p) => sum + p.amountUSD, 0).toLocaleString()} borrowed
-                      </p>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="w-full text-xs h-7"
-                        onClick={() => setActiveTab("portfolio")}
-                      >
-                        Manage Borrows
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Health Factor Warning */}
-                  {userHealthFactor && userHealthFactor < 1.5 && (
-                    <div className="p-4 border rounded-lg bg-orange-50/50 dark:bg-orange-950/20 border-orange-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <AlertTriangle className="h-4 w-4 text-orange-600" />
-                        <span className="font-medium text-orange-700">Risk Alert</span>
-                      </div>
-                      <p className="text-2xl font-bold text-orange-700 mb-1">
-                        {userHealthFactor.toFixed(2)}
-                      </p>
-                      <p className="text-xs text-orange-600 mb-3">
-                        Health factor - Action needed
-                      </p>
-                      <Button 
-                        size="sm" 
-                        variant="default"
-                        className="w-full text-xs h-7 bg-orange-600 hover:bg-orange-700"
-                        onClick={() => setActiveTab("portfolio")}
-                      >
-                        Reduce Risk
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Quick Actions */}
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Zap className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium text-blue-700">Quick Actions</span>
-                    </div>
-                    <div className="space-y-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="w-full text-xs h-7"
-                        onClick={() => setActiveTab("portfolio")}
-                      >
-                        View All Positions
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="w-full text-xs h-7"
-                        onClick={() => {
-                          const firstSupplyAsset = supplyData.find(asset => 
-                            userPositions.some(p => p.asset.symbol === asset.symbol && p.type === "supply")
-                          )
-                          if (firstSupplyAsset) {
-                            handleOpenDetailModal(firstSupplyAsset, true)
-                          }
-                        }}
-                      >
-                        Add Collateral
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="w-full text-xs h-7"
-                        onClick={() => {
-                          const firstBorrowAsset = borrowData.find(asset => 
-                            userPositions.some(p => p.asset.symbol === asset.symbol && p.type === "borrow")
-                          )
-                          if (firstBorrowAsset) {
-                            handleOpenDetailModal(firstBorrowAsset, false)
-                          }
-                        }}
-                      >
-                        Repay Loan
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Educational Note */}
-                <div className="mt-4 p-3 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-xs text-blue-700">
-                      <p className="font-medium mb-1">Position Management Tips:</p>
-                      <ul className="space-y-1 text-blue-600">
-                        <li>• Supply assets to earn interest and use them as collateral</li>
-                        <li>• Borrow against your collateral while monitoring your health factor</li>
-                        <li>• Keep your health factor above 1.5 to avoid liquidation risk</li>
-                        <li>• Go to Portfolio tab for detailed position management</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </AnimatedCard>
-        )}
-
-        {/* Market Insights Card */}
-        <AnimatedCard delay={0.7}>
-          <MarketInsightsCard
-            markets={demoMarketData}
-            isDemoMode={isDemoMode}
-            selectedMarket={selectedMarketForInsights}
-            onMarketSelect={setSelectedMarketForInsights}
-          />
-        </AnimatedCard>
 
       </div>
     </TooltipProvider>

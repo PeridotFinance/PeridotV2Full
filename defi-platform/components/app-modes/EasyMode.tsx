@@ -22,6 +22,18 @@ import { useTheme } from "next-themes"
 import { useMobile } from "@/hooks/use-mobile"
 import dynamic from "next/dynamic"
 
+// Import Dialog components, Input and Label
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog" // Assuming this path for shadcn/ui Dialog
+import { Input } from "@/components/ui/input" // Assuming this path
+
 // Dynamically import the loading component
 const EasyModeLoading = dynamic(() => import("./EasyModeLoading"), {
   ssr: false,
@@ -65,6 +77,14 @@ export const EasyMode = ({ onExitEasyMode }: EasyModeProps) => {
   const [isLoading, setIsLoading] = useState(true)
   const { theme } = useTheme()
   const isDarkMode = theme === "dark"
+  
+  // State for Quick Action Modals
+  const [depositModalOpen, setDepositModalOpen] = useState(false);
+  const [exploreModalOpen, setExploreModalOpen] = useState(false);
+  const [earningsModalOpen, setEarningsModalOpen] = useState(false);
+  const [manageModalOpen, setManageModalOpen] = useState(false);
+  const [trackModalOpen, setTrackModalOpen] = useState(false);
+  const [learnModalOpen, setLearnModalOpen] = useState(false);
   
   // Refs for accessibility focus management
   const exitButtonRef = useRef<HTMLButtonElement>(null)
@@ -629,7 +649,7 @@ export const EasyMode = ({ onExitEasyMode }: EasyModeProps) => {
         My Dashboard
       </h1>
       
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
         <Card>
           <CardHeader className="p-4 pb-2">
             <CardTitle ref={mainHeadingRef} tabIndex={-1}>My Financial Snapshot</CardTitle>
@@ -668,41 +688,156 @@ export const EasyMode = ({ onExitEasyMode }: EasyModeProps) => {
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
-          <CardContent className="p-0">
-            <div className="flex overflow-x-auto space-x-3 p-4 sm:grid sm:grid-cols-3 sm:gap-3 sm:space-x-0">
-              <Button variant="outline" className="flex flex-col h-auto items-center justify-center text-center gap-1 p-3 flex-shrink-0 w-36 sm:w-full">
-                <PiggyBank className="h-5 w-5 text-primary" />
-                <span className="text-xs font-medium">Deposit Funds</span>
-                <span className="text-xxs text-muted-foreground leading-tight">Add money to your account</span>
-              </Button>
-              <Button variant="outline" className="flex flex-col h-auto items-center justify-center text-center gap-1 p-3 flex-shrink-0 w-36 sm:w-full">
-                <LineChart className="h-5 w-5 text-primary" />
-                <span className="text-xs font-medium">Explore Investments</span>
-                <span className="text-xxs text-muted-foreground leading-tight">Discover earning opportunities</span>
-              </Button>
-              <Button variant="outline" className="flex flex-col h-auto items-center justify-center text-center gap-1 p-3 flex-shrink-0 w-36 sm:w-full">
-                <TrendingUp className="h-5 w-5 text-primary" />
-                <span className="text-xs font-medium">View Earnings Potential</span>
-                <span className="text-xxs text-muted-foreground leading-tight">See how much you can make</span>
-              </Button>
-               <Button variant="outline" className="flex flex-col h-auto items-center justify-center text-center gap-1 p-3 flex-shrink-0 w-36 sm:w-full">
-                <BarChart4 className="h-5 w-5 text-primary" />
-                <span className="text-xs font-medium">Manage Portfolio</span>
-                <span className="text-xxs text-muted-foreground leading-tight">Adjust your investments</span>
-              </Button>
-              <Button variant="outline" className="flex flex-col h-auto items-center justify-center text-center gap-1 p-3 flex-shrink-0 w-36 sm:w-full">
-                <RefreshCw className="h-5 w-5 text-primary" />
-                <span className="text-xs font-medium">Track Spending</span>
-                <span className="text-xxs text-muted-foreground leading-tight">Review your expenses</span>
-              </Button>
-               <Button variant="outline" className="flex flex-col h-auto items-center justify-center text-center gap-1 p-3 flex-shrink-0 w-36 sm:w-full">
-                <HelpCircle className="h-5 w-5 text-primary" />
-                <span className="text-xs font-medium">Learn & Grow</span>
-                <span className="text-xxs text-muted-foreground leading-tight">Financial education</span>
-              </Button>
+          <CardContent className="flex overflow-x-auto space-x-3 p-6 pt-0 md:grid md:grid-cols-4 md:gap-4 md:space-x-0">
+            {/* Deposit Funds Action */}
+            <Dialog open={depositModalOpen} onOpenChange={setDepositModalOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex flex-col h-auto items-center justify-center gap-1 p-3 min-w-[140px] flex-shrink-0 md:min-w-0">
+                  <PiggyBank className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-medium">Deposit Funds</span>
+                  <span className="text-xxs text-muted-foreground leading-tight w-full whitespace-normal text-center">Add money to your account</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Deposit Funds</DialogTitle>
+                  <DialogDescription>
+                    Quickly add funds to your account. This is a preview of the deposit functionality.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="amount-deposit" className="text-right">
+                      Amount
+                    </Label>
+                    <Input id="amount-deposit" defaultValue="$1,000" className="col-span-3" />
+                  </div>
+                  <div className="flex justify-around col-span-4">
+                    <Button variant="secondary" size="sm" onClick={() => {/* set amount */}}>$100</Button>
+                    <Button variant="secondary" size="sm" onClick={() => {/* set amount */}}>$500</Button>
+                    <Button variant="secondary" size="sm" onClick={() => {/* set amount */}}>$1000</Button>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit" onClick={() => setDepositModalOpen(false)}>Confirm Deposit (Preview)</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Explore Investments Action */}
+            <Dialog open={exploreModalOpen} onOpenChange={setExploreModalOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex flex-col h-auto items-center justify-center gap-1 p-3 min-w-[140px] flex-shrink-0 md:min-w-0">
+                  <LineChart className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-medium">Explore Investments</span>
+                  <span className="text-xxs text-muted-foreground leading-tight w-full whitespace-normal text-center">Discover earning opportunities</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Explore Investments</DialogTitle>
+                  <DialogDescription>
+                    Discover various investment opportunities. This is a preview.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="p-3 border rounded-md hover:bg-muted/50">
+                    <h4 className="font-medium">Safe & Steady Growth (Preview)</h4>
+                    <p className="text-sm text-muted-foreground">Low risk, aiming for 3-5% APY.</p>
+                    <Button size="sm" className="mt-2">Learn More</Button>
+                  </div>
+                  <div className="p-3 border rounded-md hover:bg-muted/50">
+                    <h4 className="font-medium">Balanced Portfolio (Preview)</h4>
+                    <p className="text-sm text-muted-foreground">Medium risk, aiming for 6-9% APY.</p>
+                    <Button size="sm" className="mt-2">Learn More</Button>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setExploreModalOpen(false)}>Close</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* View Earnings Potential Action (Placeholder for Dialog) */}
+            <Dialog open={earningsModalOpen} onOpenChange={setEarningsModalOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex flex-col h-auto items-center justify-center gap-1 p-3 min-w-[140px] flex-shrink-0 md:min-w-0">
+                  <TrendingUp className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-medium">View Earnings Potential</span>
+                  <span className="text-xxs text-muted-foreground leading-tight w-full whitespace-normal text-center">See how much you can make</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                 <DialogHeader><DialogTitle>Earnings Potential (Preview)</DialogTitle></DialogHeader>
+                 <p className="py-4">Here you'll see a projection of your potential earnings based on your investments.</p>
+                 <DialogFooter><Button onClick={() => setEarningsModalOpen(false)}>Close</Button></DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Manage Portfolio Action (Placeholder for Dialog) */}
+            <Dialog open={manageModalOpen} onOpenChange={setManageModalOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex flex-col h-auto items-center justify-center gap-1 p-3 min-w-[140px] flex-shrink-0 md:min-w-0">
+                  <BarChart4 className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-medium">Manage Portfolio</span>
+                  <span className="text-xxs text-muted-foreground leading-tight w-full whitespace-normal text-center">Adjust your investments</span>
+                </Button>
+              </DialogTrigger>
+               <DialogContent>
+                 <DialogHeader><DialogTitle>Manage Portfolio (Preview)</DialogTitle></DialogHeader>
+                 <p className="py-4">This section will allow you to adjust your current investment strategies.</p>
+                 <DialogFooter><Button onClick={() => setManageModalOpen(false)}>Close</Button></DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Track Spending Action (Placeholder for Dialog) */}
+            <Dialog open={trackModalOpen} onOpenChange={setTrackModalOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex flex-col h-auto items-center justify-center gap-1 p-3 min-w-[140px] flex-shrink-0 md:min-w-0">
+                  <RefreshCw className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-medium">Track Spending</span>
+                  <span className="text-xxs text-muted-foreground leading-tight w-full whitespace-normal text-center">Review your expenses</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                 <DialogHeader><DialogTitle>Track Spending (Preview)</DialogTitle></DialogHeader>
+                 <p className="py-4">Monitor your financial activities and spending habits here.</p>
+                 <DialogFooter><Button onClick={() => setTrackModalOpen(false)}>Close</Button></DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Learn & Grow Action (Placeholder for Dialog) */}
+            <Dialog open={learnModalOpen} onOpenChange={setLearnModalOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex flex-col h-auto items-center justify-center gap-1 p-3 min-w-[140px] flex-shrink-0 md:min-w-0">
+                  <HelpCircle className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-medium">Learn & Grow</span>
+                  <span className="text-xxs text-muted-foreground leading-tight w-full whitespace-normal text-center">Financial education</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                 <DialogHeader><DialogTitle>Learn & Grow (Preview)</DialogTitle></DialogHeader>
+                 <p className="py-4">Access educational resources to improve your financial literacy.</p>
+                 <DialogFooter><Button onClick={() => setLearnModalOpen(false)}>Close</Button></DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="p-4 pb-2">
+            <CardTitle className="text-sm text-gray-500">Total Balance</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{demoBalances.total}</p>
+            <div className="flex items-center text-xs text-green-500 mt-1">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              <span>+2.14%</span>
             </div>
           </CardContent>
         </Card>
+        
+        {/* More cards can go here */}
       </div>
       
       <Tabs 

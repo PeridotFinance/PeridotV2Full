@@ -1,0 +1,664 @@
+Peridot is redefining decentralized lending and borrowing by breaking down the barriers between blockchains. Whether you're a seasoned DeFi user or new to Web3, Peridot offers a seamless platform where you can manage your capital across chains with ease.
+
+Why We Exist
+In today's DeFi landscape, liquidity is scattered and user experience is fragmented. Cross-chain activity often requires complex bridging steps, multiple wallets, and high risk. We're here to change that.
+
+Peridot enables:
+
+🔁 True cross-chain lending & borrowing
+
+💧 Unified liquidity across ecosystems
+
+🌐 Onboarding for everyone — even without crypto knowledge
+
+Built on top of proven DeFi infrastructure and powered by Wormhole, Peridot brings together speed, security, and simplicity into one protocol.
+
+Let’s dive deeper into the problem we’re solving.
+
+What is Peridot?
+Peridot Protocol is a next-generation, cross-chain lending and borrowing platform designed to unify liquidity across multiple blockchains.
+
+Built on Interoperability
+Peridot is powered by Wormhole, a leading cross-chain messaging protocol, and is architected around a Hub & Spoke model:
+
+Hub Chain (e.g., Sei): Serves as the central layer for accounting, interest accrual, and liquidation logic.
+
+Spoke Chains (e.g., Ethereum, Solana, Sui): Allow users to interact with the protocol from their preferred blockchain.
+
+Compound V2 at the Core
+We build on top of Compound V2's proven lending infrastructure, extending its core logic with cross-chain capabilities to reduce development risk and improve capital efficiency.
+
+Wormhole-Powered Cross-Chain Experience
+Peridot uses Wormhole Token Transfers with Payloads to:
+
+Send tokens from the user's chain (Spoke)
+
+Send a message to the Hub contract
+
+Mint or burn tokens on the Hub for lending or borrowing
+
+This makes true cross-chain DeFi interaction possible — without bridges or manual user intervention.
+
+Peridot is designed for speed, simplicity, and scale, enabling users to access the best opportunities across chains — effortlessly.
+
+
+How our Hub & Spoke model addresses these challenges
+Peridot Protocol solves DeFi’s fragmentation and complexity by using a Hub & Spoke architecture powered by Wormhole.
+
+The Model
+Hub Chain: A fast, EVM-compatible chain like Sei acts as the protocol's central brain. It handles:
+
+Vault balances
+
+Interest rate logic
+
+LiquidationsWhy Cross-Chain DeFi?
+The Problem Today
+Users are locked into the chain they deposit on.
+
+Liquidity is fragmented across dozens of isolated ecosystems.
+
+Manual bridging is risky, slow, and confusing for newcomers.
+
+Earning yield or borrowing assets across chains requires advanced knowledge and tools.
+
+These limitations create friction, reduce capital efficiency, and deter mass adoption.
+
+The Peridot Solution
+Peridot solves these issues with a Hub & Spoke model powered by Wormhole. This enables:
+
+Deposit collateral on one chain (e.g., Solana)
+
+Borrow on another (e.g., Ethereum or Sei)
+
+All through a single, seamless user interface
+
+By centralizing accounting and liquidity in one place (the Hub), and allowing users to interact from any chain (the Spokes), we unlock true capital mobility across the Web3 ecosystem.
+
+Why It Matters
+Capital Efficiency: Assets on any chain can be put to work across ecosystems.
+
+User Simplicity: Interact from your preferred chain — no bridges, no switching wallets.
+
+Composability: Developers can build on top of a unified lending layer that spans chains.
+
+Cross-chain DeFi isn’t the future — it’s the now. Peridot is making it usable, secure, and accessible to all.
+
+Oracle integrations
+
+Spoke Chains: User entry points (e.g., Solana, Ethereum, Sui) where deposits, borrows, and repayments are initiated.
+
+How It Works
+User interacts with a Spoke Contract on their preferred chain.
+
+A Wormhole message + token transfer is triggered to the Hub.
+
+The Hub Contract processes the logic and updates the user’s vault.
+
+Funds or confirmations are returned to the Spoke chain if needed.
+
+The Benefits
+Unified Liquidity: All assets across chains contribute to one central pool.
+
+Simple UX: Users never have to manually bridge or manage multiple wallets.
+
+Faster Execution: Finality and logic stay on the Hub, while Spokes handle user interaction.
+
+Modular Scaling: Easily expand to new chains without duplicating core logic.
+
+With this architecture, Peridot makes cross-chain DeFi feel like single-chain DeFi — but better.
+
+Architecture & Design
+Peridot Protocol is engineered for cross-chain scalability, security, and capital efficiency.
+
+At the core of the system is a modular architecture designed to unify liquidity across chains, minimize user friction, and simplify protocol operations.
+
+This section explores how the protocol is constructed, including:
+
+Our Hub & Spoke model
+
+Integration with Wormhole’s cross-chain messaging
+
+Use of Compound V2 lending mechanics
+
+Oracle integrations for price security and risk management
+
+Let’s begin with a look at how the system is structured.
+
+System Architecture
+Peridot uses a Hub & Spoke model to connect users from any blockchain to a unified lending & borrowing engine.
+
+This allows us to:
+
+Centralize risk logic (like interest, collateral, and liquidations)
+
+Decentralize user interaction across many blockchains
+
+Maintain accurate and efficient accounting on a single high-performance chain
+
+The design is both scalable and secure, enabling low-latency cross-chain operations using Wormhole’s Token Bridge and payload messaging.
+
+Now let’s explore this Hub & Spoke model in detail.
+
+Overview of the Hub & Spoke Model
+The Hub
+The Hub is a fast EVM chain that acts as the protocol’s control center.
+
+All accounting, interest accrual, liquidations, and oracle integrations happen here.
+
+It holds the user's vault state, meaning deposits and borrows are globally visible and manageable.
+
+The Spokes
+Spoke Chains include any additional networks like Ethereum, Solana, or Sui.
+
+They are lightweight interfaces where users can:
+
+Deposit collateral
+
+Borrow or repay funds
+
+Cross-Chain Execution (Powered by Wormhole)
+User interacts with a Spoke Contract (e.g., deposits USDC on Solana).
+
+A token transfer with a payload is triggered via Wormhole.
+
+The message and assets are received on the Hub chain.
+
+The Hub Contract updates the vault, verifies collateral, and allows borrowing.
+
+If needed, borrowed assets are sent back cross-chain.
+
+Benefits
+Modular Expansion: Easily add new chains without reworking logic.
+
+Centralized Logic: Eliminates inconsistencies and sync issues across chains.
+
+Unified Liquidity: Capital on one chain can power borrowing on another.
+
+Safer Liquidations: No race conditions, all handled centrally.
+
+This model provides the foundation for a truly unified DeFi experience, across chains and without compromise.
+
+Core Components
+Peridot Protocol is built using a modular architecture, composed of proven and extensible DeFi building blocks.
+
+Each component is responsible for a specific layer of functionality — from lending logic to cross-chain communication to accounting and interest mechanics.
+
+This section covers:
+
+Our base contracts, forked from Compound V2
+
+Wormhole integration for seamless cross-chain messaging and asset bridging
+
+The accounting system and dynamic interest rate model used to manage lending/borrowing positions
+
+Let’s explore each component in detail.
+
+Compound Based Lending & Borrowing Modules
+At the heart of Peridot lies a customized implementation of Compound V2, one of the most trusted and audited lending protocols in the Ethereum ecosystem.
+
+Why Compound V2?
+Battle-tested and widely adopted
+
+Audited by top-tier security firms
+
+Extensible for cross-chain logic
+
+Custom Enhancements for Peridot
+We’ve adapted Compound V2's modules to:
+
+Support cross-chain deposits and borrows
+
+Operate centralized vaults for global accounting
+
+Interface with Wormhole payload messages from Spoke chains
+
+Include support for custom oracles (Pyth & Witnet)
+
+These enhancements allow the lending model to operate efficiently across chains without duplicating core logic.
+
+By extending Compounds Architecture instead of building from scratch, Peridot delivers security, reliability, and speed to market.
+
+On-Chain Accounting & Interest Rate Models
+All lending, borrowing, and interest calculations in Peridot happen on-chain — specifically, in the Hub Contract.
+
+Global Vaults
+Each user has a vault managed centrally:
+
+Tracks all collateral deposits and borrowed assets
+
+Vaults are chain-agnostic: a user can deposit on Solana and borrow on Ethereum
+
+Vault states are updated based on messages from Spoke Chains
+
+Interest Rate Model
+We extend the Compound V2 model, using:
+
+Utilization-based interest rate curves
+
+Variable APR based on asset demand
+
+Configurable parameters for each market (base rate, slope, kink)
+
+This model allows the protocol to:
+
+Incentivize lenders with attractive APY
+
+Adjust rates dynamically to optimize capital utilization
+
+Respond to market shifts in real time
+
+Risk Management
+Collateral ratios and liquidation thresholds are enforced globally
+
+Price data is pulled from Pyth and/or Witnet
+
+Liquidations are triggered on the Hub, ensuring atomic execution and fairness
+
+Our accounting and rate system provides accurate, efficient, and secure financial logic — across chains.
+
+Integration Details
+Peridot Protocol’s core strength lies in interoperability — seamlessly connecting DeFi users across chains using secure, composable tools.
+
+To achieve this, we integrate with the following critical infrastructure components:
+
+Wormhole: For trustless, cross-chain messaging and asset bridging
+
+Compound Based Contracts: For reliable and scalable lending mechanics
+
+Oracles: For secure price feeds and real-time risk management
+
+Wormhole for Cross-Chain Execution
+We use Wormhole’s Token Bridge with Payloads to move both assets and intent across chains. This enables:
+
+Atomic cross-chain operations
+
+Vault updates with secure messaging
+
+Borrowing and repayments across networks
+
+No custom relayer infrastructure is required — Wormhole handles the delivery and validation of messages between Hub and Spoke chains.
+
+Compound Based Lending Engine
+We build on top of Compound's well-established contracts, enhancing them to:
+
+Accept deposits from multiple chains
+
+Calculate interest and loan health globally
+
+Allow liquidations to be triggered centrally
+
+By using a known system with proven math and mechanics, we avoid the risks of reinventing core lending logic.
+
+Oracles for Accurate Pricing
+Accurate, real-time price data is critical to safe borrowing and liquidations. We integrate:
+
+Pyth: High-frequency price feeds from institutional sources
+
+Witnet: Decentralized oracle network with historical accuracy
+
+Oracles are queried directly by the Hub to:
+
+Calculate collateral ratios
+
+Set liquidation thresholds
+
+Protect against oracle manipulation or flash crashes
+
+Optional Add-ons Coming Soon
+Fiat Onramp Providers (e.g., PayPal, Stripe, banks)
+
+Integration with stablecoin minters (e.g., CCTP, Circle)
+
+Modular plugins for yield strategies, real-world assets, and NFTs
+
+Our integration architecture is modular and composable — giving us flexibility to scale into new products, verticals, and chains without altering the core protocol.
+
+Technical Specifications
+Technical Specifications 
+Peridot Protocol is built with a secure, efficient, and modular technical foundation designed for scalability, interoperability, and ease of integration across multiple blockchain ecosystems.
+
+This section details the critical components and technical foundations of Peridot, including:
+
+Core Contracts:
+The fundamental contracts built upon the proven Compound V2 lending architecture, enhanced for cross-chain operations.
+
+Cross-Chain Contracts:
+Dedicated contracts leveraging Wormhole's secure cross-chain Token Bridge and payload messaging infrastructure, enabling seamless asset and state transfers.
+
+Oracles:
+Integrated oracle solutions (Pyth, Witnet) providing accurate, decentralized, and reliable price feeds essential for precise collateral valuation, risk assessment, and automated liquidations.
+
+Each subsection dives deeper into the design decisions, contract interfaces, and operational details critical to understanding and building upon Peridot’s core system.
+
+📖 What You’ll Find in This Section
+✅ Clear documentation of contract responsibilities, methods, and architecture
+
+✅ Integration details for cross-chain messaging and bridging mechanisms
+
+✅ Oracle integration strategy, choice rationale, and implementation details
+
+✅ Links to relevant contracts, codebases, and developer resources
+
+Please refer to the specific subsections (Core Contracts, Cross-Chain Contracts, and Oracle) for more comprehensive details and technical insights.
+
+Core Contracts
+The Core Contracts form the backbone of Peridot Protocol, managing critical lending and borrowing logic, user vault balances, and core financial operations. These contracts handle asset collateralization, interest accrual, liquidity management, and risk governance directly on-chain.
+
+📌 Primary Responsibilities
+The Core Contracts oversee:
+
+Collateral Management:
+Accepting user deposits, tracking collateral, and maintaining accurate user positions.
+
+Borrowing & Repayment Logic:
+Handling user loan requests, calculating borrow limits based on collateral, and managing repayments.
+
+Interest Calculation & Distribution:
+Continuously calculating dynamic interest rates based on utilization, managing interest accrual, and ensuring accurate APY distributions.
+
+Liquidation Operations:
+Triggering and managing liquidations when collateral values fall below set thresholds.
+
+🔍 Core Contract Components
+The Core Contract suite comprises the following essential contracts:
+
+Peridottroller:
+The central controller managing all lending market operations, collateral factors, borrow limits, and liquidation processes.
+
+PERC20 (Peridot ERC20 Asset Tokens):
+Interest-bearing token contracts representing user deposits, allowing users to earn APY on their supplied assets.
+
+PEther (Peridot Native Asset Contract):
+A specialized interest-bearing token contract designed explicitly for the native blockchain asset (e.g., ETH), facilitating direct native asset deposits and withdrawals.
+
+⚙️ Technical Implementation
+Each Core Contract is:
+
+Carefully audited and rigorously tested for security and reliability.
+
+Designed for composability and modularity, allowing for straightforward expansion and upgrades.
+
+Integrated directly with the Cross-Chain Contracts to seamlessly handle multi-chain user interactions and asset transfers.
+
+For in-depth technical specifics on each Core Contract (Peridottroller, PERC20, PEther), including interfaces, implementation details, and usage instructions, please visit their respective subpages.
+
+Peridottroller
+The Peridottroller is the main contract responsible for controlling protocol-wide operations, managing collateral settings, borrowing rules, market management, and enforcing liquidation logic.
+
+🛠️ Key Functions & Parameters
+✅ enterMarkets(address[] calldata pTokens)
+Allows a user to use specified markets' assets as collateral.
+
+Parameters:
+
+pTokens: Array of pToken addresses the user wishes to enter as collateral.
+
+✅ exitMarket(address pToken)
+Removes a market's asset from user's collateral.
+
+Parameters:
+
+pToken: Address of the market token the user wishes to exit from collateral.
+
+✅ getAccountLiquidity(address account)
+Calculates the user's current account liquidity.
+
+Parameters:
+
+account: Address of the user.
+
+Returns:
+
+User's liquidity and shortfall status (excess collateral or shortfall amount).
+
+✅ liquidateBorrow(address borrower, uint repayAmount, address pTokenCollateral)
+Allows liquidation of an undercollateralized borrower's position.
+
+Parameters:
+
+borrower: Address of the borrower to liquidate.
+
+repayAmount: Amount of debt to repay on behalf of the borrower.
+
+pTokenCollateral: The collateral token to seize.
+
+✅ markets(address pToken)
+Returns market details (collateral factor, listed status, etc.) for a specific token market.
+
+Parameters:
+
+pToken: Market token address.
+
+Returns:
+
+Struct containing market configuration, collateral factors, and status.
+
+These functions enable secure management and governance of Peridot Protocol's lending operations and risk parameters.
+
+PERC20
+The PERC20 contract represents interest-bearing ERC20 tokens users receive when supplying assets to Peridot Protocol.
+
+🛠️ Key Functions & Parameters
+✅ mint(uint mintAmount)
+Deposit underlying ERC20 tokens into the protocol to receive PERC20 tokens.
+
+Parameters:
+
+mintAmount: Amount of underlying asset tokens to deposit.
+
+✅ redeem(uint redeemTokens)
+Withdraw underlying tokens by redeeming your PERC20 tokens.
+
+Parameters:
+
+redeemTokens: Amount of PERC20 tokens to redeem.
+
+✅ redeemUnderlying(uint redeemAmount)
+Withdraw an exact amount of underlying tokens.
+
+Parameters:
+
+redeemAmount: Exact amount of underlying tokens to redeem.
+
+✅ borrow(uint borrowAmount)
+Borrows underlying assets from the market.
+
+Parameters:
+
+borrowAmount: Amount of underlying tokens to borrow.
+
+✅ repayBorrow(uint repayAmount)
+Repays borrowed tokens to the market.
+
+Parameters:
+
+repayAmount: Amount of borrowed tokens to repay.
+
+✅ balanceOfUnderlying(address owner)
+Shows the underlying asset balance for a user (includes interest accrued).
+
+Parameters:
+
+owner: User's wallet address.
+
+Returns:
+
+Current underlying balance including accrued interest.
+
+📈 View Functions & Information
+exchangeRateCurrent(): Fetches current exchange rate (PERC20 ↔ underlying).
+
+getCash(): Retrieves total available liquidity of underlying asset.
+
+This contract allows users to earn interest transparently and manage their asset positions securely.
+
+PEther
+The PEther contract manages deposits and borrowing of the blockchain’s native asset (e.g., ETH), providing users with interest-bearing tokens in return for native asset deposits.
+
+🛠️ Key Functions & Parameters
+✅ mint() payable
+Deposit native blockchain asset (ETH) into the protocol.
+
+Usage: Send ETH directly with the call.
+
+User receives PEther tokens proportionally.
+
+✅ redeem(uint redeemTokens)
+Withdraw ETH by redeeming PEther tokens.
+
+Parameters:
+
+redeemTokens: Number of PEther tokens to redeem.
+
+✅ redeemUnderlying(uint redeemAmount)
+Withdraw an exact amount of ETH directly.
+
+Parameters:
+
+redeemAmount: Amount of ETH to withdraw.
+
+✅ borrow(uint borrowAmount)
+Borrow ETH from the market.
+
+Parameters:
+
+borrowAmount: Amount of ETH to borrow.
+
+✅ repayBorrow() payable
+Repay borrowed ETH.
+
+Usage: Send ETH directly as repayment.
+
+✅ balanceOfUnderlying(address owner)
+Returns user's underlying ETH balance (including accrued interest).
+
+Parameters:
+
+owner: User wallet address.
+
+Returns:
+
+User's underlying ETH balance.
+
+📈 View Functions & Information
+exchangeRateCurrent(): Current exchange rate between PEther and underlying ETH.
+
+getCash(): Shows total ETH liquidity available in the market.
+
+The PEther contract facilitates direct native-asset lending and borrowing within Peridot, streamlining user interactions with native tokens.
+
+
+Easy Mode: Onramp & Offramp for New Users
+DeFi is powerful — but to many, it's still intimidating.
+
+That’s why Peridot Protocol introduces Easy Mode, a simplified experience designed to onboard Web2 users and DeFi beginners into the world of cross-chain finance.
+
+With Easy Mode, users can:
+
+Deposit fiat via bank transfer, PayPal, or other familiar tools
+
+Earn APY and borrow assets without handling wallets, bridges, or tokens
+
+Enjoy a clean, intuitive interface that hides all the blockchain complexity
+
+This is where DeFi becomes truly accessible.
+
+
+Overview of Easy Mode
+Easy Mode is a guided, beginner-friendly version of Peridot built on top of our core protocol. It enables full access to lending, borrowing, and yield opportunities — without requiring any blockchain knowledge.
+
+What We Handle for the User
+Wallet abstraction: We manage non-custodial wallets in the background.
+
+Fiat on/off-ramp: Users can deposit/withdraw in USD using trusted providers.
+
+Cross-chain logic: All bridging and message passing is done under the hood.
+
+For the user, it just feels like a modern fintech app. For us, it’s powered by Wormhole, Compound, and seamless smart contracts.
+
+
+
+Easy Mode: Onramp & Offramp for New Users
+Goals
+Simplify Access for Web2 Users and DeFi Beginners
+We believe that the next wave of users in DeFi won’t come from crypto-native circles — they’ll come from traditional finance and Web2.
+
+Our goals with Easy Mode are:
+
+Lower the barrier to entry by removing the need for wallets, bridges, and token knowledge.
+
+Provide familiar payment methods (like PayPal or bank transfers).
+
+Design a UX that feels like modern fintech, not Web3 dApps.
+
+Ensure safety and transparency, even while abstracting complexity.
+
+Convert passive fiat holders into active DeFi participants, letting anyone earn yield or access liquidity.
+
+Easy Mode is our bridge between traditional finance and the decentralized future.
+
+Previous
+Overview of Easy Mode
+
+
+Easy Mode: Onramp & Offramp for New Users
+Key Features
+Simplified, Intuitive User Interface 
+DeFi dApps often overwhelm users with:
+
+Wallet connections
+
+Network switching
+
+Technical terminology
+
+In Easy Mode, we’ve stripped that away. Our UI is:
+
+Contextual: Explains each action with plain language and helpful tooltips
+
+Step-by-step: Guides users through onboarding and DeFi actions like deposits or borrowing
+
+Mobile-friendly: Designed for users who expect fast, clean app-like experiences
+
+Users shouldn’t need to understand Web3 to use Web3. That’s what Easy Mode delivers. DeFi dApps often overwhelm users with:
+
+Wallet connections
+
+Network switching
+
+Technical terminology
+
+In Easy Mode, we’ve stripped that away. Our UI is:
+
+Contextual: Explains each action with plain language and helpful tooltips
+
+Step-by-step: Guides users through onboarding and DeFi actions like deposits or borrowing
+
+Mobile-friendly: Designed for users who expect fast, clean app-like experiences
+
+Users shouldn’t need to understand Web3 to use Web3. That’s what Easy Mode delivers.
+
+Integrated Onramp/Offramp Options
+One of the biggest barriers to DeFi adoption is the inability to easily enter or exit with fiat.
+
+With Easy Mode, users can:
+
+Deposit USD using:
+
+PayPal
+
+SEPA/ACH bank transfers
+
+Credit/Debit Cards
+
+Withdraw their funds in the same way, including APY-earned yield or borrowed funds
+
+How It Works
+We partner with regulated onramp providers (e.g., Ramp Network, MoonPay, Stripe).
+
+The fiat is automatically converted to stablecoins (USDC, USDT) on the backend.
+
+Users interact with Peridot using abstracted accounts — no wallet setup needed.
+
+Onramps are the key to unlocking global adoption — and we’re integrating them natively into our UX.
