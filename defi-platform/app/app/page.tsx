@@ -37,11 +37,12 @@ import {
   PiggyBank,
   Users,
   AlertTriangle,
+  Loader2,
 } from "lucide-react"
 import Image from "next/image"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tooltip, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
+import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from 'wagmi'
 import { ConnectWalletButton } from "@/components/wallet/connect-wallet-button"
 import { motion, AnimatePresence, useInView } from "framer-motion"
 import { useTheme } from "next-themes"
@@ -57,7 +58,6 @@ import { usePathname } from "next/navigation"
 import { PeridottrollerABI } from '../../abi/PeridottrollerABI' // Adjusted path
 import { PEtherABI } from '../../abi/PEtherABI' // Add PEtherABI import
 import { ERC20ABI } from '../../abi/ERC20ABI' // Add ERC20ABI import
-import { soneiumMinato } from '../../config/chains' // Adjusted path
 import { Asset, supplyMarkets, borrowMarkets } from '../data/markets' // Import from new markets file
 import { useLiveAccountData, useLiveMarketData, useLivePortfolioData } from '../hooks/useLiveData'
 import type { 
@@ -81,18 +81,26 @@ import { UserPositionsCard, type UserPosition } from '../components/markets/User
 import { RiskManagementCard } from '../components/markets/RiskManagementCard'
 import { MarketInsightsCard } from '../components/markets/MarketInsightsCard'
 import { useUserPositions, DEMO_TOTALS } from '../hooks/useUserPositions'
+import { PositionManagementCard } from '../components/dashboard/PositionManagementCard'
+import { MarketInsightsWrapper } from '../components/dashboard/MarketInsightsWrapper'
+// Import new network configuration
+import { supportedNetworks, soneiumMinato, getPeridottrollerAddress, getNetworkConfig, isSupportedNetwork, networkContracts } from '../../config/networks'
+// Import NetworkSwitcher component
+import { NetworkSwitcher } from '../../components/network/NetworkSwitcher'
+import { NetworkStatusBadge } from '../../components/network/NetworkStatusBadge'
+import { NetworkDemo } from '../../components/network/NetworkDemo'
 
 // Define Peridottroller address for Soneium Minato
-const peridottrollerAddressSoneiumMinato = '0xB911C192ed1d6428A12F2Cf8F636B00c34e68a2a' as `0x${string}`;
+// const peridottrollerAddressSoneiumMinato = '0xB911C192ed1d6428A12F2Cf8F636B00c34e68a2a' as `0x${string}`;
 
 // Define PERC token address for Soneium Minato
-const percTokenAddressSoneiumMinato = '0x28fE679719e740D15FC60325416bB43eAc50cD15' as `0x${string}`;
+// const percTokenAddressSoneiumMinato = '0x28fE679719e740D15FC60325416bB43eAc50cD15' as `0x${string}`;
 
 // Define pToken addresses for different assets
-const pTokenAddresses = {
-  PERC: '0x1DCb19949fC0a68cbdAa53Cce898B60D7436b14F' as `0x${string}`,
-  // Add more pToken addresses as they become available
-} as const;
+// const pTokenAddresses = {
+//   PERC: '0x1DCb19949fC0a68cbdAa53Cce898B60D7436b14F' as `0x${string}`,
+//   // Add more pToken addresses as they become available
+// } as const;
 
 // Demo data constants - now using consistent values from useUserPositions
 const DEMO_DATA = {
@@ -128,6 +136,34 @@ export default function AppPage() {
   const isMobile = useMobile()
   // useAccount returns chain info including id
   const { address, isConnected, isConnecting, chain } = useAccount() 
+  const { switchChain, isPending: isSwitchingNetwork } = useSwitchChain()
+
+  // Network configuration
+  const currentChainId = chain?.id;
+  const isCurrentNetworkSupported = currentChainId ? isSupportedNetwork(currentChainId) : false;
+  
+  // Add debugging to see what's happening with network detection
+  console.log('Network Debug:', {
+    chainId: currentChainId,
+    chainName: chain?.name,
+    isConnected,
+    isCurrentNetworkSupported,
+    supportedNetworkIds: supportedNetworks.map(n => n.id)
+  });
+  
+  const peridottrollerAddress = currentChainId && isCurrentNetworkSupported
+    ? getPeridottrollerAddress(currentChainId)
+    : getPeridottrollerAddress(soneiumMinato.id);
+  
+  const networkConfig = currentChainId && isCurrentNetworkSupported 
+    ? getNetworkConfig(currentChainId) 
+    : getNetworkConfig(soneiumMinato.id);
+
+  // Get PERC token address and pToken address dynamically
+  const percTokenAddress = networkConfig.peridotToken;
+  const pPercTokenAddress = 'pTokens' in networkConfig && networkConfig.pTokens && 'PERC' in networkConfig.pTokens 
+    ? networkConfig.pTokens.PERC 
+    : undefined;
 
   // State declarations first
   const [isDemoMode, setIsDemoMode] = useState(true)
@@ -375,10 +411,10 @@ export default function AppPage() {
   // Read getBlockNumber
   const { data: blockNumber, error: blockNumberError, isLoading: isLoadingBlockNumber } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'getBlockNumber',
-    // Only execute if connected to Soneium Minato
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id }, 
+    // Only execute if connected and address is available
+    query: { enabled: isConnected && isCurrentNetworkSupported && !!peridottrollerAddress }, 
   });
 
   // Read peridottrollerImplementation to get the actual implementation address
@@ -388,9 +424,9 @@ export default function AppPage() {
     isLoading: isLoadingImplementation 
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'peridottrollerImplementation',
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id },
+    query: { enabled: isConnected && isCurrentNetworkSupported && !!peridottrollerAddress },
   });
 
   // Read getAccountLiquidity
@@ -401,11 +437,11 @@ export default function AppPage() {
     refetch: refetchAccountLiquidity // Added refetch function
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'getAccountLiquidity',
     args: [address as `0x${string}`], // Pass the user's address as an argument
-    // Only execute if connected to Soneium Minato and address is available
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id && !!address },
+    // Only execute if connected and address is available
+    query: { enabled: isConnected && isCurrentNetworkSupported && !!address && !!peridottrollerAddress },
   });
 
   // Read getAllMarkets
@@ -415,9 +451,9 @@ export default function AppPage() {
     isLoading: isLoadingAllMarkets 
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'getAllMarkets',
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id },
+    query: { enabled: isConnected && isCurrentNetworkSupported && !!peridottrollerAddress },
   });
 
   // Read oracle address
@@ -427,13 +463,13 @@ export default function AppPage() {
     isLoading: isLoadingOracle 
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'oracle',
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id },
+    query: { enabled: isConnected && isCurrentNetworkSupported && !!peridottrollerAddress },
   });
 
   // Read market information for the PERC token
-  const pTokenAddress = '0x1DCb19949fC0a68cbdAa53Cce898B60D7436b14F' as `0x${string}`;
+  const pTokenAddress = pPercTokenAddress || '0x1DCb19949fC0a68cbdAa53Cce898B60D7436b14F' as `0x${string}`;
   
   const { 
     data: marketInfo, 
@@ -441,10 +477,10 @@ export default function AppPage() {
     isLoading: isLoadingMarketInfo 
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'markets',
     args: [pTokenAddress],
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id },
+    query: { enabled: isConnected && isCurrentNetworkSupported && !!peridottrollerAddress },
   });
 
   // Check if user is in this market
@@ -454,10 +490,10 @@ export default function AppPage() {
     isLoading: isLoadingCheckMembership 
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'checkMembership',
     args: [address as `0x${string}`, pTokenAddress],
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id && !!address },
+    query: { enabled: isConnected && isCurrentNetworkSupported && !!address && !!peridottrollerAddress },
   });
 
   // Get user's assets in the protocol
@@ -467,10 +503,10 @@ export default function AppPage() {
     isLoading: isLoadingAssetsIn 
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'getAssetsIn',
     args: [address as `0x${string}`],
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id && !!address },
+    query: { enabled: isConnected && isCurrentNetworkSupported && !!address && !!peridottrollerAddress },
   });
 
   // Read PERC token balance
@@ -481,10 +517,10 @@ export default function AppPage() {
     refetch: refetchPercBalance
   } = useReadContract({
     abi: ERC20ABI,
-    address: percTokenAddressSoneiumMinato,
+    address: percTokenAddress,
     functionName: 'balanceOf',
     args: [address as `0x${string}`],
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id && !!address },
+    query: { enabled: isConnected && isCurrentNetworkSupported && !!address && !!percTokenAddress },
   });
 
   // Read PERC token allowance for pPERC contract
@@ -495,10 +531,10 @@ export default function AppPage() {
     refetch: refetchPercAllowance
   } = useReadContract({
     abi: ERC20ABI,
-    address: percTokenAddressSoneiumMinato,
+    address: percTokenAddress,
     functionName: 'allowance',
     args: [address as `0x${string}`, pTokenAddress],
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id && !!address },
+    query: { enabled: isConnected && isCurrentNetworkSupported && !!address && !!percTokenAddress },
   });
 
   // Data switching logic: Use live data when not in demo mode, otherwise use demo data
@@ -676,7 +712,7 @@ export default function AppPage() {
       if (assetToToggle.collateral === false) { 
         console.log(`Entering market with pToken: ${assetToToggle.pTokenAddress}`);
         enterMarkets({
-          address: peridottrollerAddressSoneiumMinato,
+          address: peridottrollerAddress,
           abi: PeridottrollerABI,
           functionName: 'enterMarkets',
           args: [[assetToToggle.pTokenAddress]],
@@ -686,7 +722,7 @@ export default function AppPage() {
       } else { 
         console.log(`Exiting market with pToken: ${assetToToggle.pTokenAddress}`);
         exitMarket({
-          address: peridottrollerAddressSoneiumMinato,
+          address: peridottrollerAddress,
           abi: PeridottrollerABI,
           functionName: 'exitMarket',
           args: [assetToToggle.pTokenAddress],
@@ -715,7 +751,7 @@ export default function AppPage() {
   const handleTransaction = (
     targetAsset: Asset,
     numericAmount: number,
-    type: "supply" | "borrow"
+    type: "supply" | "borrow" | "withdraw" | "repay"
   ) => {
     console.log(`Handling ${type} for ${targetAsset.name}, Amount: ${numericAmount}`)
     if (isDemoMode) {
@@ -726,11 +762,17 @@ export default function AppPage() {
         setTimeout(() => {
           setTransactionStatus("success");
           setTransactionHash("0xDemoTransactionHash")
-          // Update balances or other relevant data
+          // Update balances or other relevant data based on transaction type
           if (type === "supply") {
             setSupplyData(prev => prev.map(asset => asset.id === targetAsset.id ? { ...asset, wallet: `${parseFloat(asset.wallet) + numericAmount} ${asset.symbol}` } : asset));
-          } else {
-            // Similar update for borrow if needed
+          } else if (type === "withdraw") {
+            setSupplyData(prev => prev.map(asset => asset.id === targetAsset.id ? { ...asset, wallet: `${Math.max(0, parseFloat(asset.wallet) - numericAmount)} ${asset.symbol}` } : asset));
+          } else if (type === "borrow") {
+            // Update borrow data - in demo mode we would track this
+            console.log(`Demo: Borrowed ${numericAmount} ${targetAsset.symbol}`);
+          } else if (type === "repay") {
+            // Update repay data - in demo mode we would track this
+            console.log(`Demo: Repaid ${numericAmount} ${targetAsset.symbol}`);
           }
           setTimeout(() => setTransactionStatus("idle"), 3000);
         }, 2000);
@@ -770,28 +812,52 @@ export default function AppPage() {
       } else if (targetAsset.pTokenAddress) {
         // Handle ERC20 supply here if needed in the future
         console.log(`Supply ${targetAsset.symbol} using its pToken: ${targetAsset.pTokenAddress}`);
-        // Example:
-        // writeContract({
-        //   address: targetAsset.pTokenAddress, // This would be the pToken address for the asset
-        //   abi: PTokenABI, // Assuming a generic PTokenABI for minting ERC20 pTokens
-        //   functionName: 'mint', // Or 'supply', depending on the PToken contract
-        //   args: [BigInt(numericAmount * 10**targetAsset.decimals)], // Adjust decimals based on asset
-        //   chain: chain,
-        //   account: address,
-        // }, { ... onSuccess, onError ... })
         setTransactionStatus("error"); // Placeholder until ERC20 supply is implemented
         console.error("ERC20 supply not implemented yet for this asset.");
-
       } else {
         console.error(`pTokenAddress not defined for ${targetAsset.name} to supply.`);
         setTransactionStatus("error");
       }
+    } else if (type === "withdraw") {
+      if (targetAsset.symbol === "ETH" && targetAsset.pTokenAddress) {
+        // For ETH withdraw, we need to call redeemUnderlying on the pEther contract
+        console.log(`Withdraw ETH from pEther contract`);
+        // This would be implemented when withdraw functionality is ready
+        setTransactionStatus("error");
+        console.error("ETH withdraw not implemented yet.");
+      } else if (targetAsset.pTokenAddress) {
+        console.log(`Withdraw ${targetAsset.symbol} from pToken: ${targetAsset.pTokenAddress}`);
+        setTransactionStatus("error");
+        console.error("ERC20 withdraw not implemented yet for this asset.");
+      } else {
+        console.error(`pTokenAddress not defined for ${targetAsset.name} to withdraw.`);
+        setTransactionStatus("error");
+      }
     } else if (type === "borrow") {
-      // Handle borrow transaction
-      console.log(`Borrow ${targetAsset.symbol}`);
-      // ... implementation for borrow ...
-      setTransactionStatus("error"); // Placeholder
-      console.error("Borrow functionality not implemented yet.");
+      if (targetAsset.pTokenAddress) {
+        console.log(`Borrow ${targetAsset.symbol} from pToken: ${targetAsset.pTokenAddress}`);
+        // This would call the borrow function on the pToken contract
+        setTransactionStatus("error");
+        console.error("Borrow functionality not implemented yet.");
+      } else {
+        console.error(`pTokenAddress not defined for ${targetAsset.name} to borrow.`);
+        setTransactionStatus("error");
+      }
+    } else if (type === "repay") {
+      if (targetAsset.symbol === "ETH" && targetAsset.pTokenAddress) {
+        console.log(`Repay ETH to pEther contract`);
+        // This would call repayBorrow on the pEther contract with ETH value
+        setTransactionStatus("error");
+        console.error("ETH repay not implemented yet.");
+      } else if (targetAsset.pTokenAddress) {
+        console.log(`Repay ${targetAsset.symbol} to pToken: ${targetAsset.pTokenAddress}`);
+        // This would call repayBorrow on the pToken contract
+        setTransactionStatus("error");
+        console.error("ERC20 repay not implemented yet for this asset.");
+      } else {
+        console.error(`pTokenAddress not defined for ${targetAsset.name} to repay.`);
+        setTransactionStatus("error");
+      }
     }
   }
 
@@ -848,98 +914,62 @@ export default function AppPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-4">
           <div>
              {/* Keep Title if desired */}
-             <h1 className="text-2xl md:text-3xl font-bold">Peridot DeFi</h1>
-             <p className="text-sm text-muted-foreground">Cross-chain lending & borrowing</p>
-             
-             {/* Add Chain Selector for Cross-Chain Functionality */}
-             <div className="mt-2 flex items-center gap-2">
-               <Label className="text-xs text-muted-foreground">Active Chains:</Label>
-               <div className="flex items-center gap-1">
-                 <Badge variant="outline" className="text-xs bg-blue-500/10 text-blue-500 border-blue-500/20">
-                   Hub: Sei
-                 </Badge>
-                 <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500/20">
-                   Spoke: Ethereum
-                 </Badge>
-                 <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-500 border-purple-500/20">
-                   Spoke: Solana
-                 </Badge>
-                 <Badge variant="outline" className="text-xs bg-orange-500/10 text-orange-500 border-orange-500/20">
-                   Spoke: Soneium
-                 </Badge>
+             <div className="flex items-center gap-3">
+               <div>
+                 <h1 className="text-2xl md:text-3xl font-bold">Peridot DeFi</h1>
+                 <p className="text-sm text-muted-foreground">Cross-chain lending & borrowing</p>
                </div>
-               <Tooltip>
-                 <TooltipTrigger asChild>
-                   <Button variant="ghost" size="icon" className="h-5 w-5">
-                     <HelpCircle className="h-3 w-3" />
-                   </Button>
-                 </TooltipTrigger>
-                 <TooltipContent>
-                   <p className="text-xs max-w-xs">
-                     Peridot operates across multiple chains. Deposit on any Spoke chain and borrow on another through our Hub.
-                   </p>
-                 </TooltipContent>
-               </Tooltip>
+               <NetworkStatusBadge />
              </div>
              
+             
              { /* Display Block Number */}
-             {isConnected && chain?.id === soneiumMinato.id && (
+             {isConnected && isCurrentNetworkSupported && (
               <div className="mt-2 p-2 border rounded-md bg-background">
-                <p className="text-xs text-muted-foreground">Soneium Minato Status:</p>
+                <p className="text-xs text-muted-foreground">{networkConfig.chainNameReadable} Status:</p>
                 {isLoadingBlockNumber && <p className="text-sm">Fetching block number...</p>}
                 {blockNumberError && <p className="text-sm text-red-500">Error fetching block number: {blockNumberError.shortMessage || blockNumberError.message}</p>}
                 {blockNumber && <p className="text-sm">Current Block: {blockNumber.toString()}</p>}
               </div>
             )}
-            {isConnected && chain?.id !== soneiumMinato.id && (
+            {isConnected && !isCurrentNetworkSupported && (
               <div className="mt-2 p-2 border rounded-md bg-amber-500/10">
-                <p className="text-sm text-amber-700">Please switch to Soneium Minato network in your wallet to see block number.</p>
+                <p className="text-sm text-amber-700">Network Debug Info:</p>
+                <p className="text-xs">Detected Chain ID: {currentChainId}</p>
+                <p className="text-xs">Detected Chain Name: {chain?.name}</p>
+                <p className="text-xs">Supported Networks: {supportedNetworks.map(n => `${n.name} (${n.id})`).join(', ')}</p>
+                <p className="text-xs mt-1">Please switch to a supported network to access Peridot features.</p>
               </div>
             )}
-            {/* Display Account Liquidity */}
-            {isConnected && chain?.id === soneiumMinato.id && address && (
-              <div className="mt-2 p-2 border rounded-md bg-background">
-                <p className="text-xs text-muted-foreground">Account Liquidity:</p>
-                {isLoadingAccountLiquidity && <p className="text-sm">Fetching account liquidity...</p>}
-                {accountLiquidityError && <p className="text-sm text-red-500">Error fetching account liquidity: {accountLiquidityError.shortMessage || accountLiquidityError.message}</p>}
-                {accountLiquidityData && (
-                  <div>
-                    <p className="text-xl md:text-2xl font-bold">
-                      <AnimatedCounter value={parseFloat((Number(accountLiquidityData[1]) / 1e18).toFixed(2))} prefix="$" duration={0.8} />
-                    </p> 
-                    {/* Assuming liquidity is returned in 18 decimal places, adjust if necessary */}
-                    {Number(accountLiquidityData[0]) !== 0 && <p className="text-xs text-red-500">Error Code: {accountLiquidityData[0].toString()}</p>}
-                    {Number(accountLiquidityData[2]) > 0 && <p className="text-xs text-orange-500">Shortfall: ${(Number(accountLiquidityData[2]) / 1e18).toFixed(2)}</p>}
-                  </div>
-                )}
-              </div>
-            )}
+
           </div>
           <div className="flex items-center gap-2 mt-2 md:mt-0">
-            {/* Cross-Chain Status Indicator */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-1 border rounded-xl px-3 py-1.5 bg-background relative">
-                  <Globe className="h-3 w-3 text-green-500" />
-                  <Label className="text-xs cursor-pointer text-green-500">Cross-Chain Active</Label>
-                  <HelpCircle className="h-3 w-3 text-muted-foreground ml-1" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent><p className="max-w-xs text-xs">Your assets can be used as collateral across all connected chains</p></TooltipContent>
-            </Tooltip>
             
-            {/* Bridge Access Button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="sm" asChild className="h-8 px-3">
-                  <Link href="/app/bridge">
-                    <ArrowUpRight className="h-3.5 w-3.5 mr-1" />
-                    <span className="text-xs">Bridge</span>
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent><p className="text-xs">Transfer assets between chains</p></TooltipContent>
-            </Tooltip>
+            {/* Quick Network Switcher for Testing */}
+            <div className="flex items-center gap-1 border rounded-xl px-2 py-1 bg-background">
+              <span className="text-xs text-muted-foreground mr-1">Quick Switch:</span>
+              {isSwitchingNetwork && <Loader2 className="h-3 w-3 animate-spin text-blue-500" />}
+              {supportedNetworks.map((network) => {
+                const isCurrentNetwork = chain?.id === network.id
+                return (
+                  <Button
+                    key={network.id}
+                    variant={isCurrentNetwork ? "default" : "ghost"}
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => {
+                      if (!isCurrentNetwork && switchChain) {
+                        switchChain({ chainId: network.id })
+                      }
+                    }}
+                    disabled={isCurrentNetwork || isSwitchingNetwork}
+                  >
+                    {network.name.split(' ')[0]} {/* Show first word only for space */}
+                  </Button>
+                )
+              })}
+            </div>
+            
             
             {/* Demo Mode Toggle Button */}
             <Tooltip>
@@ -1015,35 +1045,7 @@ export default function AppPage() {
              </CardContent>
           </Card>
 
-          {/* Net APY Card */} 
-          <Card className="col-span-2 md:col-span-1 bg-card border-border/50 overflow-hidden shadow-sm">
-             <CardHeader className="p-3 pb-0 md:pb-0 md:text-center">
-              <CardTitle className="text-sm flex items-center md:justify-center">
-                Net APY
-                 <Tooltip>
-                   <TooltipTrigger asChild>
-                     <span className="ml-1 cursor-pointer"><HelpCircle className="h-3 w-3 text-text/40" /></span>
-                   </TooltipTrigger>
-                   <TooltipContent side="top"><p className="text-xs max-w-[200px]">Net annual percentage yield.</p></TooltipContent>
-                 </Tooltip>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-1 md:pt-0 flex flex-col items-center">
-              <div className="text-xl font-bold mb-1">{netAPY.toFixed(1)}%</div>
-              <Progress value={(netAPY / 10) * 100} className="h-1 w-24 bg-green-900/30 [&>div]:bg-green-500" />
-              {/* Supply/Borrow APY Breakdown */}
-              <div className="mt-2 grid grid-cols-2 gap-1 w-full">
-                 <div className="flex flex-col items-center bg-green-500/10 rounded p-1">
-                   <span className="text-xs text-green-500 font-medium">Supply APY</span>
-                   <span className="text-sm font-bold">5.2%</span> 
-                 </div>
-                 <div className="flex flex-col items-center bg-amber-500/10 rounded p-1">
-                   <span className="text-xs text-amber-500 font-medium">Borrow APY</span>
-                   <span className="text-sm font-bold">2.1%</span> 
-                 </div>
-               </div>
-            </CardContent>
-          </Card>
+
 
           {/* Account Liquidity Card - New Card Added Here */}
           <Card className="bg-card border-border/50 overflow-hidden shadow-sm">
@@ -1064,11 +1066,7 @@ export default function AppPage() {
                     {/* Liquidity is the second value in the returned array, convert from Wei (18 decimals) */}
                     <AnimatedCounter value={parseFloat((Number(accountLiquidityData[1]) / 1e18).toFixed(2))} prefix="$" duration={0.8} />
                   </div>
-                  {Number(accountLiquidityData[0]) !== 0 && (
-                    <div className="text-xs text-red-500 mt-1">
-                      Error Code: {accountLiquidityData[0].toString()}
-                    </div>
-                  )}
+
                   {Number(accountLiquidityData[2]) > 0 && (
                      <div className="text-xs text-orange-500 mt-1">
                       Shortfall: ${(Number(accountLiquidityData[2]) / 1e18).toFixed(2)}
@@ -1116,11 +1114,12 @@ export default function AppPage() {
 
         {/* Markets Section with Tabs */}
         <Tabs defaultValue="markets" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-5 w-full md:w-auto mb-4">
+          <TabsList className="grid grid-cols-6 w-full md:w-auto mb-4">
             <TabsTrigger value="markets">Markets</TabsTrigger>
             <TabsTrigger value="cross-chain">Cross-Chain</TabsTrigger>
             <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
             <TabsTrigger value="stake">Stake</TabsTrigger>
+            <TabsTrigger value="networks">Networks</TabsTrigger>
             <TabsTrigger value="debug">Debug</TabsTrigger>
           </TabsList>
 
@@ -1715,7 +1714,7 @@ export default function AppPage() {
                      <div className="space-y-2">
                        <h4 className="text-sm font-medium text-muted-foreground">Peridottroller Proxy Address</h4>
                        <div className="font-mono text-sm bg-muted p-2 rounded">
-                         {peridottrollerAddressSoneiumMinato}
+                         {peridottrollerAddress || 'Not available'}
                        </div>
                      </div>
                      
@@ -1969,7 +1968,7 @@ export default function AppPage() {
                         <h4 className="text-sm font-medium text-muted-foreground">Network</h4>
                         <div className={cn(
                           "px-3 py-2 rounded-lg text-sm font-medium",
-                          chain?.id === soneiumMinato.id ? "bg-green-500/10 text-green-500" : "bg-amber-500/10 text-amber-500"
+                          isCurrentNetworkSupported ? "bg-green-500/10 text-green-500" : "bg-amber-500/10 text-amber-500"
                         )}>
                           {chain ? `${chain.name} (${chain.id})` : "No Network"}
                         </div>
@@ -1989,262 +1988,102 @@ export default function AppPage() {
               </AnimatedCard>
 
               {/* Troubleshooting Guide */}
-              <AnimatedCard delay={0.3}>
+
+            </div>
+          </TabsContent>
+
+          {/* Networks Tab Content */}
+          <TabsContent value="networks">
+            <div className="space-y-6">
+              {/* Main Network Demo */}
+              <AnimatedCard>
+                <NetworkDemo />
+              </AnimatedCard>
+
+              {/* Network Architecture Overview */}
+              <AnimatedCard delay={0.1}>
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <HelpCircle className="h-5 w-5" />
-                      Troubleshooting Guide
+                      <Globe className="h-5 w-5 text-blue-500" />
+                      Multi-Network Architecture
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
-                      <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                        <h4 className="font-semibold text-blue-500 mb-2">Understanding the Flow</h4>
-                        <div className="text-sm space-y-2">
-                          <p><strong>1. Enter Market:</strong> First, you need to enter the market using <code className="bg-muted px-1 rounded">enterMarkets([pTokenAddress])</code></p>
-                          <p><strong>2. Supply/Mint:</strong> Then you can supply tokens to mint pTokens using the pToken's <code className="bg-muted px-1 rounded">mint()</code> function</p>
-                          <p><strong>3. Enable Collateral:</strong> The market entry automatically enables the asset as collateral</p>
-                          <p><strong>4. Borrow:</strong> Once you have collateral, you can borrow against it</p>
-                        </div>
-                      </div>
-
-                      <div className="p-4 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                        <h4 className="font-semibold text-amber-500 mb-2">Common Issues</h4>
-                        <div className="text-sm space-y-2">
-                          <p><strong>Mint Reverted:</strong> Check if you have enough underlying tokens and if the market is properly listed</p>
-                          <p><strong>Not in Market:</strong> Use <code className="bg-muted px-1 rounded">enterMarkets()</code> before trying to mint</p>
-                          <p><strong>No Liquidity:</strong> Ensure you've successfully minted pTokens before trying to borrow</p>
-                        </div>
-                      </div>
-
-                      <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
-                        <h4 className="font-semibold text-green-500 mb-2">Key Functions for PERC Token</h4>
-                        <div className="text-sm space-y-2">
-                          <p><strong>Controller:</strong> <code className="bg-muted px-1 rounded">enterMarkets(["0x1DCb19949fC0a68cbdAa53Cce898B60D7436b14F"])</code></p>
-                          <p><strong>pToken:</strong> <code className="bg-muted px-1 rounded">mint(amount)</code> - Supply PERC to get pPERC</p>
-                          <p><strong>Check Status:</strong> <code className="bg-muted px-1 rounded">checkMembership(user, pToken)</code></p>
-                          <p><strong>Get Liquidity:</strong> <code className="bg-muted px-1 rounded">getAccountLiquidity(user)</code></p>
-                        </div>
-                      </div>
-
-                      {/* Current Status Summary */}
-                      {address && (
-                        <div className="p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                          <h4 className="font-semibold text-purple-500 mb-2">Your Current Status</h4>
-                          <div className="text-sm space-y-1">
-                            <p>Market Membership: {typeof checkMembership === 'boolean' ? (checkMembership ? "✅ Entered" : "❌ Not Entered") : "Loading..."}</p>
-                            <p>Account Liquidity: {accountLiquidityData ? `$${(Number(accountLiquidityData[1]) / 1e18).toFixed(2)}` : "Loading..."}</p>
-                            <p>Assets in Protocol: {assetsIn && Array.isArray(assetsIn) ? assetsIn.length : "Loading..."}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Step-by-Step Implementation */}
-                      {address && (
-                        <div className="p-4 bg-gradient-to-r from-blue-500/10 to-green-500/10 rounded-lg border border-blue-500/20">
-                          <h4 className="font-semibold text-blue-500 mb-3">🚀 Step-by-Step Implementation</h4>
-                          
-                          {/* Important Notice */}
-                          <div className="mb-4 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                            <h5 className="font-semibold text-amber-500 mb-2">⚠️ Important: This is a PERC Token Market</h5>
-                            <p className="text-sm text-muted-foreground">
-                              The contract at 0x1DCb...b14F is a <strong>PErc20Delegator</strong> for PERC tokens, not ETH. 
-                              You need PERC tokens (at 0x28fE...cD15) to mint pPERC tokens.
-                            </p>
-                          </div>
-                          
-                          {/* Step 1: Enter Market */}
-                          <div className="space-y-3 mb-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center font-bold">1</div>
-                              <h5 className="font-semibold">Enter PERC Market</h5>
-                              {typeof checkMembership === 'boolean' && checkMembership && <Badge className="bg-green-500/10 text-green-500">✅ Completed</Badge>}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {supportedNetworks.map((network, index) => {
+                        const config = networkContracts[network.id]
+                        const isCurrentNetwork = chain?.id === network.id
+                        
+                        return (
+                          <div key={network.id} className={cn(
+                            "p-4 border rounded-lg",
+                            isCurrentNetwork && "border-green-500 bg-green-50 dark:bg-green-950/20"
+                          )}>
+                            <div className="flex items-center gap-2 mb-3">
+                              <div className={cn(
+                                "w-3 h-3 rounded-full",
+                                isCurrentNetwork ? "bg-green-500" : "bg-gray-400"
+                              )} />
+                              <h4 className="font-semibold">{network.name}</h4>
+                              {network.testnet && <Badge variant="outline" className="text-xs">Testnet</Badge>}
                             </div>
-                            <p className="text-sm text-muted-foreground ml-8">
-                              First, you need to enter the PERC market to enable interactions with the pPERC token.
-                            </p>
-                            <div className="ml-8">
-                              <Button
-                                onClick={() => {
-                                  if (!isDemoMode && address && chain) {
-                                    enterMarkets({
-                                      address: peridottrollerAddressSoneiumMinato,
-                                      abi: PeridottrollerABI,
-                                      functionName: 'enterMarkets',
-                                      args: [[pTokenAddress]],
-                                      chain: chain,
-                                      account: address,
-                                    });
-                                  }
-                                }}
-                                disabled={isDemoMode || !address || !chain || (typeof checkMembership === 'boolean' && checkMembership) || isLoadingEnterMarketsTx}
-                                className="bg-blue-500 hover:bg-blue-600"
-                              >
-                                {isLoadingEnterMarketsTx ? (
-                                  <>
-                                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                                    Entering Market...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Zap className="h-4 w-4 mr-2" />
-                                    Enter PERC Market
-                                  </>
-                                )}
-                              </Button>
-                              {isDemoMode && (
-                                <p className="text-xs text-amber-500 mt-1">Switch to Live Mode to execute transactions</p>
-                              )}
-                              {typeof checkMembership === 'boolean' && checkMembership && (
-                                <p className="text-xs text-green-500 mt-1">✅ You're already in the PERC market!</p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Step 2: Mint PERC Tokens */}
-                          <div className="space-y-3 mb-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-bold">2</div>
-                              <h5 className="font-semibold">Mint PERC Tokens</h5>
-                              {percBalance && Number(percBalance) > 0 && <Badge className="bg-green-500/10 text-green-500">✅ You have PERC tokens</Badge>}
-                            </div>
-                            <p className="text-sm text-muted-foreground ml-8">
-                              Mint PERC tokens from the testnet contract to use in the protocol.
-                            </p>
-                            <div className="ml-8 space-y-2">
-                              <div className="p-3 bg-blue-500/10 rounded-lg">
-                                <p className="text-sm">
-                                  <strong>PERC Token Address:</strong> <code className="bg-muted px-1 rounded">0x28fE679719e740D15FC60325416bB43eAc50cD15</code>
-                                </p>
-                                <div className="mt-2 flex items-center gap-2">
-                                  <span className="text-sm">Your PERC Balance:</span>
-                                  {isLoadingPercBalance && <span className="text-sm">Loading...</span>}
-                                  {percBalanceError && <span className="text-sm text-red-500">Error loading balance</span>}
-                                  {percBalance && (
-                                    <span className="text-sm font-medium">
-                                      {(Number(percBalance) / 1e18).toFixed(4)} PERC
-                                    </span>
-                                  )}
-                                </div>
+                            
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Chain ID:</span>
+                                <span className="font-mono">{network.id}</span>
                               </div>
-                              
-                              <div className="flex items-center gap-2">
-                                <input
-                                  type="number"
-                                  placeholder="1000"
-                                  step="100"
-                                  min="0"
-                                  className="px-3 py-2 border rounded-md text-sm w-32"
-                                  id="perc-mint-amount"
-                                  disabled={isDemoMode || !address || !chain}
-                                />
-                                <span className="text-sm font-medium">PERC</span>
-                                <Button
-                                  onClick={() => {
-                                    const input = document.getElementById('perc-mint-amount') as HTMLInputElement;
-                                    const amount = parseFloat(input.value);
-                                    if (!isDemoMode && address && chain && amount > 0) {
-                                      mintPerc({
-                                        address: percTokenAddressSoneiumMinato,
-                                        abi: ERC20ABI,
-                                        functionName: 'mint',
-                                        args: [address, BigInt(Math.round(amount * 1e18))],
-                                        chain: chain,
-                                        account: address,
-                                      });
-                                    }
-                                  }}
-                                  disabled={isDemoMode || !address || !chain || isLoadingMintPercTx}
-                                  className="bg-orange-500 hover:bg-orange-600"
-                                >
-                                  {isLoadingMintPercTx ? (
-                                    <>
-                                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                                      Minting...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Plus className="h-4 w-4 mr-2" />
-                                      Mint PERC
-                                    </>
-                                  )}
-                                </Button>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Type:</span>
+                                <span>{network.testnet ? "Testnet" : "Mainnet"}</span>
                               </div>
-                              
-                              {isDemoMode && (
-                                <p className="text-xs text-amber-500">Switch to Live Mode to mint tokens</p>
-                              )}
-                              {isSuccessMintPercTx && (
-                                <p className="text-xs text-green-500">✅ PERC tokens minted successfully!</p>
-                              )}
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Native:</span>
+                                <span>{network.nativeCurrency.symbol}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Role:</span>
+                                <span className="text-xs">
+                                  {'peridottrollerG7Proxy' in config ? "Hub/Spoke" : "Spoke"}
+                                </span>
+                              </div>
                             </div>
-                          </div>
-
-                          {/* Step 3: Approve PERC Tokens */}
-                          <div className="space-y-3 mb-4">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-purple-500 text-white text-xs flex items-center justify-center font-bold">3</div>
-                              <h5 className="font-semibold">Approve PERC Tokens</h5>
-                            </div>
-                            <p className="text-sm text-muted-foreground ml-8">
-                              Before minting pPERC, you need to approve the pPERC contract to spend your PERC tokens.
-                            </p>
-                            <div className="ml-8 p-3 bg-purple-500/10 rounded-lg">
-                              <p className="text-sm">
-                                Call <code className="bg-muted px-1 rounded">approve(spender, amount)</code> on the PERC token contract:
-                              </p>
-                              <ul className="text-xs text-muted-foreground mt-1 space-y-1">
-                                <li>• <strong>spender:</strong> 0x1DCb19949fC0a68cbdAa53Cce898B60D7436b14F (pPERC contract)</li>
-                                <li>• <strong>amount:</strong> Amount of PERC tokens you want to supply</li>
-                              </ul>
-                            </div>
-                          </div>
-
-                          {/* Step 4: Supply PERC to Mint pPERC */}
-                          <div className="space-y-3">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-green-500 text-white text-xs flex items-center justify-center font-bold">4</div>
-                              <h5 className="font-semibold">Supply PERC to Mint pPERC</h5>
-                            </div>
-                            <p className="text-sm text-muted-foreground ml-8">
-                              Supply PERC tokens to the pPERC contract to mint pPERC tokens (no ETH value needed).
-                            </p>
-                            <div className="ml-8 space-y-2">
-                              <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-                                <p className="text-sm text-red-500 font-medium">❌ Previous Error Explained</p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  You tried to send ETH to a PErc20Delegator contract, which only accepts ERC20 tokens (PERC), not ETH.
-                                  That's why you got "cannot send value to fallback" error.
+                            
+                            {isCurrentNetwork && (
+                              <div className="mt-3 p-2 bg-green-100 dark:bg-green-900/30 rounded-md">
+                                <p className="text-xs text-green-700 dark:text-green-300 font-medium">
+                                  Currently Connected
                                 </p>
                               </div>
-                              
-                              <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
-                                <p className="text-sm text-green-500 font-medium">✅ Correct Approach</p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  Call <code className="bg-muted px-1 rounded">mint(amount)</code> on the pPERC contract with <strong>no ETH value</strong>.
-                                  The contract will transfer PERC tokens from your wallet (if approved).
-                                </p>
-                              </div>
-                            </div>
+                            )}
                           </div>
-
-                          {/* Current Status */}
-                          <div className="mt-4 p-3 bg-muted rounded-lg">
-                            <h6 className="font-semibold mb-2">Next Steps for You</h6>
-                            <ol className="text-sm space-y-1 list-decimal list-inside">
-                              <li>Get PERC tokens from the token contract (0x28fE...cD15)</li>
-                              <li>Approve the pPERC contract to spend your PERC tokens</li>
-                              <li>Call mint() on the pPERC contract (without sending ETH)</li>
-                            </ol>
-                          </div>
-                        </div>
-                      )}
+                        )
+                      })}
                     </div>
                   </CardContent>
                 </Card>
               </AnimatedCard>
             </div>
+          </TabsContent>
+
+          {/* Stake Tab Content - Placeholder */}
+          <TabsContent value="stake">
+            <AnimatedCard>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <PiggyBank className="h-5 w-5 text-green-500" />
+                    Staking (Coming Soon)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Staking functionality will be available soon.
+                  </p>
+                </CardContent>
+              </Card>
+            </AnimatedCard>
           </TabsContent>
         </Tabs>
 
@@ -2305,174 +2144,62 @@ export default function AppPage() {
        </AnimatePresence>
 
         {/* Position Management Quick Actions - Show if user has positions */}
-        {userPositions.length > 0 && (
-          <AnimatedCard delay={0.6}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Position Management
-                  {isDemoMode && (
-                    <Badge variant="outline" className="text-xs">Demo</Badge>
-                  )}
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Quick actions to manage your active lending and borrowing positions
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {/* Supply Positions Summary */}
-                  {userPositions.filter(p => p.type === "supply").length > 0 && (
-                    <div className="p-4 border rounded-lg bg-green-50/50 dark:bg-green-950/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingUp className="h-4 w-4 text-green-600" />
-                        <span className="font-medium text-green-700">Supply Positions</span>
-                      </div>
-                      <p className="text-2xl font-bold text-green-700 mb-1">
-                        {userPositions.filter(p => p.type === "supply").length}
-                      </p>
-                      <p className="text-xs text-green-600 mb-3">
-                        ${userPositions.filter(p => p.type === "supply").reduce((sum, p) => sum + p.amountUSD, 0).toLocaleString()} supplied
-                      </p>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="w-full text-xs h-7"
-                        onClick={() => setActiveTab("portfolio")}
-                      >
-                        Manage Supplies
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Borrow Positions Summary */}
-                  {userPositions.filter(p => p.type === "borrow").length > 0 && (
-                    <div className="p-4 border rounded-lg bg-red-50/50 dark:bg-red-950/20">
-                      <div className="flex items-center gap-2 mb-2">
-                        <TrendingDown className="h-4 w-4 text-red-600" />
-                        <span className="font-medium text-red-700">Borrow Positions</span>
-                      </div>
-                      <p className="text-2xl font-bold text-red-700 mb-1">
-                        {userPositions.filter(p => p.type === "borrow").length}
-                      </p>
-                      <p className="text-xs text-red-600 mb-3">
-                        ${userPositions.filter(p => p.type === "borrow").reduce((sum, p) => sum + p.amountUSD, 0).toLocaleString()} borrowed
-                      </p>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="w-full text-xs h-7"
-                        onClick={() => setActiveTab("portfolio")}
-                      >
-                        Manage Borrows
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Health Factor Warning */}
-                  {userHealthFactor && userHealthFactor < 1.5 && (
-                    <div className="p-4 border rounded-lg bg-orange-50/50 dark:bg-orange-950/20 border-orange-200">
-                      <div className="flex items-center gap-2 mb-2">
-                        <AlertTriangle className="h-4 w-4 text-orange-600" />
-                        <span className="font-medium text-orange-700">Risk Alert</span>
-                      </div>
-                      <p className="text-2xl font-bold text-orange-700 mb-1">
-                        {userHealthFactor.toFixed(2)}
-                      </p>
-                      <p className="text-xs text-orange-600 mb-3">
-                        Health factor - Action needed
-                      </p>
-                      <Button 
-                        size="sm" 
-                        variant="default"
-                        className="w-full text-xs h-7 bg-orange-600 hover:bg-orange-700"
-                        onClick={() => setActiveTab("portfolio")}
-                      >
-                        Reduce Risk
-                      </Button>
-                    </div>
-                  )}
-
-                  {/* Quick Actions */}
-                  <div className="p-4 border rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Zap className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium text-blue-700">Quick Actions</span>
-                    </div>
-                    <div className="space-y-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="w-full text-xs h-7"
-                        onClick={() => setActiveTab("portfolio")}
-                      >
-                        View All Positions
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="w-full text-xs h-7"
-                        onClick={() => {
-                          const firstSupplyAsset = supplyData.find(asset => 
-                            userPositions.some(p => p.asset.symbol === asset.symbol && p.type === "supply")
-                          )
-                          if (firstSupplyAsset) {
-                            handleOpenDetailModal(firstSupplyAsset, true)
-                          }
-                        }}
-                      >
-                        Add Collateral
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="w-full text-xs h-7"
-                        onClick={() => {
-                          const firstBorrowAsset = borrowData.find(asset => 
-                            userPositions.some(p => p.asset.symbol === asset.symbol && p.type === "borrow")
-                          )
-                          if (firstBorrowAsset) {
-                            handleOpenDetailModal(firstBorrowAsset, false)
-                          }
-                        }}
-                      >
-                        Repay Loan
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Educational Note */}
-                <div className="mt-4 p-3 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 rounded-lg">
-                  <div className="flex items-start gap-2">
-                    <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-xs text-blue-700">
-                      <p className="font-medium mb-1">Position Management Tips:</p>
-                      <ul className="space-y-1 text-blue-600">
-                        <li>• Supply assets to earn interest and use them as collateral</li>
-                        <li>• Borrow against your collateral while monitoring your health factor</li>
-                        <li>• Keep your health factor above 1.5 to avoid liquidation risk</li>
-                        <li>• Go to Portfolio tab for detailed position management</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </AnimatedCard>
-        )}
+        <PositionManagementCard
+          userPositions={userPositions}
+          isDemoMode={isDemoMode}
+          userHealthFactor={userHealthFactor}
+          onNavigateToPortfolio={() => setActiveTab("portfolio")}
+          onOpenSupplyModal={() => {
+            const firstSupplyAsset = supplyData.find(asset => 
+              userPositions.some(p => p.asset.symbol === asset.symbol && p.type === "supply")
+            )
+            if (firstSupplyAsset) {
+              handleOpenDetailModal(firstSupplyAsset, true)
+            }
+          }}
+          onOpenBorrowModal={() => {
+            const firstBorrowAsset = borrowData.find(asset => 
+              userPositions.some(p => p.asset.symbol === asset.symbol && p.type === "borrow")
+            )
+            if (firstBorrowAsset) {
+              handleOpenDetailModal(firstBorrowAsset, false)
+            }
+          }}
+        />
 
         {/* Market Insights Card */}
-        <AnimatedCard delay={0.7}>
-          <MarketInsightsCard
-            markets={demoMarketData}
-            isDemoMode={isDemoMode}
-            selectedMarket={selectedMarketForInsights}
-            onMarketSelect={setSelectedMarketForInsights}
-          />
-        </AnimatedCard>
+        <MarketInsightsWrapper
+          markets={demoMarketData}
+          isDemoMode={isDemoMode}
+          selectedMarket={selectedMarketForInsights}
+          onMarketSelect={setSelectedMarketForInsights}
+        />
 
+        {/* Network Status Section */}
+        {isConnected && (
+          <div className="mt-2 p-3 border rounded-md bg-background">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-muted-foreground">Network Status</p>
+              <NetworkSwitcher variant="compact" />
+            </div>
+            
+            {isCurrentNetworkSupported && (
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">{networkConfig.chainNameReadable} Status:</p>
+                {isLoadingBlockNumber && <p className="text-sm">Fetching block number...</p>}
+                {blockNumberError && <p className="text-sm text-red-500">Error fetching block number: {blockNumberError.shortMessage || blockNumberError.message}</p>}
+                {blockNumber && <p className="text-sm">Current Block: {blockNumber.toString()}</p>}
+              </div>
+            )}
+            
+            {!isCurrentNetworkSupported && (
+              <div className="text-sm text-amber-700">
+                <p>Unsupported network detected.</p>
+                <p className="text-xs mt-1">Please switch to: {supportedNetworks.map(n => n.name).join(', ')}</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </TooltipProvider>
   )

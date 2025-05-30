@@ -1,7 +1,7 @@
 import { cookieStorage, createStorage } from 'wagmi'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import { mainnet, arbitrum } from '@reown/appkit/networks'
-import { soneiumMinato } from './chains'
+import { supportedNetworks } from './networks'
 import type { Chain } from 'viem'
 
 // Read Project ID from environment variables
@@ -14,8 +14,8 @@ if (!projectId) {
   throw new Error('NEXT_PUBLIC_PROJECT_ID is not defined. Please set it in .env.local')
 }
 
-// Define supported networks, explicitly typed as a non-empty array of Chains
-export const networks: [Chain, ...Chain[]] = [mainnet, arbitrum, soneiumMinato]
+// Define supported networks, including both mainnet networks and our supported testnets
+export const networks: [Chain, ...Chain[]] = [mainnet, arbitrum, ...supportedNetworks]
 
 // Create the Wagmi adapter instance
 export const wagmiAdapter = new WagmiAdapter({
@@ -35,7 +35,7 @@ if (!projectIdFromReown) {
   throw new Error('Project ID is not defined in .env.local')
 }
 
-export const networksFromReown = [mainnet, arbitrum, soneiumMinato]
+export const networksFromReown = [mainnet, arbitrum, ...supportedNetworks]
 
 // Set up the Wagmi Adapter (Config)
 export const wagmiAdapterFromReown = new WagmiAdapter({

@@ -35,6 +35,8 @@ import {
   BarChart4,
   History,
   PiggyBank,
+  Users,
+  AlertTriangle,
 } from "lucide-react"
 import Image from "next/image"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -55,7 +57,6 @@ import { usePathname } from "next/navigation"
 import { PeridottrollerABI } from '../../abi/PeridottrollerABI' // Adjusted path
 import { PEtherABI } from '../../abi/PEtherABI' // Add PEtherABI import
 import { ERC20ABI } from '../../abi/ERC20ABI' // Add ERC20ABI import
-import { soneiumMinato } from '../../config/chains' // Adjusted path
 import { Asset, supplyMarkets, borrowMarkets } from '../data/markets' // Import from new markets file
 import { useLiveAccountData, useLiveMarketData, useLivePortfolioData } from '../hooks/useLiveData'
 import type { 
@@ -72,667 +73,25 @@ import type {
 // Import extracted UI components
 import { AnimatedCounter, MiniChart, DonutChart, AnimatedCard } from '../components/ui/ChartComponents'
 import { AssetRow, AssetDetailCard } from '../components/ui/AssetComponents'
-
-  averageApy: number // weighted average or simple average
-}
-
-// Sample chart data
-const generateChartData = (days = 30, volatility = 0.1, uptrend = true) => {
-  const data = []
-  let value = 100
-
-  for (let i = 0; i < days; i++) {
-    const change = uptrend
-      ? Math.random() * volatility - volatility * 0.3
-      : Math.random() * volatility - volatility * 0.7
-
-    // Ensure value doesn't become too low or negative, adjust minimum as needed
-    value = Math.max(value * (1 + change), 5) // Min value of 5, for example
-    data.push({ day: i, value: value })
-  }
-
-  return data
-}
-
-// Helper function for asset colors in portfolio chart
-const assetColorPalette = [
-  "#3b82f6", // blue-500
-  "#10b981", // emerald-500
-  "#f59e0b", // amber-500
-  "#ec4899", // pink-500
-  "#8b5cf6", // violet-500
-];
-let colorIndex = 0;
-const assignedColors: { [key: string]: string } = {};
-
-const getColorForAsset = (assetSymbol: string) => {
-  if (!assignedColors[assetSymbol]) {
-    assignedColors[assetSymbol] = assetColorPalette[colorIndex % assetColorPalette.length];
-    colorIndex++;
-  }
-  return assignedColors[assetSymbol];
-};
-
-// Component for animated number counter
-const AnimatedCounter = ({ 
-  value, 
-  prefix = "", 
-  suffix = "", 
-  duration = 1 
-}: {
-  value: number;
-  prefix?: string;
-  suffix?: string;
-  duration?: number;
-}) => {
-  const [displayValue, setDisplayValue] = useState(0)
-
-  useEffect(() => {
-    let startTime: number | null = null
-    let animationFrame: number | null = null
-
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp
-      const progress = Math.min((timestamp - startTime) / (duration * 1000), 1)
-
-      setDisplayValue(Math.floor(progress * value))
-
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate)
-      }
-    }
-
-    animationFrame = requestAnimationFrame(animate)
-
-    return () => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame)
-      }
-    }
-  }, [value, duration])
-
-  return (
-    <span>
-      {prefix}
-      {displayValue}
-      {suffix}
-    </span>
-  )
-}
-
-// Mini chart component
-const MiniChart = ({ 
-  data, 
-  color = "#22c55e", 
-  height = 40, 
-  width = 100 
-}: {
-  data: Array<{day: number; value: number}>;
-  color?: string;
-  height?: number;
-  width?: number;
-}) => {
-  const pathRef = useRef(null)
-  const isInView = useInView(pathRef, { once: true })
-
-  // Create SVG path
-  const createPath = () => {
-    if (!data || data.length < 2) { // Need at least 2 points to draw a line
-      return ""; 
-    }
-
-    const values = data.map(d => d.value);
-    const maxValue = Math.max(...values);
-    const minValue = Math.min(...values);
-    let range = maxValue - minValue;
-
-    // If range is 0 (all points are the same), draw a horizontal line in the middle.
-    if (range === 0) {
-      const y = height / 2;
-      // Ensure x coordinates are distinct for a line
-      return `M${(0).toFixed(2)},${y.toFixed(2)} L${width.toFixed(2)},${y.toFixed(2)}`;
-    }
-
-    const points = data.map((d, i) => {
-      const x = (i / (data.length - 1)) * width;
-      const yValue = d.value - minValue;
-      const y = height - ((yValue / range) * height);
-      return `${x.toFixed(2)},${y.toFixed(2)}`;
-    });
-
-    return `M${points.join(" L")}`;
-  };
-
-  return (
-    <svg width={width} height={height} className="overflow-visible">
-      <motion.path
-        ref={pathRef}
-        d={createPath()}
-        fill="none"
-        stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
-        initial={{ pathLength: 0, opacity: 0 }}
-        animate={isInView ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
-        transition={{ duration: 1.5, ease: "easeInOut" }}
-      />
-    </svg>
-  )
-}
-
-// Animated card component
-const AnimatedCard = ({ 
-  children, 
-  delay = 0, 
-  ...props 
-}: {
-  children: React.ReactNode;
-  delay?: number;
-  [key: string]: any;
-}) => {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, amount: 0.3 })
-
-  return (
-    <motion.div
-      ref={ref}
-      initial={{ y: 20, opacity: 0 }}
-      animate={isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
-      transition={{
-        duration: 0.5,
-        delay: delay,
-        ease: [0.22, 1, 0.36, 1],
-      }}
-      {...props}
-    >
-      {children}
-    </motion.div>
-  )
-}
-
-// Interactive donut chart component
-const DonutChart = ({ 
-  value, 
-  max = 100, 
-  size = 120, 
-  strokeWidth = 10, 
-  color = "var(--primary)" 
-}: {
-  value: number;
-  max?: number;
-  size?: number;
-  strokeWidth?: number;
-  color?: string;
-}) => {
-  const percentage = (value / max) * 100
-  const radius = (size - strokeWidth) / 2
-  const circumference = 2 * Math.PI * radius
-  const strokeDashoffset = circumference - (percentage / 100) * circumference
-  const [displayPercentage, setDisplayPercentage] = useState(0)
-
-  useEffect(() => {
-    let startTime: number | null = null
-    let animationFrame: number | null = null
-
-    const animate = (timestamp: number) => {
-      if (!startTime) startTime = timestamp
-      const progress = Math.min((timestamp - startTime) / 1500, 1)
-
-      setDisplayPercentage(Math.round(progress * percentage))
-
-      if (progress < 1) {
-        animationFrame = requestAnimationFrame(animate)
-      }
-    }
-
-    animationFrame = requestAnimationFrame(animate)
-
-    return () => {
-      if (animationFrame) {
-        cancelAnimationFrame(animationFrame)
-      }
-    }
-  }, [percentage])
-
-  return (
-    <div className="relative" style={{ width: size, height: size }}>
-      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="rotate-[-90deg]">
-        {/* Background circle */}
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="var(--secondary)"
-          strokeWidth={strokeWidth}
-        />
-
-        {/* Progress circle */}
-        <motion.circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke={color}
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset }}
-          transition={{ duration: 1.5, ease: "easeInOut" }}
-          strokeLinecap="round"
-        />
-      </svg>
-
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-lg font-bold">{displayPercentage}%</span>
-      </div>
-    </div>
-  )
-}
-
-// Interactive asset row component
-const AssetRow = ({
-  asset,
-  isSupply = true,
-  onToggleCollateral,
-  isDemoMode,
-  onQuickSupplyClick,
-  onOpenDetailModal,
-}: {
-  asset: Asset;
-  isSupply?: boolean;
-  onToggleCollateral?: (assetId: string) => void;
-  isDemoMode?: boolean;
-  onQuickSupplyClick?: (asset: Asset) => void;
-  onOpenDetailModal: (asset: Asset, isSupplyAction: boolean) => void;
-}) => {
-  const [isHovered, setIsHovered] = useState(false)
-  const { theme } = useTheme()
-  const isDark = theme === "dark"
-  const [clientChartData, setClientChartData] = useState<Array<{day: number; value: number}>>([]);
-
-  useEffect(() => {
-    // Generate chart data on the client side
-    const generatedData = generateChartData(30, 0.05, asset.change24h ? asset.change24h > 0 : true);
-    setClientChartData(generatedData);
-  }, [asset.id, asset.change24h]); // Regenerate if asset or its relevant properties change
-
-  const chartColor = asset.change24h && asset.change24h > 0 ? "#22c55e" : "#ef4444"
-
-  return (
-    <motion.tr
-      className="relative group"
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
-      whileHover={{
-        backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
-        transition: { duration: 0.2 },
-      }}
-      layout
-    >
-      <TableCell className="relative whitespace-nowrap">
-        <div className="flex items-center space-x-3">
-          <motion.div
-            className="w-10 h-10 rounded-full flex items-center justify-center relative overflow-hidden"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur-sm"></div>
-            <div className="absolute inset-0 bg-card rounded-full"></div>
-            <Image
-              src={asset.icon}
-              alt={asset.name}
-              width={32}
-              height={32}
-              className="relative z-10"
-            />
-          </motion.div>
-          <div>
-            <div className="font-medium">{asset.name}</div>
-            <div className="text-xs text-text/60">{asset.symbol}</div>
-          </div>
-        </div>
-
-        {/* Hover effect line */}
-        <motion.div
-          className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary rounded-full"
-          initial={{ height: 0, opacity: 0 }}
-          animate={{
-            height: isHovered ? "100%" : "0%",
-            opacity: isHovered ? 1 : 0,
-          }}
-          transition={{ duration: 0.2 }}
-        />
-      </TableCell>
-
-      <TableCell className="whitespace-nowrap">
-        <div className="flex flex-col">
-          <div className="font-medium">{asset.apy}%</div>
-          <div className="text-xs text-text/60">APY</div>
-        </div>
-      </TableCell>
-
-      <TableCell className="whitespace-nowrap">
-        <div className="flex items-center space-x-2">
-          <div>{asset.wallet}</div>
-          {isHovered && isSupply && isDemoMode && onQuickSupplyClick && (
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onQuickSupplyClick(asset);
-                }}
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </motion.div>
-          )}
-        </div>
-      </TableCell>
-
-      {isSupply ? (
-        <TableCell className="whitespace-nowrap">
-          <div className="flex items-center">
-            <motion.div
-              className={cn(
-                "w-12 h-6 bg-secondary/20 rounded-full flex items-center cursor-pointer",
-                asset.collateral ? "justify-start pl-1" : "justify-end pr-1",
-                // Disable interactivity only in demo mode if wallet string is 0
-                (isDemoMode && !(parseFloat(asset.wallet.split(" ")[0]) > 0)) && "opacity-50 cursor-not-allowed"
-              )}
-              // Apply hover/tap effects unless in demo mode with 0 wallet balance
-              whileHover={ (isDemoMode && !(parseFloat(asset.wallet.split(" ")[0]) > 0)) ? undefined : { scale: 1.05 } }
-              whileTap={ (isDemoMode && !(parseFloat(asset.wallet.split(" ")[0]) > 0)) ? undefined : { scale: 0.95 } }
-              onClick={() => {
-                if (onToggleCollateral && asset.id) {
-                  // In demo mode, only allow toggle if wallet string shows > 0.
-                  // In live mode, always allow toggle attempt (on-chain logic will be the source of truth).
-                  if (isDemoMode && !(parseFloat(asset.wallet.split(" ")[0]) > 0)) {
-                    console.log("Collateral toggle disabled in Demo Mode for zero balance asset based on UI string.");
-                    return; // Prevent action if in demo mode and UI shows 0 balance
-                  }
-                  onToggleCollateral(asset.id); // Proceed with toggle action
-                }
-              }}
-            >
-              <motion.div
-                className={cn("w-4 h-4 rounded-full", asset.collateral ? "bg-primary" : "bg-muted")}
-                layout
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              />
-            </motion.div>
-          </div>
-        </TableCell>
-      ) : (
-        <TableCell className="whitespace-nowrap">
-          <div className="flex items-center space-x-2">
-            <div>{asset.liquidity}</div>
-            <MiniChart data={clientChartData} color={chartColor} />
-          </div>
-        </TableCell>
-      )}
-
-      <TableCell className="opacity-0 group-hover:opacity-100 transition-opacity">
-        <motion.div initial={{ x: 10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.2 }}>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 rounded-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenDetailModal(asset, isSupply);
-            }}
-          >
-            <ArrowRight className="h-4 w-4 mr-1" />
-            {isSupply ? "Supply" : "Borrow"}
-          </Button>
-        </motion.div>
-      </TableCell>
-    </motion.tr>
-  )
-}
-
-// Asset detail modal component
-const AssetDetailCard = ({
-  asset,
-  onClose,
-  isSupply = true,
-  onTransaction,
-  isDemoMode,
-  focusAmountInput,
-  onAmountInputFocused,
-}: {
-  asset: Asset;
-  onClose: () => void;
-  isSupply?: boolean;
-  onTransaction: (asset: Asset, amount: number, type: "supply" | "borrow") => void;
-  isDemoMode: boolean;
-  focusAmountInput?: boolean;
-  onAmountInputFocused?: () => void;
-}) => {
-  const chartData = generateChartData(30, 0.05, asset.change24h ? asset.change24h > 0 : true)
-  const chartColor = asset.change24h && asset.change24h > 0 ? "#22c55e" : "#ef4444"
-  const [amount, setAmount] = useState("")
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const amountInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (focusAmountInput && amountInputRef.current) {
-      amountInputRef.current.focus();
-      if (onAmountInputFocused) {
-        onAmountInputFocused();
-      }
-    }
-  }, [focusAmountInput, onAmountInputFocused]);
-
-  const handleAction = () => {
-    const numericAmount = parseFloat(amount);
-    if (isNaN(numericAmount) || numericAmount <= 0) {
-      console.error("Invalid amount entered.");
-      // Optionally, set an error state to show in the UI
-      return;
-    }
-
-    onTransaction(asset, numericAmount, isSupply ? "supply" : "borrow");
-    setAmount(""); // Clear amount after initiating transaction
-
-    // Confirmation message should only show in demo mode or after actual success in live mode.
-    // The live mode success will be handled by `transactionStatus` state in AppPage.
-    if (isDemoMode) {
-      setShowConfirmation(true);
-      setTimeout(() => setShowConfirmation(false), 2000);
-    }
-  };
-
-  const calculateForecast = () => {
-    const numericAmount = parseFloat(amount);
-    if (isNaN(numericAmount) || numericAmount <= 0 || !asset.apy) {
-      return null;
-    }
-    const yearlyYield = (numericAmount * asset.apy) / 100;
-    return yearlyYield.toFixed(2);
-  };
-
-  const forecast = calculateForecast();
-
-  return (
-    <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-    >
-      <motion.div
-        className="bg-card border border-border/50 rounded-xl shadow-xl w-full max-w-2xl overflow-hidden"
-        initial={{ scale: 0.9, y: 20, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        exit={{ scale: 0.9, y: 20, opacity: 0 }}
-        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="p-6 border-b border-border/50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                <Image
-                  src={asset.icon}
-                  alt={asset.name}
-                  width={36}
-                  height={36}
-                />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold">{asset.name}</h3>
-                <div className="text-sm text-text/60">{asset.symbol}</div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div
-                className={cn(
-                  "px-2 py-1 rounded-full text-xs font-medium flex items-center",
-                  asset.change24h && asset.change24h > 0 ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500",
-                )}
-              >
-                {asset.change24h && asset.change24h > 0 ? (
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                ) : (
-                  <TrendingDown className="h-3 w-3 mr-1" />
-                )}
-                {asset.change24h && asset.change24h > 0 ? "+" : ""}
-                {asset.change24h}%
-              </div>
-              <Button variant="ghost" size="icon" className="rounded-full" onClick={onClose}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <div className="mb-4">
-              <h4 className="text-sm font-medium text-text/60 mb-1">Current Price</h4>
-              <div className="text-2xl font-bold">${asset.price?.toLocaleString() || "0.00"}</div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div>
-                <h4 className="text-sm font-medium text-text/60 mb-1">Market Cap</h4>
-                <div className="font-medium">{asset.marketCap}</div>
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-text/60 mb-1">24h Volume</h4>
-                <div className="font-medium">{asset.volume24h}</div>
-              </div>
-            </div>
-
-            <div className="mb-6">
-              <h4 className="text-sm font-medium text-text/60 mb-3">APY</h4>
-              <div className="flex items-center space-x-3">
-                <DonutChart value={asset.apy} max={15} color="var(--primary)" />
-                <div>
-                  <div className="text-2xl font-bold">{asset.apy}%</div>
-                  <div className="text-sm text-text/60">Annual Percentage Yield</div>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="text-sm font-medium text-text/60 mb-2">
-                {isSupply ? "Collateral Factor" : "Liquidity Available"}
-              </h4>
-              {isSupply ? (
-                <div className="flex items-center space-x-3">
-                  <div
-                    className={cn(
-                      "px-3 py-1 rounded-full text-sm font-medium",
-                      asset.collateral ? "bg-primary/10 text-primary" : "bg-muted/50 text-text/60",
-                    )}
-                  >
-                    {asset.collateral ? "Enabled" : "Disabled"}
-                  </div>
-                  <div className="text-sm text-text/60">
-                    {asset.collateral
-                      ? "This asset can be used as collateral"
-                      : "This asset cannot be used as collateral"}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-lg font-medium">{asset.liquidity}</div>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <h4 className="text-sm font-medium text-text/60 mb-4">Price History (30 Days)</h4>
-            <div className="h-[200px] w-full bg-card/50 rounded-lg border border-border/50 p-4 flex items-center justify-center">
-              <MiniChart data={chartData} color={chartColor} height={150} width={300} />
-            </div>
-
-            <div className="mt-6">
-              <h4 className="text-sm font-medium text-text/60 mb-3">{isSupply ? "Supply" : "Borrow"} Amount</h4>
-              <div className="relative">
-                <input
-                  ref={amountInputRef}
-                  type="text"
-                  className="w-full px-4 py-3 rounded-lg bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  disabled={!isDemoMode && asset.symbol !== 'ETH'} // Allow ETH input in live mode, other ERC20s still demo only for now
-                  onFocus={onAmountInputFocused}
-                />
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2">
-                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
-                    MAX
-                  </Button>
-                  <span className="text-sm font-medium">{asset.symbol}</span>
-                </div>
-              </div>
-
-              {isDemoMode && forecast && (
-                <div className="mt-2 text-xs text-muted-foreground">
-                  Estimated yearly {isSupply ? "earnings" : "cost"}: <span className="font-semibold">${forecast}</span> (at {asset.apy}% APY)
-                </div>
-              )}
-
-              <Button
-                className="w-full mt-4 bg-primary text-background hover:bg-primary/90"
-                onClick={handleAction}
-                disabled={(!isDemoMode && asset.symbol !== 'ETH') || parseFloat(amount) <= 0 || isNaN(parseFloat(amount))} // Allow ETH supply in live mode
-              >
-                {isSupply ? "Supply" : "Borrow"} {asset.symbol}
-              </Button>
-              {showConfirmation && isDemoMode && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mt-2 text-sm text-center text-green-500 flex items-center justify-center"
-                >
-                  <Check className="h-4 w-4 mr-1" /> Transaction Successful!
-                </motion.div>
-              )}
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </motion.div>
-  )
-}
+// Import utility functions
+import { generateChartData, getColorForAsset } from '../utils/chartHelpers'
+// Import new modular components
+import { UserPositionsCard, type UserPosition } from '../components/markets/UserPositionsCard'
+import { RiskManagementCard } from '../components/markets/RiskManagementCard'
+import { MarketInsightsCard } from '../components/markets/MarketInsightsCard'
+import { useUserPositions, DEMO_TOTALS } from '../hooks/useUserPositions'
+import { PositionManagementCard } from '../components/dashboard/PositionManagementCard'
+import { MarketInsightsWrapper } from '../components/dashboard/MarketInsightsWrapper'
+// Import new network system
+import { useNetworkConfig } from '../../hooks/useNetworkConfig'
+import { NetworkIndicator } from '../../components/ui/NetworkIndicator'
+import { soneiumMinatoConfig } from '../../config/networks/soneiumMinato'
 
 // Define Peridottroller address for Soneium Minato
-const peridottrollerAddressSoneiumMinato = '0xB911C192ed1d6428A12F2Cf8F636B00c34e68a2a' as `0x${string}`;
+// const peridottrollerAddressSoneiumMinato = '0xB911C192ed1d6428A12F2Cf8F636B00c34e68a2a' as `0x${string}`;
 
 // Define PERC token address for Soneium Minato
-const percTokenAddressSoneiumMinato = '0x28fE679719e740D15FC60325416bB43eAc50cD15' as `0x${string}`;
+// const percTokenAddressSoneiumMinato = '0x28fE679719e740D15FC60325416bB43eAc50cD15' as `0x${string}`;
 
 // Define pToken addresses for different assets
 const pTokenAddresses = {
@@ -740,12 +99,12 @@ const pTokenAddresses = {
   // Add more pToken addresses as they become available
 } as const;
 
-// Demo data constants
+// Demo data constants - now using consistent values from useUserPositions
 const DEMO_DATA = {
-  totalSupplied: 15423.82,
-  totalBorrowed: 4971.50,
-  netAPY: 3,
-  borrowLimitUsed: 64,
+  totalSupplied: DEMO_TOTALS.totalSupplied,
+  totalBorrowed: DEMO_TOTALS.totalBorrowed,
+  netAPY: DEMO_TOTALS.netAPY,
+  borrowLimitUsed: DEMO_TOTALS.borrowLimitUsed,
   portfolioSummary: {
     totalValue: 55873.21,
     change24hValue: 1234.56,
@@ -772,8 +131,30 @@ const DEMO_DATA = {
 export default function AppPage() {
   const { theme } = useTheme()
   const isMobile = useMobile()
-  // useAccount returns chain info including id
   const { address, isConnected, isConnecting, chain } = useAccount() 
+  
+  // Network configuration hook
+  const { 
+    currentNetwork, 
+    isSupported, 
+    getContractAddress, 
+    getTokenBySymbol,
+    getPTokenBySymbol,
+    networkStatus 
+  } = useNetworkConfig()
+
+  // Debug logging for network changes
+  useEffect(() => {
+    console.log('🔄 Network Changed:', {
+      chainId: chain?.id,
+      chainName: chain?.name,
+      isSupported,
+      currentNetwork: currentNetwork?.displayName,
+      peridottrollerAddress,
+      percTokenAddress,
+      percPTokenAddress
+    });
+  }, [chain?.id, isSupported, currentNetwork, peridottrollerAddress, percTokenAddress, percPTokenAddress]);
 
   // State declarations first
   const [isDemoMode, setIsDemoMode] = useState(true)
@@ -806,10 +187,190 @@ export default function AppPage() {
   const [stakingSummary, setStakingSummary] = useState<StakingSummary>(DEMO_DATA.stakingSummary)
   const [stakingPools, setStakingPools] = useState<StakingPool[]>(DEMO_DATA.stakingPools)
 
+  // Get contract addresses dynamically from current network
+  const peridottrollerAddress = getContractAddress('peridottroller')
+  const oracleAddressFromConfig = getContractAddress('oracle')
+  const percTokenAddress = getTokenBySymbol('perc')?.address
+  const percPTokenAddress = getPTokenBySymbol('PERC')?.address
+
   // Live data hooks (now that isDemoMode is declared)
   const liveAccountData = useLiveAccountData(isDemoMode, address, isConnected, chain);
   const liveMarketData = useLiveMarketData(isDemoMode, isConnected, chain);
   const livePortfolioData = useLivePortfolioData(isDemoMode, address, isConnected, chain);
+
+  // User positions hook
+  const {
+    positions: userPositions,
+    isLoading: isLoadingPositions,
+    error: positionsError,
+    refetch: refetchPositions,
+    toggleCollateral: togglePositionCollateral,
+    totalSupplied: userTotalSupplied,
+    totalBorrowed: userTotalBorrowed,
+    netAPY: userNetAPY,
+    healthFactor: userHealthFactor,
+    liquidationRisk
+  } = useUserPositions({ isDemoMode, refreshTrigger: Date.now() });
+
+  // Market insights state
+  const [selectedMarketForInsights, setSelectedMarketForInsights] = useState("usdc");
+
+  // Demo market data for insights
+  const demoMarketData = useMemo(() => [
+    {
+      id: "usdc",
+      asset: {
+        name: "USD Coin",
+        symbol: "USDC",
+        icon: "/tokenimages/app/usd-coin-usdc-logo.svg",
+        chain: "Ethereum"
+      },
+      supplyAPY: 4.25,
+      borrowAPY: 6.8,
+      totalSupplied: 125000000,
+      totalBorrowed: 89000000,
+      totalReserves: 2500000,
+      utilizationRate: 71.2,
+      collateralFactor: 80,
+      liquidationThreshold: 85,
+      reserveFactor: 15,
+      userSupplied: isDemoMode ? 5000 : undefined, // Matches position data
+      userBorrowed: isDemoMode ? 3500 : undefined, // Matches position data
+      priceHistory: Array.from({ length: 30 }, (_, i) => ({
+        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
+        price: 1.0 + (Math.random() - 0.5) * 0.01
+      })),
+      apyHistory: Array.from({ length: 30 }, (_, i) => ({
+        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
+        supplyAPY: 4.25 + (Math.random() - 0.5) * 0.5,
+        borrowAPY: 6.8 + (Math.random() - 0.5) * 0.8
+      }))
+    },
+    {
+      id: "eth",
+      asset: {
+        name: "Ethereum",
+        symbol: "ETH",
+        icon: "/tokenimages/app/ethereum-eth-logo.svg",
+        chain: "Ethereum"
+      },
+      supplyAPY: 3.85,
+      borrowAPY: 5.2,
+      totalSupplied: 85000000,
+      totalBorrowed: 62000000,
+      totalReserves: 1800000,
+      utilizationRate: 72.9,
+      collateralFactor: 75,
+      liquidationThreshold: 80,
+      reserveFactor: 20,
+      userSupplied: isDemoMode ? 10564 : undefined, // Matches position data (3 ETH * $3521.48)
+      userBorrowed: undefined,
+      priceHistory: Array.from({ length: 30 }, (_, i) => ({
+        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
+        price: 3500 + (Math.random() - 0.5) * 200
+      })),
+      apyHistory: Array.from({ length: 30 }, (_, i) => ({
+        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
+        supplyAPY: 3.85 + (Math.random() - 0.5) * 0.4,
+        borrowAPY: 5.2 + (Math.random() - 0.5) * 0.6
+      }))
+    },
+    {
+      id: "sol",
+      asset: {
+        name: "Solana",
+        symbol: "SOL",
+        icon: "/tokenimages/app/solana-sol-logo.svg",
+        chain: "Solana"
+      },
+      supplyAPY: 5.2,
+      borrowAPY: 7.5,
+      totalSupplied: 45000000,
+      totalBorrowed: 32000000,
+      totalReserves: 900000,
+      utilizationRate: 71.1,
+      collateralFactor: 70,
+      liquidationThreshold: 75,
+      reserveFactor: 18,
+      userSupplied: isDemoMode ? 22414 : undefined, // Matches position data (150.5 SOL * $148.93)
+      userBorrowed: undefined,
+      priceHistory: Array.from({ length: 30 }, (_, i) => ({
+        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
+        price: 149 + (Math.random() - 0.5) * 20
+      })),
+      apyHistory: Array.from({ length: 30 }, (_, i) => ({
+        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
+        supplyAPY: 5.2 + (Math.random() - 0.5) * 0.6,
+        borrowAPY: 7.5 + (Math.random() - 0.5) * 0.9
+      }))
+    },
+    {
+      id: "usdt",
+      asset: {
+        name: "Tether USD",
+        symbol: "USDT",
+        icon: "/tokenimages/app/tether-usdt-logo.svg",
+        chain: "Ethereum"
+      },
+      supplyAPY: 3.1,
+      borrowAPY: 7.2,
+      totalSupplied: 95000000,
+      totalBorrowed: 68000000,
+      totalReserves: 1900000,
+      utilizationRate: 71.6,
+      collateralFactor: 75,
+      liquidationThreshold: 80,
+      reserveFactor: 20,
+      userSupplied: undefined,
+      userBorrowed: isDemoMode ? 1200 : undefined, // Matches position data
+      priceHistory: Array.from({ length: 30 }, (_, i) => ({
+        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
+        price: 1.0 + (Math.random() - 0.5) * 0.008
+      })),
+      apyHistory: Array.from({ length: 30 }, (_, i) => ({
+        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
+        supplyAPY: 3.1 + (Math.random() - 0.5) * 0.3,
+        borrowAPY: 7.2 + (Math.random() - 0.5) * 0.8
+      }))
+    }
+  ], [isDemoMode]);
+
+  // Risk data for risk management component
+  const riskData = useMemo(() => ({
+    healthFactor: userHealthFactor,
+    liquidationRisk: liquidationRisk,
+    totalCollateral: userTotalSupplied,
+    totalBorrowed: userTotalBorrowed,
+    borrowLimit: userTotalSupplied * 0.75, // Assuming 75% LTV
+    borrowLimitUsed: userTotalSupplied > 0 ? (userTotalBorrowed / (userTotalSupplied * 0.75)) * 100 : 0,
+    liquidationThreshold: 85,
+    priceImpactRisk: "medium" as const
+  }), [userHealthFactor, liquidationRisk, userTotalSupplied, userTotalBorrowed]);
+
+  // Position management handlers
+  const handleManagePosition = (position: UserPosition) => {
+    console.log("Managing position:", position);
+    // This would typically open a modal or navigate to a management page
+    // For now, we'll just open the asset detail modal
+    const asset = supplyData.find(a => a.symbol === position.asset.symbol) || 
+                  borrowData.find(a => a.symbol === position.asset.symbol);
+    if (asset) {
+      setSelectedAsset(asset);
+      setIsDetailSupply(position.type === "supply");
+    }
+  };
+
+  const handleAddCollateral = () => {
+    console.log("Add collateral clicked");
+    // Navigate to supply page or open supply modal
+    setActiveTab("markets");
+  };
+
+  const handleRepayDebt = () => {
+    console.log("Repay debt clicked");
+    // Navigate to repay page or open repay modal
+    setActiveTab("markets");
+  };
 
   // Refs for animations
   const heroRef = useRef<HTMLDivElement>(null)
@@ -847,10 +408,9 @@ export default function AppPage() {
   // Read getBlockNumber
   const { data: blockNumber, error: blockNumberError, isLoading: isLoadingBlockNumber } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'getBlockNumber',
-    // Only execute if connected to Soneium Minato
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id }, 
+    query: { enabled: isConnected && isSupported && !!peridottrollerAddress }, 
   });
 
   // Read peridottrollerImplementation to get the actual implementation address
@@ -860,9 +420,9 @@ export default function AppPage() {
     isLoading: isLoadingImplementation 
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'peridottrollerImplementation',
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id },
+    query: { enabled: isConnected && isSupported && !!peridottrollerAddress },
   });
 
   // Read getAccountLiquidity
@@ -870,14 +430,13 @@ export default function AppPage() {
     data: accountLiquidityData, 
     error: accountLiquidityError, 
     isLoading: isLoadingAccountLiquidity,
-    refetch: refetchAccountLiquidity // Added refetch function
+    refetch: refetchAccountLiquidity
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'getAccountLiquidity',
-    args: [address as `0x${string}`], // Pass the user's address as an argument
-    // Only execute if connected to Soneium Minato and address is available
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id && !!address },
+    args: [address as `0x${string}`],
+    query: { enabled: isConnected && isSupported && !!peridottrollerAddress && !!address },
   });
 
   // Read getAllMarkets
@@ -887,36 +446,34 @@ export default function AppPage() {
     isLoading: isLoadingAllMarkets 
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'getAllMarkets',
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id },
+    query: { enabled: isConnected && isSupported && !!peridottrollerAddress },
   });
 
   // Read oracle address
   const { 
-    data: oracleAddress, 
+    data: oracleAddressFromContract, 
     error: oracleError, 
     isLoading: isLoadingOracle 
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'oracle',
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id },
+    query: { enabled: isConnected && isSupported && !!peridottrollerAddress },
   });
 
   // Read market information for the PERC token
-  const pTokenAddress = '0x1DCb19949fC0a68cbdAa53Cce898B60D7436b14F' as `0x${string}`;
-  
   const { 
     data: marketInfo, 
     error: marketInfoError, 
     isLoading: isLoadingMarketInfo 
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'markets',
-    args: [pTokenAddress],
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id },
+    args: [percPTokenAddress],
+    query: { enabled: isConnected && isSupported && !!peridottrollerAddress && !!percPTokenAddress },
   });
 
   // Check if user is in this market
@@ -926,10 +483,10 @@ export default function AppPage() {
     isLoading: isLoadingCheckMembership 
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'checkMembership',
-    args: [address as `0x${string}`, pTokenAddress],
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id && !!address },
+    args: [address as `0x${string}`, percPTokenAddress],
+    query: { enabled: isConnected && isSupported && !!peridottrollerAddress && !!percPTokenAddress && !!address },
   });
 
   // Get user's assets in the protocol
@@ -939,10 +496,10 @@ export default function AppPage() {
     isLoading: isLoadingAssetsIn 
   } = useReadContract({
     abi: PeridottrollerABI,
-    address: peridottrollerAddressSoneiumMinato,
+    address: peridottrollerAddress,
     functionName: 'getAssetsIn',
     args: [address as `0x${string}`],
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id && !!address },
+    query: { enabled: isConnected && isSupported && !!peridottrollerAddress && !!address },
   });
 
   // Read PERC token balance
@@ -953,10 +510,10 @@ export default function AppPage() {
     refetch: refetchPercBalance
   } = useReadContract({
     abi: ERC20ABI,
-    address: percTokenAddressSoneiumMinato,
+    address: percTokenAddress,
     functionName: 'balanceOf',
     args: [address as `0x${string}`],
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id && !!address },
+    query: { enabled: isConnected && isSupported && !!percTokenAddress && !!address },
   });
 
   // Read PERC token allowance for pPERC contract
@@ -967,10 +524,10 @@ export default function AppPage() {
     refetch: refetchPercAllowance
   } = useReadContract({
     abi: ERC20ABI,
-    address: percTokenAddressSoneiumMinato,
+    address: percTokenAddress,
     functionName: 'allowance',
-    args: [address as `0x${string}`, pTokenAddress],
-    query: { enabled: isConnected && chain?.id === soneiumMinato.id && !!address },
+    args: [address as `0x${string}`, percPTokenAddress],
+    query: { enabled: isConnected && isSupported && !!percTokenAddress && !!percPTokenAddress && !!address },
   });
 
   // Data switching logic: Use live data when not in demo mode, otherwise use demo data
@@ -1148,17 +705,17 @@ export default function AppPage() {
       if (assetToToggle.collateral === false) { 
         console.log(`Entering market with pToken: ${assetToToggle.pTokenAddress}`);
         enterMarkets({
-          address: peridottrollerAddressSoneiumMinato,
+          address: peridottrollerAddress,
           abi: PeridottrollerABI,
           functionName: 'enterMarkets',
-          args: [[assetToToggle.pTokenAddress]],
+          args: [[percPTokenAddress]],
           chain: chain,
           account: address,
         });
       } else { 
         console.log(`Exiting market with pToken: ${assetToToggle.pTokenAddress}`);
         exitMarket({
-          address: peridottrollerAddressSoneiumMinato,
+          address: peridottrollerAddress,
           abi: PeridottrollerABI,
           functionName: 'exitMarket',
           args: [assetToToggle.pTokenAddress],
@@ -1187,7 +744,7 @@ export default function AppPage() {
   const handleTransaction = (
     targetAsset: Asset,
     numericAmount: number,
-    type: "supply" | "borrow"
+    type: "supply" | "borrow" | "withdraw" | "repay"
   ) => {
     console.log(`Handling ${type} for ${targetAsset.name}, Amount: ${numericAmount}`)
     if (isDemoMode) {
@@ -1198,11 +755,17 @@ export default function AppPage() {
         setTimeout(() => {
           setTransactionStatus("success");
           setTransactionHash("0xDemoTransactionHash")
-          // Update balances or other relevant data
+          // Update balances or other relevant data based on transaction type
           if (type === "supply") {
             setSupplyData(prev => prev.map(asset => asset.id === targetAsset.id ? { ...asset, wallet: `${parseFloat(asset.wallet) + numericAmount} ${asset.symbol}` } : asset));
-          } else {
-            // Similar update for borrow if needed
+          } else if (type === "withdraw") {
+            setSupplyData(prev => prev.map(asset => asset.id === targetAsset.id ? { ...asset, wallet: `${Math.max(0, parseFloat(asset.wallet) - numericAmount)} ${asset.symbol}` } : asset));
+          } else if (type === "borrow") {
+            // Update borrow data - in demo mode we would track this
+            console.log(`Demo: Borrowed ${numericAmount} ${targetAsset.symbol}`);
+          } else if (type === "repay") {
+            // Update repay data - in demo mode we would track this
+            console.log(`Demo: Repaid ${numericAmount} ${targetAsset.symbol}`);
           }
           setTimeout(() => setTransactionStatus("idle"), 3000);
         }, 2000);
@@ -1242,28 +805,52 @@ export default function AppPage() {
       } else if (targetAsset.pTokenAddress) {
         // Handle ERC20 supply here if needed in the future
         console.log(`Supply ${targetAsset.symbol} using its pToken: ${targetAsset.pTokenAddress}`);
-        // Example:
-        // writeContract({
-        //   address: targetAsset.pTokenAddress, // This would be the pToken address for the asset
-        //   abi: PTokenABI, // Assuming a generic PTokenABI for minting ERC20 pTokens
-        //   functionName: 'mint', // Or 'supply', depending on the PToken contract
-        //   args: [BigInt(numericAmount * 10**targetAsset.decimals)], // Adjust decimals based on asset
-        //   chain: chain,
-        //   account: address,
-        // }, { ... onSuccess, onError ... })
         setTransactionStatus("error"); // Placeholder until ERC20 supply is implemented
         console.error("ERC20 supply not implemented yet for this asset.");
-
       } else {
         console.error(`pTokenAddress not defined for ${targetAsset.name} to supply.`);
         setTransactionStatus("error");
       }
+    } else if (type === "withdraw") {
+      if (targetAsset.symbol === "ETH" && targetAsset.pTokenAddress) {
+        // For ETH withdraw, we need to call redeemUnderlying on the pEther contract
+        console.log(`Withdraw ETH from pEther contract`);
+        // This would be implemented when withdraw functionality is ready
+        setTransactionStatus("error");
+        console.error("ETH withdraw not implemented yet.");
+      } else if (targetAsset.pTokenAddress) {
+        console.log(`Withdraw ${targetAsset.symbol} from pToken: ${targetAsset.pTokenAddress}`);
+        setTransactionStatus("error");
+        console.error("ERC20 withdraw not implemented yet for this asset.");
+      } else {
+        console.error(`pTokenAddress not defined for ${targetAsset.name} to withdraw.`);
+        setTransactionStatus("error");
+      }
     } else if (type === "borrow") {
-      // Handle borrow transaction
-      console.log(`Borrow ${targetAsset.symbol}`);
-      // ... implementation for borrow ...
-      setTransactionStatus("error"); // Placeholder
-      console.error("Borrow functionality not implemented yet.");
+      if (targetAsset.pTokenAddress) {
+        console.log(`Borrow ${targetAsset.symbol} from pToken: ${targetAsset.pTokenAddress}`);
+        // This would call the borrow function on the pToken contract
+        setTransactionStatus("error");
+        console.error("Borrow functionality not implemented yet.");
+      } else {
+        console.error(`pTokenAddress not defined for ${targetAsset.name} to borrow.`);
+        setTransactionStatus("error");
+      }
+    } else if (type === "repay") {
+      if (targetAsset.symbol === "ETH" && targetAsset.pTokenAddress) {
+        console.log(`Repay ETH to pEther contract`);
+        // This would call repayBorrow on the pEther contract with ETH value
+        setTransactionStatus("error");
+        console.error("ETH repay not implemented yet.");
+      } else if (targetAsset.pTokenAddress) {
+        console.log(`Repay ${targetAsset.symbol} to pToken: ${targetAsset.pTokenAddress}`);
+        // This would call repayBorrow on the pToken contract
+        setTransactionStatus("error");
+        console.error("ERC20 repay not implemented yet for this asset.");
+      } else {
+        console.error(`pTokenAddress not defined for ${targetAsset.name} to repay.`);
+        setTransactionStatus("error");
+      }
     }
   }
 
@@ -1322,46 +909,53 @@ export default function AppPage() {
              {/* Keep Title if desired */}
              <h1 className="text-2xl md:text-3xl font-bold">Peridot DeFi</h1>
              <p className="text-sm text-muted-foreground">Cross-chain lending & borrowing</p>
+             
+             
              { /* Display Block Number */}
-             {isConnected && chain?.id === soneiumMinato.id && (
+             {isConnected && isSupported && currentNetwork && (
               <div className="mt-2 p-2 border rounded-md bg-background">
-                <p className="text-xs text-muted-foreground">Soneium Minato Status:</p>
+                <p className="text-xs text-muted-foreground">{currentNetwork.displayName} Status:</p>
                 {isLoadingBlockNumber && <p className="text-sm">Fetching block number...</p>}
                 {blockNumberError && <p className="text-sm text-red-500">Error fetching block number: {blockNumberError.shortMessage || blockNumberError.message}</p>}
                 {blockNumber && <p className="text-sm">Current Block: {blockNumber.toString()}</p>}
               </div>
             )}
-            {isConnected && chain?.id !== soneiumMinato.id && (
+            {isConnected && !isSupported && (
               <div className="mt-2 p-2 border rounded-md bg-amber-500/10">
-                <p className="text-sm text-amber-700">Please switch to Soneium Minato network in your wallet to see block number.</p>
+                <p className="text-sm text-amber-700">Please switch to a supported network to see block number and access features.</p>
+                <p className="text-xs text-amber-600 mt-1">Supported: Arbitrum Sepolia, Base Sepolia, Soneium Minato</p>
               </div>
             )}
-            {/* Display Account Liquidity */}
-            {isConnected && chain?.id === soneiumMinato.id && address && (
-              <div className="mt-2 p-2 border rounded-md bg-background">
-                <p className="text-xs text-muted-foreground">Account Liquidity:</p>
-                {isLoadingAccountLiquidity && <p className="text-sm">Fetching account liquidity...</p>}
-                {accountLiquidityError && <p className="text-sm text-red-500">Error fetching account liquidity: {accountLiquidityError.shortMessage || accountLiquidityError.message}</p>}
-                {accountLiquidityData && (
-                  <div>
-                    {/* The getAccountLiquidity function returns three values:
-                        1. Error code (0 if no error)
-                        2. Liquidity (in USD)
-                        3. Shortfall (in USD) 
-                        We will display the liquidity. You might want to handle errors or shortfall differently.
-                    */}
-                    <p className="text-xl md:text-2xl font-bold">
-                      <AnimatedCounter value={parseFloat((Number(accountLiquidityData[1]) / 1e18).toFixed(2))} prefix="$" duration={0.8} />
-                    </p> 
-                    {/* Assuming liquidity is returned in 18 decimal places, adjust if necessary */}
-                    {Number(accountLiquidityData[0]) !== 0 && <p className="text-xs text-red-500">Error Code: {accountLiquidityData[0].toString()}</p>}
-                    {Number(accountLiquidityData[2]) > 0 && <p className="text-xs text-orange-500">Shortfall: ${(Number(accountLiquidityData[2]) / 1e18).toFixed(2)}</p>}
-                  </div>
-                )}
-              </div>
-            )}
+
           </div>
           <div className="flex items-center gap-2 mt-2 md:mt-0">
+            {/* Cross-Chain Status Indicator */}
+            <NetworkIndicator />
+            
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1 border rounded-xl px-3 py-1.5 bg-background relative">
+                  <Globe className="h-3 w-3 text-green-500" />
+                  <Label className="text-xs cursor-pointer text-green-500">Cross-Chain Active</Label>
+                  <HelpCircle className="h-3 w-3 text-muted-foreground ml-1" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent><p className="max-w-xs text-xs">Your assets can be used as collateral across all connected chains</p></TooltipContent>
+            </Tooltip>
+            
+            {/* Bridge Access Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="sm" asChild className="h-8 px-3">
+                  <Link href="/app/bridge">
+                    <ArrowUpRight className="h-3.5 w-3.5 mr-1" />
+                    <span className="text-xs">Bridge</span>
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent><p className="text-xs">Transfer assets between chains</p></TooltipContent>
+            </Tooltip>
+            
             {/* Demo Mode Toggle Button */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -1436,35 +1030,7 @@ export default function AppPage() {
              </CardContent>
           </Card>
 
-          {/* Net APY Card */} 
-          <Card className="col-span-2 md:col-span-1 bg-card border-border/50 overflow-hidden shadow-sm">
-             <CardHeader className="p-3 pb-0 md:pb-0 md:text-center">
-              <CardTitle className="text-sm flex items-center md:justify-center">
-                Net APY
-                 <Tooltip>
-                   <TooltipTrigger asChild>
-                     <span className="ml-1 cursor-pointer"><HelpCircle className="h-3 w-3 text-text/40" /></span>
-                   </TooltipTrigger>
-                   <TooltipContent side="top"><p className="text-xs max-w-[200px]">Net annual percentage yield.</p></TooltipContent>
-                 </Tooltip>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-3 pt-1 md:pt-0 flex flex-col items-center">
-              <div className="text-xl font-bold mb-1">{netAPY.toFixed(1)}%</div>
-              <Progress value={(netAPY / 10) * 100} className="h-1 w-24 bg-green-900/30 [&>div]:bg-green-500" />
-              {/* Supply/Borrow APY Breakdown */}
-              <div className="mt-2 grid grid-cols-2 gap-1 w-full">
-                 <div className="flex flex-col items-center bg-green-500/10 rounded p-1">
-                   <span className="text-xs text-green-500 font-medium">Supply APY</span>
-                   <span className="text-sm font-bold">5.2%</span> 
-                 </div>
-                 <div className="flex flex-col items-center bg-amber-500/10 rounded p-1">
-                   <span className="text-xs text-amber-500 font-medium">Borrow APY</span>
-                   <span className="text-sm font-bold">2.1%</span> 
-                 </div>
-               </div>
-            </CardContent>
-          </Card>
+
 
           {/* Account Liquidity Card - New Card Added Here */}
           <Card className="bg-card border-border/50 overflow-hidden shadow-sm">
@@ -1485,11 +1051,7 @@ export default function AppPage() {
                     {/* Liquidity is the second value in the returned array, convert from Wei (18 decimals) */}
                     <AnimatedCounter value={parseFloat((Number(accountLiquidityData[1]) / 1e18).toFixed(2))} prefix="$" duration={0.8} />
                   </div>
-                  {Number(accountLiquidityData[0]) !== 0 && (
-                    <div className="text-xs text-red-500 mt-1">
-                      Error Code: {accountLiquidityData[0].toString()}
-                    </div>
-                  )}
+
                   {Number(accountLiquidityData[2]) > 0 && (
                      <div className="text-xs text-orange-500 mt-1">
                       Shortfall: ${(Number(accountLiquidityData[2]) / 1e18).toFixed(2)}
@@ -1501,11 +1063,11 @@ export default function AppPage() {
                    </div>
                 </div>
               )}
-              {!isLoadingAccountLiquidity && !accountLiquidityError && !accountLiquidityData && isConnected && chain?.id === soneiumMinato.id && address && (
+              {!isLoadingAccountLiquidity && !accountLiquidityError && !accountLiquidityData && isConnected && isSupported && address && (
                 <p className="text-sm text-muted-foreground">No liquidity data.</p>
               )}
-              {(!isConnected || (chain?.id !== soneiumMinato.id) || !address) && (
-                <p className="text-xs text-muted-foreground">Connect wallet to Soneium Minato to view liquidity.</p>
+              {(!isConnected || !isSupported || !address) && (
+                <p className="text-xs text-muted-foreground">Connect wallet to a supported network to view liquidity.</p>
               )}
             </CardContent>
           </Card>
@@ -1537,33 +1099,51 @@ export default function AppPage() {
 
         {/* Markets Section with Tabs */}
         <Tabs defaultValue="markets" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4 w-full md:w-auto mb-4">
+          <TabsList className="grid grid-cols-5 w-full md:w-auto mb-4">
             <TabsTrigger value="markets">Markets</TabsTrigger>
+            <TabsTrigger value="cross-chain">Cross-Chain</TabsTrigger>
             <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
             <TabsTrigger value="stake">Stake</TabsTrigger>
             <TabsTrigger value="debug">Debug</TabsTrigger>
           </TabsList>
 
           {/* Markets Tab Content */} 
-          <TabsContent value="markets">
-             {/* Search and Filter Bar */} 
-             <div className="flex items-center gap-4 mb-4">
-               <div className="relative flex-grow">
-                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                 <input 
-                   type="text"
-                   placeholder="Search assets..."
-                   value={searchTerm}
-                   onChange={(e) => setSearchTerm(e.target.value)}
-                   className="pl-10 pr-4 py-2 w-full rounded-md border bg-background text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                 />
-               </div>
-               {/* Maybe add filter button back if needed */}
-             </div>
-             
-             {/* Apply grid layout only on medium screens and up */}
-             <div className="md:grid md:grid-cols-2 gap-6">
-               {/* Supply Markets Card */}
+          <TabsContent value="markets" className="space-y-6">
+            {/* User Guidance Banner */}
+            {userPositions.length > 0 && (
+              <AnimatedCard delay={0.1}>
+                <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                          <Users className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-blue-900 dark:text-blue-100">
+                            You have {userPositions.length} active position{userPositions.length > 1 ? 's' : ''}
+                          </p>
+                          <p className="text-sm text-blue-700 dark:text-blue-300">
+                            Go to Portfolio tab to manage withdrawals, repayments, and collateral settings
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setActiveTab("portfolio")}
+                        className="border-blue-200 text-blue-700 hover:bg-blue-100"
+                      >
+                        Manage Positions
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimatedCard>
+            )}
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              {/* Supply Markets Card */}
               <AnimatedCard>
                 <Card>
                   <CardHeader className="pb-2">
@@ -1684,167 +1264,473 @@ export default function AppPage() {
                    </CardContent>
                  </Card>
                </AnimatedCard>
-             </div>
-           </TabsContent>
-
-           {/* Placeholder Content for other tabs */}
-          <TabsContent value="portfolio">
-            <AnimatedCard>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Total Portfolio Value</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-3xl font-bold">
-                      <AnimatedCounter value={portfolioSummary.totalValue} prefix="$" duration={1} />
-                    </div>
-                    <p className={cn(
-                      "text-xs mt-1",
-                      portfolioSummary.change24hValue >= 0 ? "text-green-500" : "text-red-500"
-                    )}>
-                      {portfolioSummary.change24hValue >= 0 ? "+" : ""}
-                      <AnimatedCounter value={Math.abs(parseFloat(portfolioSummary.change24hValue.toFixed(2)))} prefix="$" duration={1} /> 
-                      ({portfolioSummary.change24hPercentage.toFixed(2)}%) 24h
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card className="md:col-span-2">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Asset Allocation</CardTitle>
-                  </CardHeader>
-                  <CardContent className="flex flex-col sm:flex-row items-center justify-around pt-4">
-                    {/* Simplified Donut Chart usage: Show for the largest asset or overall health metric */}
-                    {/* For a true multi-segment chart, the DonutChart component would need an update */}
-                    {/* For now, let's show the allocation of the top asset */}
-                    {portfolioAssets.length > 0 && 
-                        <DonutChart 
-                            value={portfolioAssets[0].allocation} // Show allocation of the first (largest) asset
-                            size={120} 
-                            strokeWidth={12}
-                            color={getColorForAsset(portfolioAssets[0].symbol)}
-                        />
-                    }
-                    <div className="space-y-1 mt-3 sm:mt-0 sm:ml-4">
-                      {portfolioAssets.slice(0, 4).map(asset => (
-                        <div key={asset.id} className="flex items-center text-sm">
-                          <span className="w-3 h-3 rounded-full mr-2 flex-shrink-0" style={{ backgroundColor: getColorForAsset(asset.symbol) }}></span>
-                          <span className="font-medium mr-1">{asset.symbol}:</span> 
-                          <span className="text-muted-foreground">{asset.allocation.toFixed(1)}%</span>
-                        </div>
-                      ))}
-                      {portfolioAssets.length > 4 && (
-                        <div className="text-xs text-muted-foreground pt-1">
-                          + {portfolioAssets.length - 4} more
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </AnimatedCard>
-            <AnimatedCard delay={0.1}>
-              <Card>
-                <CardHeader>
-                  <CardTitle>My Assets</CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[30%]">Asset</TableHead>
-                          <TableHead className="text-right">Price</TableHead>
-                          <TableHead className="text-right">Amount</TableHead>
-                          <TableHead className="text-right">Value</TableHead>
-                          <TableHead className="text-right w-[15%]">Allocation</TableHead>
-                          <TableHead className="text-right w-[10%]">24h</TableHead>
-                          <TableHead className="w-[5%]"></TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {portfolioAssets.map((asset) => (
-                          <TableRow key={asset.id} className="group">
-                            <TableCell>
-                              <div className="flex items-center space-x-3">
-                                <Image src={asset.icon} alt={asset.name} width={28} height={28} className="rounded-full" />
-                                <div>
-                                  <div className="font-medium">{asset.name}</div>
-                                  <div className="text-xs text-muted-foreground">{asset.symbol}</div>
-                                </div>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">${asset.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                            <TableCell className="text-right">{asset.amount.toLocaleString()}</TableCell>
-                            <TableCell className="text-right font-medium">${asset.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
-                            <TableCell className="text-right">
-                              <div className="flex items-center justify-end space-x-2">
-                                <span>{asset.allocation.toFixed(1)}%</span>
-                                <Progress value={asset.allocation} className="h-1.5 w-16 bg-primary/20 [&>div]:bg-primary" />
-                              </div>
-                            </TableCell>
-                            <TableCell className={cn(
-                              "text-right",
-                              asset.change24h && asset.change24h >= 0 ? "text-green-500" : "text-red-500"
-                            )}>
-                              {asset.change24h ? `${asset.change24h >= 0 ? "+" : ""}${asset.change24h.toFixed(2)}%` : "N/A"}
-                            </TableCell>
-                            <TableCell className="opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button variant="ghost" size="sm" className="rounded-full h-8 w-8 p-0">
-                                <TrendingUp className="h-4 w-4" /> {/* Or some other action icon */}
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </CardContent>
-              </Card>
-            </AnimatedCard>
+            </div>
           </TabsContent>
 
-          {/* Debug Tab Content */}
-          <TabsContent value="debug">
+          {/* Cross-Chain Tab Content */}
+          <TabsContent value="cross-chain">
             <div className="space-y-6">
-              {/* Contract Information */}
+              {/* Cross-Chain Overview */}
               <AnimatedCard>
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <BarChart4 className="h-5 w-5" />
-                      Contract Information
+                      <Globe className="h-5 w-5 text-blue-500" />
+                      Cross-Chain Lending Overview
+                    </CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Deposit on one chain, borrow on another. Peridot's Hub & Spoke architecture enables true cross-chain DeFi.
+                    </p>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Hub Status */}
+                      <div className="text-center p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                        <div className="w-12 h-12 mx-auto mb-2 bg-blue-500/20 rounded-full flex items-center justify-center">
+                          <BarChart3 className="h-6 w-6 text-blue-500" />
+                        </div>
+                        <h3 className="font-semibold text-blue-500">Hub Chain</h3>
+                        <p className="text-sm text-muted-foreground mt-1">Sei Network</p>
+                        <p className="text-xs text-green-500 mt-1">✓ Active</p>
+                      </div>
+                      
+                      {/* Spoke Chains */}
+                      <div className="text-center p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                        <div className="w-12 h-12 mx-auto mb-2 bg-green-500/20 rounded-full flex items-center justify-center">
+                          <ArrowUpRight className="h-6 w-6 text-green-500" />
+                        </div>
+                        <h3 className="font-semibold text-green-500">Spoke Chains</h3>
+                        <p className="text-sm text-muted-foreground mt-1">Ethereum, Solana, Soneium</p>
+                        <p className="text-xs text-green-500 mt-1">✓ Connected</p>
+                      </div>
+                      
+                      {/* Wormhole Status */}
+                      <div className="text-center p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                        <div className="w-12 h-12 mx-auto mb-2 bg-purple-500/20 rounded-full flex items-center justify-center">
+                          <Zap className="h-6 w-6 text-purple-500" />
+                        </div>
+                        <h3 className="font-semibold text-purple-500">Wormhole Bridge</h3>
+                        <p className="text-sm text-muted-foreground mt-1">Cross-chain messaging</p>
+                        <p className="text-xs text-green-500 mt-1">✓ Operational</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimatedCard>
+
+              {/* Cross-Chain Transaction Flow */}
+              <AnimatedCard delay={0.1}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <ArrowRight className="h-5 w-5 text-green-500" />
+                      How Cross-Chain Lending Works
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-muted-foreground">Peridottroller Proxy Address</h4>
-                        <div className="font-mono text-sm bg-muted p-2 rounded">
-                          {peridottrollerAddressSoneiumMinato}
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                      <div className="text-center">
+                        <div className="w-16 h-16 mx-auto mb-3 bg-blue-500/10 rounded-full flex items-center justify-center">
+                          <span className="text-2xl font-bold text-blue-500">1</span>
+                        </div>
+                        <h4 className="font-medium mb-2">Deposit on Spoke</h4>
+                        <p className="text-sm text-muted-foreground">Supply assets on your preferred chain (Ethereum, Solana, etc.)</p>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="w-16 h-16 mx-auto mb-3 bg-purple-500/10 rounded-full flex items-center justify-center">
+                          <span className="text-2xl font-bold text-purple-500">2</span>
+                        </div>
+                        <h4 className="font-medium mb-2">Wormhole Message</h4>
+                        <p className="text-sm text-muted-foreground">Assets and intent are bridged to the Hub chain via Wormhole</p>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="w-16 h-16 mx-auto mb-3 bg-green-500/10 rounded-full flex items-center justify-center">
+                          <span className="text-2xl font-bold text-green-500">3</span>
+                        </div>
+                        <h4 className="font-medium mb-2">Hub Processing</h4>
+                        <p className="text-sm text-muted-foreground">Hub updates your vault and calculates global liquidity</p>
+                      </div>
+                      
+                      <div className="text-center">
+                        <div className="w-16 h-16 mx-auto mb-3 bg-orange-500/10 rounded-full flex items-center justify-center">
+                          <span className="text-2xl font-bold text-orange-500">4</span>
+                        </div>
+                        <h4 className="font-medium mb-2">Borrow Anywhere</h4>
+                        <p className="text-sm text-muted-foreground">Borrow assets on any connected Spoke chain</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimatedCard>
+
+              {/* Cross-Chain Asset Overview */}
+              <AnimatedCard delay={0.2}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart4 className="h-5 w-5 text-green-500" />
+                      Cross-Chain Asset Distribution
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {/* Asset by Chain */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-blue-500">Ethereum</h4>
+                            <Badge variant="outline" className="text-xs">Spoke</Badge>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span>USDC Supplied:</span>
+                              <span className="font-medium">$5,420</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>ETH Supplied:</span>
+                              <span className="font-medium">$3,210</span>
+                            </div>
+                            <div className="text-xs text-green-500 mt-2">Available for cross-chain borrowing</div>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-purple-500">Solana</h4>
+                            <Badge variant="outline" className="text-xs">Spoke</Badge>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span>SOL Supplied:</span>
+                              <span className="font-medium">$2,890</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>USDT Borrowed:</span>
+                              <span className="font-medium text-red-500">-$1,500</span>
+                            </div>
+                            <div className="text-xs text-blue-500 mt-2">Cross-chain collateral active</div>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-orange-500">Soneium</h4>
+                            <Badge variant="outline" className="text-xs">Spoke</Badge>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span>PERC Supplied:</span>
+                              <span className="font-medium">$1,200</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>Available:</span>
+                              <span className="font-medium">$980</span>
+                            </div>
+                            <div className="text-xs text-green-500 mt-2">Testing environment</div>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 border rounded-lg border-blue-500/50 bg-blue-500/5">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="font-medium text-blue-500">Sei (Hub)</h4>
+                            <Badge className="text-xs bg-blue-500/10 text-blue-500">Hub</Badge>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span>Total Collateral:</span>
+                              <span className="font-medium">$11,720</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                              <span>Borrow Power:</span>
+                              <span className="font-medium text-green-500">$8,790</span>
+                            </div>
+                            <div className="text-xs text-blue-500 mt-2">Global accounting & liquidations</div>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-muted-foreground">Implementation Address</h4>
-                        <div className="font-mono text-sm bg-muted p-2 rounded">
-                          {isLoadingImplementation && "Loading..."}
-                          {implementationError && <span className="text-red-500">Error: {implementationError.shortMessage}</span>}
-                          {implementationAddress && String(implementationAddress)}
-                          {!isLoadingImplementation && !implementationError && !implementationAddress && "Not available"}
+                      {/* Quick Actions */}
+                      <div className="border-t pt-4">
+                        <h4 className="font-medium mb-3">Quick Cross-Chain Actions</h4>
+                        <div className="flex gap-2 flex-wrap">
+                          <Button size="sm" asChild>
+                            <Link href="/app/bridge">
+                              <ArrowUpRight className="h-4 w-4 mr-1" />
+                              Bridge Assets
+                            </Link>
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => setActiveTab("markets")}>
+                            <Plus className="h-4 w-4 mr-1" />
+                            Supply Assets
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={() => setActiveTab("markets")}>
+                            <TrendingDown className="h-4 w-4 mr-1" />
+                            Borrow Assets
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Eye className="h-4 w-4 mr-1" />
+                            View Transactions
+                          </Button>
                         </div>
                       </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimatedCard>
 
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-muted-foreground">Oracle Address</h4>
-                        <div className="font-mono text-sm bg-muted p-2 rounded">
-                          {isLoadingOracle && "Loading..."}
-                          {oracleError && <span className="text-red-500">Error: {oracleError.shortMessage}</span>}
-                          {oracleAddress && String(oracleAddress)}
-                          {!isLoadingOracle && !oracleError && !oracleAddress && "Not available"}
-                        </div>
+              {/* Coming Soon Features */}
+              <AnimatedCard delay={0.3}>
+                <Card className="border-dashed">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-yellow-500" />
+                      Coming Soon: Advanced Cross-Chain Features
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-3 bg-muted/50 rounded-lg">
+                        <h4 className="font-medium mb-2">💱 Cross-Chain Yield Farming</h4>
+                        <p className="text-sm text-muted-foreground">Optimize yields by automatically moving assets to the highest-yielding opportunities across all chains.</p>
                       </div>
+                      <div className="p-3 bg-muted/50 rounded-lg">
+                        <h4 className="font-medium mb-2">🔄 Auto-Rebalancing</h4>
+                        <p className="text-sm text-muted-foreground">Automatically maintain optimal collateral ratios across your cross-chain positions.</p>
+                      </div>
+                      <div className="p-3 bg-muted/50 rounded-lg">
+                        <h4 className="font-medium mb-2">⚡ Flash Cross-Chain Loans</h4>
+                        <p className="text-sm text-muted-foreground">Execute complex arbitrage strategies across multiple chains in a single transaction.</p>
+                      </div>
+                      <div className="p-3 bg-muted/50 rounded-lg">
+                        <h4 className="font-medium mb-2">🏛️ Cross-Chain Governance</h4>
+                        <p className="text-sm text-muted-foreground">Vote on protocol proposals from any connected chain with your cross-chain voting power.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimatedCard>
+            </div>
 
+            {/* Market Insights for deeper analysis */}
+            <div className="mt-6">
+              <AnimatedCard delay={0.2}>
+                <MarketInsightsCard
+                  markets={demoMarketData}
+                  isDemoMode={isDemoMode}
+                  selectedMarket={selectedMarketForInsights}
+                  onMarketSelect={setSelectedMarketForInsights}
+                />
+              </AnimatedCard>
+            </div>
+          </TabsContent>
+
+          {/* Placeholder Content for other tabs */}
+         <TabsContent value="portfolio">
+           <div className="space-y-6">
+             {/* Portfolio Overview */}
+             <AnimatedCard>
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                 <Card>
+                   <CardHeader className="pb-2">
+                     <CardTitle className="text-sm font-medium text-muted-foreground">Total Portfolio Value</CardTitle>
+                   </CardHeader>
+                   <CardContent>
+                     <div className="text-3xl font-bold">
+                       <AnimatedCounter value={portfolioSummary.totalValue} prefix="$" duration={1} />
+                     </div>
+                     <p className={cn(
+                       "text-xs mt-1",
+                       portfolioSummary.change24hValue >= 0 ? "text-green-500" : "text-red-500"
+                     )}>
+                       {portfolioSummary.change24hValue >= 0 ? "+" : ""}
+                       <AnimatedCounter value={Math.abs(parseFloat(portfolioSummary.change24hValue.toFixed(2)))} prefix="$" duration={1} /> 
+                       ({portfolioSummary.change24hPercentage.toFixed(2)}%) 24h
+                     </p>
+                   </CardContent>
+                 </Card>
+                 <Card className="md:col-span-2">
+                   <CardHeader className="pb-2">
+                     <CardTitle className="text-sm font-medium text-muted-foreground">Asset Allocation</CardTitle>
+                   </CardHeader>
+                   <CardContent className="flex flex-col sm:flex-row items-center justify-around pt-4">
+                     {/* Simplified Donut Chart usage: Show for the largest asset or overall health metric */}
+                     {/* For a true multi-segment chart, the DonutChart component would need an update */}
+                     {/* For now, let's show the allocation of the top asset */}
+                     {portfolioAssets.length > 0 && 
+                         <DonutChart 
+                             value={portfolioAssets[0].allocation} // Show allocation of the first (largest) asset
+                             size={120} 
+                             strokeWidth={12}
+                             color={getColorForAsset(portfolioAssets[0].symbol)}
+                         />
+                     }
+                     <div className="space-y-1 mt-3 sm:mt-0 sm:ml-4">
+                       {portfolioAssets.slice(0, 4).map(asset => (
+                         <div key={asset.id} className="flex items-center text-sm">
+                           <span className="w-3 h-3 rounded-full mr-2 flex-shrink-0" style={{ backgroundColor: getColorForAsset(asset.symbol) }}></span>
+                           <span className="font-medium mr-1">{asset.symbol}:</span> 
+                           <span className="text-muted-foreground">{asset.allocation.toFixed(1)}%</span>
+                         </div>
+                       ))}
+                       {portfolioAssets.length > 4 && (
+                         <div className="text-xs text-muted-foreground pt-1">
+                           + {portfolioAssets.length - 4} more
+                         </div>
+                       )}
+                     </div>
+                   </CardContent>
+                 </Card>
+               </div>
+             </AnimatedCard>
+
+             {/* User Positions */}
+             <AnimatedCard delay={0.1}>
+               <UserPositionsCard
+                 positions={userPositions}
+                 isDemoMode={isDemoMode}
+                 isLoading={isLoadingPositions}
+                 onManagePosition={handleManagePosition}
+                 onToggleCollateral={togglePositionCollateral}
+               />
+             </AnimatedCard>
+
+             {/* Risk Management */}
+             {(userTotalBorrowed > 0 || userPositions.some(p => p.type === "borrow")) && (
+               <AnimatedCard delay={0.2}>
+                 <RiskManagementCard
+                   riskData={riskData}
+                   isDemoMode={isDemoMode}
+                   onAddCollateral={handleAddCollateral}
+                   onRepayDebt={handleRepayDebt}
+                 />
+               </AnimatedCard>
+             )}
+
+             {/* Market Insights */}
+             <AnimatedCard delay={0.3}>
+               <MarketInsightsCard
+                 markets={demoMarketData}
+                 isDemoMode={isDemoMode}
+                 selectedMarket={selectedMarketForInsights}
+                 onMarketSelect={setSelectedMarketForInsights}
+               />
+             </AnimatedCard>
+
+             {/* Legacy Portfolio Assets Table */}
+             <AnimatedCard delay={0.4}>
+               <Card>
+                 <CardHeader>
+                   <CardTitle>Asset Holdings</CardTitle>
+                 </CardHeader>
+                 <CardContent className="p-0">
+                   <div className="overflow-x-auto">
+                     <Table>
+                       <TableHeader>
+                         <TableRow>
+                           <TableHead className="w-[30%]">Asset</TableHead>
+                           <TableHead className="text-right">Price</TableHead>
+                           <TableHead className="text-right">Amount</TableHead>
+                           <TableHead className="text-right">Value</TableHead>
+                           <TableHead className="text-right w-[15%]">Allocation</TableHead>
+                           <TableHead className="text-right w-[10%]">24h</TableHead>
+                           <TableHead className="w-[5%]"></TableHead>
+                         </TableRow>
+                       </TableHeader>
+                       <TableBody>
+                         {portfolioAssets.map((asset) => (
+                           <TableRow key={asset.id} className="group">
+                             <TableCell>
+                               <div className="flex items-center space-x-3">
+                                 <Image src={asset.icon} alt={asset.name} width={28} height={28} className="rounded-full" />
+                                 <div>
+                                   <div className="font-medium">{asset.name}</div>
+                                   <div className="text-xs text-muted-foreground">{asset.symbol}</div>
+                                 </div>
+                               </div>
+                             </TableCell>
+                             <TableCell className="text-right">${asset.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                             <TableCell className="text-right">{asset.amount.toLocaleString()}</TableCell>
+                             <TableCell className="text-right font-medium">${asset.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                             <TableCell className="text-right">
+                               <div className="flex items-center justify-end space-x-2">
+                                 <span>{asset.allocation.toFixed(1)}%</span>
+                                 <Progress value={asset.allocation} className="h-1.5 w-16 bg-primary/20 [&>div]:bg-primary" />
+                               </div>
+                             </TableCell>
+                             <TableCell className={cn(
+                               "text-right",
+                               asset.change24h && asset.change24h >= 0 ? "text-green-500" : "text-red-500"
+                             )}>
+                               {asset.change24h ? `${asset.change24h >= 0 ? "+" : ""}${asset.change24h.toFixed(2)}%` : "N/A"}
+                             </TableCell>
+                             <TableCell className="opacity-0 group-hover:opacity-100 transition-opacity">
+                               <Button variant="ghost" size="sm" className="rounded-full h-8 w-8 p-0">
+                                 <TrendingUp className="h-4 w-4" /> {/* Or some other action icon */}
+                               </Button>
+                             </TableCell>
+                           </TableRow>
+                         ))}
+                       </TableBody>
+                     </Table>
+                   </div>
+                 </CardContent>
+               </Card>
+             </AnimatedCard>
+           </div>
+         </TabsContent>
+
+         {/* Debug Tab Content */}
+         <TabsContent value="debug">
+           <div className="space-y-6">
+             {/* Contract Information */}
+             <AnimatedCard>
+               <Card>
+                 <CardHeader>
+                   <CardTitle className="flex items-center gap-2">
+                     <BarChart4 className="h-5 w-5" />
+                     Contract Information
+                   </CardTitle>
+                 </CardHeader>
+                 <CardContent className="space-y-4">
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div className="space-y-2">
+                       <h4 className="text-sm font-medium text-muted-foreground">Peridottroller Proxy Address</h4>
+                       <div className="font-mono text-sm bg-muted p-2 rounded">
+                         {peridottrollerAddress}
+                       </div>
+                     </div>
+                     
+                     <div className="space-y-2">
+                       <h4 className="text-sm font-medium text-muted-foreground">Implementation Address</h4>
+                       <div className="font-mono text-sm bg-muted p-2 rounded">
+                         {isLoadingImplementation && "Loading..."}
+                         {implementationError && <span className="text-red-500">Error: {implementationError.shortMessage}</span>}
+                         {implementationAddress && String(implementationAddress)}
+                         {!isLoadingImplementation && !implementationError && !implementationAddress && "Not available"}
+                       </div>
+                     </div>
+
+                     <div className="space-y-2">
+                       <h4 className="text-sm font-medium text-muted-foreground">Oracle Address</h4>
+                       <div className="font-mono text-sm bg-muted p-2 rounded">
+                         {isLoadingOracle && "Loading..."}
+                         {oracleError && <span className="text-red-500">Error: {oracleError.shortMessage}</span>}
+                         {oracleAddressFromContract && String(oracleAddressFromContract)}
+                         {!isLoadingOracle && !oracleError && !oracleAddressFromContract && "Not available"}
+                       </div>
+                     </div>
+
+                     <div className="space-y-2">
+                       <h4 className="text-sm font-medium text-muted-foreground">Current Block Number</h4>
+                       <div className="font-mono text-sm bg-muted p-2 rounded">
+                         {isLoadingBlockNumber && "Loading..."}
+                         {blockNumberError && <span className="text-red-500">Error: {blockNumberError.shortMessage}</span>}
+                         {blockNumber && blockNumber.toString()}
+                         {!isLoadingBlockNumber && !blockNumberError && !blockNumber && "Not available"}
+                       </div>
+                     </div>
                       <div className="space-y-2">
                         <h4 className="text-sm font-medium text-muted-foreground">Current Block Number</h4>
                         <div className="font-mono text-sm bg-muted p-2 rounded">
@@ -2066,9 +1952,11 @@ export default function AppPage() {
                         <h4 className="text-sm font-medium text-muted-foreground">Network</h4>
                         <div className={cn(
                           "px-3 py-2 rounded-lg text-sm font-medium",
-                          chain?.id === soneiumMinato.id ? "bg-green-500/10 text-green-500" : "bg-amber-500/10 text-amber-500"
+                          isSupported ? "bg-green-500/10 text-green-500" : "bg-amber-500/10 text-amber-500"
                         )}>
                           {chain ? `${chain.name} (${chain.id})` : "No Network"}
+                          {isSupported && <span className="text-xs block text-green-600">✓ Supported</span>}
+                          {!isSupported && chain && <span className="text-xs block text-amber-600">⚠ Not supported</span>}
                         </div>
                       </div>
 
@@ -2166,10 +2054,10 @@ export default function AppPage() {
                                 onClick={() => {
                                   if (!isDemoMode && address && chain) {
                                     enterMarkets({
-                                      address: peridottrollerAddressSoneiumMinato,
+                                      address: peridottrollerAddress,
                                       abi: PeridottrollerABI,
                                       functionName: 'enterMarkets',
-                                      args: [[pTokenAddress]],
+                                      args: [[percPTokenAddress]],
                                       chain: chain,
                                       account: address,
                                     });
@@ -2243,7 +2131,7 @@ export default function AppPage() {
                                     const amount = parseFloat(input.value);
                                     if (!isDemoMode && address && chain && amount > 0) {
                                       mintPerc({
-                                        address: percTokenAddressSoneiumMinato,
+                                        address: percTokenAddress,
                                         abi: ERC20ABI,
                                         functionName: 'mint',
                                         args: [address, BigInt(Math.round(amount * 1e18))],
@@ -2401,6 +2289,37 @@ export default function AppPage() {
          )}
        </AnimatePresence>
 
+        {/* Position Management Quick Actions - Show if user has positions */}
+        <PositionManagementCard
+          userPositions={userPositions}
+          isDemoMode={isDemoMode}
+          userHealthFactor={userHealthFactor}
+          onNavigateToPortfolio={() => setActiveTab("portfolio")}
+          onOpenSupplyModal={() => {
+            const firstSupplyAsset = supplyData.find(asset => 
+              userPositions.some(p => p.asset.symbol === asset.symbol && p.type === "supply")
+            )
+            if (firstSupplyAsset) {
+              handleOpenDetailModal(firstSupplyAsset, true)
+            }
+          }}
+          onOpenBorrowModal={() => {
+            const firstBorrowAsset = borrowData.find(asset => 
+              userPositions.some(p => p.asset.symbol === asset.symbol && p.type === "borrow")
+            )
+            if (firstBorrowAsset) {
+              handleOpenDetailModal(firstBorrowAsset, false)
+            }
+          }}
+        />
+
+        {/* Market Insights Card */}
+        <MarketInsightsWrapper
+          markets={demoMarketData}
+          isDemoMode={isDemoMode}
+          selectedMarket={selectedMarketForInsights}
+          onMarketSelect={setSelectedMarketForInsights}
+        />
       </div>
     </TooltipProvider>
   )
