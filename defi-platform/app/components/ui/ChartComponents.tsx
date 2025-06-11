@@ -190,7 +190,7 @@ export const DonutChart = ({
   )
 }
 
-// Animated card component
+// Animated card component - OPTIMIZED FOR PERFORMANCE
 export const AnimatedCard = ({ 
   children, 
   delay = 0, 
@@ -201,17 +201,17 @@ export const AnimatedCard = ({
   [key: string]: any;
 }) => {
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, amount: 0.3 })
+  const isInView = useInView(ref, { once: true, amount: 0.1 }) // Reduced threshold
 
   return (
     <motion.div
       ref={ref}
-      initial={{ y: 20, opacity: 0 }}
-      animate={isInView ? { y: 0, opacity: 1 } : { y: 20, opacity: 0 }}
+      initial={{ y: 10, opacity: 0 }} // Reduced movement
+      animate={isInView ? { y: 0, opacity: 1 } : { y: 10, opacity: 0 }}
       transition={{
-        duration: 0.5,
-        delay: delay,
-        ease: [0.22, 1, 0.36, 1],
+        duration: 0.3, // Reduced from 0.5s
+        delay: Math.min(delay, 0.1), // Cap delay at 100ms
+        ease: "easeOut", // Simpler easing
       }}
       {...props}
     >

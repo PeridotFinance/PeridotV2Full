@@ -9,6 +9,7 @@ import { headers } from 'next/headers'
 import ContextProvider from '@/context'
 import { Toaster } from "@/components/ui/toaster"
 import { PostHogProvider } from './providers'
+import { NavigationLoader } from './components/ui/NavigationLoader'
 
 // Load Poppins font with multiple weights
 const poppins = Poppins({
@@ -72,6 +73,7 @@ export default async function RootLayout({
         <PostHogProvider>
           <ContextProvider cookies={cookies}>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+              <NavigationLoader />
               <div className="flex flex-col min-h-screen">
                 <SiteHeader />
                 <main className="flex-1 pt-24 md:pt-28 lg:pt-32">{children}</main>

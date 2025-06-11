@@ -2,7 +2,7 @@
 
 import { TooltipTrigger } from "@/components/ui/tooltip"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -52,6 +52,7 @@ import { motion, AnimatePresence, useInView } from "framer-motion"
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils"
 import { useMobile } from "@/hooks/use-mobile"
+import { useReducedMotion } from "@/hooks/use-reduced-motion"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -93,6 +94,8 @@ import { supportedNetworks, soneiumMinato, getPeridottrollerAddress, getNetworkC
 import { NetworkSwitcher } from '../../components/network/NetworkSwitcher'
 import { NetworkDemo } from '../../components/network/NetworkDemo'
 import { useSolana } from '@/hooks/use-solana'
+// Import LoadingCubes component
+import { LoadingCubes } from '../components/ui/LoadingCubes'
 
 // Define Peridottroller address for Soneium Minato
 // const peridottrollerAddressSoneiumMinato = '0xB911C192ed1d6428A12F2Cf8F636B00c34e68a2a' as `0x${string}`;
@@ -138,22 +141,27 @@ const DEMO_DATA = {
 export default function AppPage() {
   const { theme } = useTheme()
   const isMobile = useMobile()
+  const { shouldUseReducedAnimations } = useReducedMotion()
   // useAccount returns chain info including id
-  const { address, isConnected, isConnecting, chain } = useAccount() 
+  const { address, isConnected, isConnecting, chain } = useAccount()
   const { switchChain, isPending: isSwitchingNetwork } = useSwitchChain()
 
   // Network configuration
   const currentChainId = chain?.id;
   const isCurrentNetworkSupported = currentChainId ? isSupportedNetwork(currentChainId) : false;
   
-  // Add debugging to see what's happening with network detection
-  console.log('Network Debug:', {
-    chainId: currentChainId,
-    chainName: chain?.name,
-    isConnected,
-    isCurrentNetworkSupported,
-    supportedNetworkIds: supportedNetworks.map(n => n.id)
-  });
+  // Optimized debug logging - only log when values actually change
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Network State Changed:', {
+        chainId: currentChainId,
+        chainName: chain?.name,
+        isConnected,
+        isCurrentNetworkSupported,
+        supportedNetworkIds: supportedNetworks.map(n => n.id)
+      });
+    }
+  }, [currentChainId, chain?.name, isConnected, isCurrentNetworkSupported]); // Only log when these values change
   
   const peridottrollerAddress = currentChainId && isCurrentNetworkSupported
     ? getPeridottrollerAddress(currentChainId)
@@ -205,7 +213,7 @@ export default function AppPage() {
   const liveMarketData = useLiveMarketData(isDemoMode, isConnected, chain);
   const livePortfolioData = useLivePortfolioData(isDemoMode, address, isConnected, chain);
 
-  // User positions hook
+  // User positions hook - FIXED: Remove constant re-triggering
   const {
     positions: userPositions,
     isLoading: isLoadingPositions,
@@ -217,130 +225,116 @@ export default function AppPage() {
     netAPY: userNetAPY,
     healthFactor: userHealthFactor,
     liquidationRisk
-  } = useUserPositions({ isDemoMode, refreshTrigger: Date.now() });
+  } = useUserPositions({ isDemoMode }); // Removed refreshTrigger: Date.now() - this was causing constant re-renders!
 
   // Market insights state
   const [selectedMarketForInsights, setSelectedMarketForInsights] = useState("usdc");
 
-  // Demo market data for insights
-  const demoMarketData = useMemo(() => [
-    {
-      id: "usdc",
-      asset: {
-        name: "USD Coin",
-        symbol: "USDC",
-        icon: "/tokenimages/app/usd-coin-usdc-logo.svg",
-        chain: "Ethereum"
+  // Demo market data for insights - MEMOIZED FOR PERFORMANCE
+  const demoMarketData = useMemo(() => {
+    // Create static chart data once to avoid recalculation
+    const staticPriceHistory = Array.from({ length: 7 }, (_, i) => ({
+      timestamp: Date.now() - (6 - i) * 24 * 60 * 60 * 1000,
+      price: 1.0 + Math.sin(i * 0.5) * 0.02 // Simple sine wave for demo
+    }));
+    
+    const staticApyHistory = Array.from({ length: 7 }, (_, i) => ({
+      timestamp: Date.now() - (6 - i) * 24 * 60 * 60 * 1000,
+      supplyAPY: 4.25 + Math.sin(i * 0.3) * 0.5,
+      borrowAPY: 6.8 + Math.sin(i * 0.3) * 0.8
+    }));
+
+    return [
+      {
+        id: "usdc",
+        asset: {
+          name: "USD Coin",
+          symbol: "USDC",
+          icon: "/tokenimages/app/usd-coin-usdc-logo.svg",
+          chain: "Ethereum"
+        },
+        supplyAPY: 4.25,
+        borrowAPY: 6.8,
+        totalSupplied: 125000000,
+        totalBorrowed: 89000000,
+        totalReserves: 2500000,
+        utilizationRate: 71.2,
+        collateralFactor: 80,
+        liquidationThreshold: 85,
+        reserveFactor: 15,
+        userSupplied: isDemoMode ? 5000 : undefined,
+        userBorrowed: isDemoMode ? 3500 : undefined,
+        priceHistory: staticPriceHistory,
+        apyHistory: staticApyHistory,
       },
-      supplyAPY: 4.25,
-      borrowAPY: 6.8,
-      totalSupplied: 125000000,
-      totalBorrowed: 89000000,
-      totalReserves: 2500000,
-      utilizationRate: 71.2,
-      collateralFactor: 80,
-      liquidationThreshold: 85,
-      reserveFactor: 15,
-      userSupplied: isDemoMode ? 5000 : undefined, // Matches position data
-      userBorrowed: isDemoMode ? 3500 : undefined, // Matches position data
-      priceHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        price: 1.0 + (Math.random() - 0.5) * 0.01
-      })),
-      apyHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        supplyAPY: 4.25 + (Math.random() - 0.5) * 0.5,
-        borrowAPY: 6.8 + (Math.random() - 0.5) * 0.8
-      }))
-    },
-    {
-      id: "eth",
-      asset: {
-        name: "Ethereum",
-        symbol: "ETH",
-        icon: "/tokenimages/app/ethereum-eth-logo.svg",
-        chain: "Ethereum"
+      {
+        id: "eth", 
+        asset: {
+          name: "Ethereum",
+          symbol: "ETH",
+          icon: "/tokenimages/app/ethereum-eth-logo.svg",
+          chain: "Ethereum"
+        },
+        supplyAPY: 3.85,
+        borrowAPY: 5.2,
+        totalSupplied: 85000000,
+        totalBorrowed: 62000000,
+        totalReserves: 1800000,
+        utilizationRate: 72.9,
+        collateralFactor: 75,
+        liquidationThreshold: 80,
+        reserveFactor: 20,
+        userSupplied: isDemoMode ? 10564 : undefined,
+        userBorrowed: undefined,
+        priceHistory: staticPriceHistory.map(p => ({ ...p, price: p.price * 3500 })),
+        apyHistory: staticApyHistory.map(a => ({ ...a, supplyAPY: 3.85, borrowAPY: 5.2 })),
       },
-      supplyAPY: 3.85,
-      borrowAPY: 5.2,
-      totalSupplied: 85000000,
-      totalBorrowed: 62000000,
-      totalReserves: 1800000,
-      utilizationRate: 72.9,
-      collateralFactor: 75,
-      liquidationThreshold: 80,
-      reserveFactor: 20,
-      userSupplied: isDemoMode ? 10564 : undefined, // Matches position data (3 ETH * $3521.48)
-      userBorrowed: undefined,
-      priceHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        price: 3500 + (Math.random() - 0.5) * 200
-      })),
-      apyHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        supplyAPY: 3.85 + (Math.random() - 0.5) * 0.4,
-        borrowAPY: 5.2 + (Math.random() - 0.5) * 0.6
-      }))
-    },
-    {
-      id: "sol",
-      asset: {
-        name: "Solana",
-        symbol: "SOL",
-        icon: "/tokenimages/app/solana-sol-logo.svg",
-        chain: "Solana"
+      {
+        id: "sol",
+        asset: {
+          name: "Solana", 
+          symbol: "SOL",
+          icon: "/tokenimages/app/solana-sol-logo.svg",
+          chain: "Solana"
+        },
+        supplyAPY: 5.2,
+        borrowAPY: 7.5,
+        totalSupplied: 45000000,
+        totalBorrowed: 32000000,
+        totalReserves: 900000,
+        utilizationRate: 71.1,
+        collateralFactor: 70,
+        liquidationThreshold: 75,
+        reserveFactor: 18,
+        userSupplied: isDemoMode ? 22414 : undefined,
+        userBorrowed: undefined,
+        priceHistory: staticPriceHistory.map(p => ({ ...p, price: p.price * 150 })),
+        apyHistory: staticApyHistory.map(a => ({ ...a, supplyAPY: 5.2, borrowAPY: 7.5 })),
       },
-      supplyAPY: 5.2,
-      borrowAPY: 7.5,
-      totalSupplied: 45000000,
-      totalBorrowed: 32000000,
-      totalReserves: 900000,
-      utilizationRate: 71.1,
-      collateralFactor: 70,
-      liquidationThreshold: 75,
-      reserveFactor: 18,
-      userSupplied: isDemoMode ? 22414 : undefined, // Matches position data (150.5 SOL * $148.93)
-      userBorrowed: undefined,
-      priceHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        price: 149 + (Math.random() - 0.5) * 20
-      })),
-      apyHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        supplyAPY: 5.2 + (Math.random() - 0.5) * 0.6,
-        borrowAPY: 7.5 + (Math.random() - 0.5) * 0.9
-      }))
-    },
-    {
-      id: "usdt",
-      asset: {
-        name: "Tether USD",
-        symbol: "USDT",
-        icon: "/tokenimages/app/tether-usdt-logo.svg",
-        chain: "Ethereum"
-      },
-      supplyAPY: 3.1,
-      borrowAPY: 7.2,
-      totalSupplied: 95000000,
-      totalBorrowed: 68000000,
-      totalReserves: 1900000,
-      utilizationRate: 71.6,
-      collateralFactor: 75,
-      liquidationThreshold: 80,
-      reserveFactor: 20,
-      userSupplied: undefined,
-      userBorrowed: isDemoMode ? 1200 : undefined, // Matches position data
-      priceHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        price: 1.0 + (Math.random() - 0.5) * 0.008
-      })),
-      apyHistory: Array.from({ length: 30 }, (_, i) => ({
-        timestamp: Date.now() - (29 - i) * 24 * 60 * 60 * 1000,
-        supplyAPY: 3.1 + (Math.random() - 0.5) * 0.3,
-        borrowAPY: 7.2 + (Math.random() - 0.5) * 0.8
-      }))
-    }
-  ], [isDemoMode]);
+      {
+        id: "usdt",
+        asset: {
+          name: "Tether USD",
+          symbol: "USDT", 
+          icon: "/tokenimages/app/tether-usdt-logo.svg",
+          chain: "Ethereum"
+        },
+        supplyAPY: 3.1,
+        borrowAPY: 7.2,
+        totalSupplied: 95000000,
+        totalBorrowed: 68000000,
+        totalReserves: 1900000,
+        utilizationRate: 71.6,
+        collateralFactor: 75,
+        liquidationThreshold: 80,
+        reserveFactor: 20,
+        userSupplied: undefined,
+        userBorrowed: isDemoMode ? 1200 : undefined,
+        priceHistory: staticPriceHistory,
+        apyHistory: staticApyHistory.map(a => ({ ...a, supplyAPY: 3.1, borrowAPY: 7.2 })),
+      }
+    ];
+  }, [isDemoMode]); // Only recalculate when isDemoMode changes
 
   // Risk data for risk management component
   const riskData = useMemo(() => ({
@@ -354,9 +348,8 @@ export default function AppPage() {
     priceImpactRisk: "medium" as const
   }), [userHealthFactor, liquidationRisk, userTotalSupplied, userTotalBorrowed]);
 
-  // Position management handlers
-  const handleManagePosition = (position: UserPosition) => {
-    console.log("Managing position:", position);
+  // Position management handlers - OPTIMIZED: Removed excessive console.logs
+  const handleManagePosition = useCallback((position: UserPosition) => {
     // This would typically open a modal or navigate to a management page
     // For now, we'll just open the asset detail modal
     const asset = supplyData.find(a => a.symbol === position.asset.symbol) || 
@@ -365,19 +358,17 @@ export default function AppPage() {
       setSelectedAsset(asset);
       setIsDetailSupply(position.type === "supply");
     }
-  };
+  }, [supplyData, borrowData])
 
-  const handleAddCollateral = () => {
-    console.log("Add collateral clicked");
+  const handleAddCollateral = useCallback(() => {
     // Navigate to supply page or open supply modal
     setActiveTab("markets");
-  };
+  }, [])
 
-  const handleRepayDebt = () => {
-    console.log("Repay debt clicked");
+  const handleRepayDebt = useCallback(() => {
     // Navigate to repay page or open repay modal
     setActiveTab("markets");
-  };
+  }, [])
 
   // Refs for animations
   const heroRef = useRef<HTMLDivElement>(null)
@@ -582,14 +573,16 @@ export default function AppPage() {
 
   useEffect(() => {
     if (accountLiquidityData) {
-      console.log("Raw accountLiquidityData:", {
-        errorCode: accountLiquidityData[0].toString(),
-        liquidity: accountLiquidityData[1].toString(),
-        shortfall: accountLiquidityData[2].toString(),
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.log("Account liquidity updated:", {
+          errorCode: accountLiquidityData[0].toString(),
+          liquidity: accountLiquidityData[1].toString(),
+          shortfall: accountLiquidityData[2].toString(),
+        });
+      }
     }
     if (accountLiquidityError) {
-      console.error("accountLiquidityError:", accountLiquidityError);
+      console.error("Account liquidity error:", accountLiquidityError);
     }
   }, [accountLiquidityData, accountLiquidityError]);
 
@@ -599,16 +592,27 @@ export default function AppPage() {
   }, [pathname])
 
   useEffect(() => {
-    // Simulate loading data on mount
+    // Simulate loading data on mount - OPTIMIZED
     setIsLoading(true)
-    setTimeout(() => {
-      setSupplyChartData(generateChartData(30, 0.05, true))
-      setBorrowChartData(generateChartData(30, 0.08, true))
+    
+    // Generate chart data once and reuse
+    const supplyChartDataStatic = generateChartData(30, 0.05, true)
+    const borrowChartDataStatic = generateChartData(30, 0.08, true)
+    
+    // Data loading
+    const dataLoadingTimer = setTimeout(() => {
+      setSupplyChartData(supplyChartDataStatic)
+      setBorrowChartData(borrowChartDataStatic)
       setIsLoading(false)
-    }, 1500)
-  }, [])
+    }, shouldUseReducedAnimations ? 500 : 1000) // Faster since NavigationLoader handles initial loading
+    
+    return () => {
+      clearTimeout(dataLoadingTimer)
+    }
+  }, [shouldUseReducedAnimations]) // Only depend on performance setting
 
-  const handleRefresh = () => {
+  // OPTIMIZED HANDLERS - Using useCallback to prevent unnecessary re-renders
+  const handleRefresh = useCallback(() => {
     setIsLoading(true)
     // Simulate refreshing data - using original demo values/logic if possible
     setTimeout(() => {
@@ -623,46 +627,46 @@ export default function AppPage() {
       setBorrowLimitUsed(50 + Math.random() * 30)
       setIsLoading(false)
     }, 1000)
-  }
+  }, []) // Remove dependencies that cause constant changes
 
-  const handleOpenDetailModal = (assetForModal: Asset, isSupplyView: boolean) => {
+  const handleOpenDetailModal = useCallback((assetForModal: Asset, isSupplyView: boolean) => {
     setSelectedAsset(assetForModal);
     setIsDetailSupply(isSupplyView);
     setFocusAmountInputInModal(false);
-  }
+  }, [])
 
-  const handleQuickSupplyClick = (clickedAsset: Asset) => {
+  const handleQuickSupplyClick = useCallback((clickedAsset: Asset) => {
     setSelectedAsset(clickedAsset)
     setIsDetailSupply(true)
     setFocusAmountInputInModal(true)
-  }
+  }, [])
 
-  const handleCloseAssetDetail = () => {
+  const handleCloseAssetDetail = useCallback(() => {
     setSelectedAsset(null)
     setFocusAmountInputInModal(false)
-  }
+  }, [])
 
-  const toggleEasyMode = () => {
+  const toggleEasyMode = useCallback(() => {
     setIsEasyMode(!isEasyMode)
-  }
+  }, [isEasyMode])
 
-  const toggleDemoMode = () => {
+  const toggleDemoMode = useCallback(() => {
     if (isDemoMode) {
       setShowLiveModeComingSoon(true)
     } else {
       setIsDemoMode(true)
       setShowLiveModeComingSoon(false)
     }
-  }
+  }, [isDemoMode])
 
-  const handleConfirmSwitchToLiveMode = () => {
+  const handleConfirmSwitchToLiveMode = useCallback(() => {
     setIsDemoMode(false)
     setShowLiveModeComingSoon(false)
-  }
+  }, [])
 
-  const handleCancelSwitchToLiveMode = () => {
+  const handleCancelSwitchToLiveMode = useCallback(() => {
     setShowLiveModeComingSoon(false)
-  }
+  }, [])
 
   // Helper function to calculate borrow limit and usage
   const calculateBorrowLimitInfo = (currentSupplyData: Asset[], currentTotalBorrowed: number) => {
@@ -900,10 +904,19 @@ export default function AppPage() {
   // Add Solana connection detection
   const { isConnected: isSolanaConnected } = useSolana()
 
+  // Performance monitoring in development
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 AppPage re-rendered at:', new Date().toISOString())
+      console.log('🔍 Current tab:', activeTab)
+      console.log('📊 Connected state:', { isConnected, chain: chain?.name })
+    }
+  }, [activeTab, isConnected, chain?.name]) // Only log when these key values change
+
   // Pro Mode Return Statement
   return (
     <TooltipProvider>
-      <div className={cn("container mx-auto px-4 md:px-6 py-8 transition-all duration-300", { "blur-sm": isLoading })}>
+      <div className={cn("container mx-auto px-2 md:px-6 py-4 md:py-8 transition-all duration-300", { "blur-sm": isLoading })}>
         <AnimatePresence>
           {isLoading && (
              <motion.div
@@ -1049,7 +1062,7 @@ export default function AppPage() {
                                     <div className="flex items-center justify-between w-full">
                                       <div className="flex items-center gap-2">
                                         <div className={cn(
-                                          "w-2 h-2 rounded-full transition-colors",
+                                          "w-2 h-2 rounded-full",
                                           isCurrentNetwork ? "bg-emerald-500" : "bg-gray-400"
                                         )} />
                                         <div>
@@ -1120,11 +1133,7 @@ export default function AppPage() {
                     <TooltipContent><p className="max-w-xs text-xs">Switch to Easy Mode for a simplified interface.</p></TooltipContent>
                   </Tooltip>
                   
-                  {/* Refresh Button */}
-                  <Button variant="outline" size="sm" onClick={handleRefresh} className="h-8 px-3 flex-shrink-0">
-                    <RefreshCw className="h-3.5 w-3.5 mr-1" /> 
-                    <span className="text-xs whitespace-nowrap">Refresh</span>
-                  </Button>
+
                 </div>
               </div>
             </div>
@@ -1201,20 +1210,116 @@ export default function AppPage() {
           </div>
         </Card>
 
-        {/* Markets Section with Tabs */}
+        {/* Markets Section with Tabs - ENHANCED WITH PROFESSIONAL ANIMATIONS */}
         <Tabs defaultValue="markets" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4 w-full md:w-auto mb-4">
-            <TabsTrigger value="markets">Markets</TabsTrigger>
-            <TabsTrigger value="cross-chain">Cross-Chain</TabsTrigger>
-            <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
-            <TabsTrigger value="stake">Stake</TabsTrigger>
-          </TabsList>
+          <div className="relative w-full md:w-auto mb-4">
+            <TabsList className="relative grid grid-cols-4 w-full md:w-auto bg-muted/50 backdrop-blur-sm rounded-xl p-1 border border-border/50 shadow-lg">
+              {/* Dynamic active indicator */}
+              <motion.div
+                className="absolute top-1 bottom-1 bg-background rounded-lg shadow-md border border-border/20 z-0"
+                animate={{
+                  x: activeTab === "markets" ? "0%" : 
+                     activeTab === "cross-chain" ? "100%" :
+                     activeTab === "portfolio" ? "200%" : "300%",
+                  width: "calc(25% - 4px)",
+                  opacity: 1
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30
+                }}
+                style={{ left: "2px" }}
+              />
+              
+              <TabsTrigger 
+                value="markets" 
+                className="relative overflow-hidden rounded-lg transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg hover:shadow-green-500/10 active:scale-[0.98] z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none group"
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  initial={false}
+                  animate={{ opacity: 0 }}
+                  whileHover={{ opacity: activeTab === "markets" ? 0 : 1 }}
+                />
+                <motion.span 
+                  className="relative z-10 font-medium"
+                  whileHover={{ y: -1 }}
+                  whileTap={{ y: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  Markets
+                </motion.span>
+              </TabsTrigger>
+              
+              <TabsTrigger 
+                value="cross-chain"
+                className="relative overflow-hidden rounded-lg transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/10 active:scale-[0.98] z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none group"
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  initial={false}
+                  animate={{ opacity: 0 }}
+                  whileHover={{ opacity: activeTab === "cross-chain" ? 0 : 1 }}
+                />
+                <motion.span 
+                  className="relative z-10 font-medium"
+                  whileHover={{ y: -1 }}
+                  whileTap={{ y: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  <span className="hidden md:inline">Cross-Chain</span>
+                  <span className="md:hidden">X-Chain</span>
+                </motion.span>
+              </TabsTrigger>
+              
+              <TabsTrigger 
+                value="portfolio"
+                className="relative overflow-hidden rounded-lg transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/10 active:scale-[0.98] z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none group"
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-indigo-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  initial={false}
+                  animate={{ opacity: 0 }}
+                  whileHover={{ opacity: activeTab === "portfolio" ? 0 : 1 }}
+                />
+                <motion.span 
+                  className="relative z-10 font-medium"
+                  whileHover={{ y: -1 }}
+                  whileTap={{ y: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  Portfolio
+                </motion.span>
+              </TabsTrigger>
+              
+              <TabsTrigger 
+                value="stake"
+                className="relative overflow-hidden rounded-lg transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg hover:shadow-orange-500/10 active:scale-[0.98] z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none group"
+              >
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-red-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  initial={false}
+                  animate={{ opacity: 0 }}
+                  whileHover={{ opacity: activeTab === "stake" ? 0 : 1 }}
+                />
+                <motion.span 
+                  className="relative z-10 font-medium"
+                  whileHover={{ y: -1 }}
+                  whileTap={{ y: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                >
+                  Stake
+                </motion.span>
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          {/* Markets Tab Content */} 
+          {/* Markets Tab Content - OPTIMIZED FOR IMMEDIATE RENDERING */} 
           <TabsContent value="markets" className="space-y-6">
             {/* User Guidance Banner */}
             {userPositions.length > 0 && (
-              <AnimatedCard delay={0.1}>
+              <div className={shouldUseReducedAnimations ? "" : "animate-in fade-in duration-300"}>
                 <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
@@ -1242,131 +1347,341 @@ export default function AppPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </AnimatedCard>
+              </div>
             )}
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Supply Markets Card */}
               <AnimatedCard>
-                <Card>
-                  <CardHeader className="pb-2">
+                <Card className="overflow-hidden bg-gradient-to-br from-green-50/50 via-emerald-50/30 to-blue-50/50 dark:from-green-950/20 dark:via-emerald-950/10 dark:to-blue-950/20 border-0 shadow-xl">
+                  <CardHeader className="pb-4 px-[0.1rem] md:px-6 py-[0.1rem] md:py-6">
                     <div className="flex items-center justify-between">
-                      <CardTitle>Supply Markets</CardTitle>
-                      <div className="flex gap-2">
-                        {/* Add Filter/Search Icons if needed */}
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button variant="outline" size="icon" className="h-8 w-8">
-                                <Filter className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Filter</p></TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button variant="outline" size="icon" className="h-8 w-8">
-                                <Search className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Search</p></TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 shadow-lg">
+                          <TrendingUp className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">Supply Markets</CardTitle>
+                          <p className="text-xs text-muted-foreground">Earn yield on your assets</p>
+                        </div>
+                      </div>
+                      
+                      {/* Market Stats */}
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="text-xs text-muted-foreground">Best APY</div>
+                          <div className="text-sm font-bold text-green-600">
+                            {Math.max(...supplyData.map(asset => asset.apy || 0)).toFixed(2)}%
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-white/60 dark:hover:bg-white/10">
+                                  <Search className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Search assets</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-white/60 dark:hover:bg-white/10">
+                                  <Filter className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Filter by APY</p></TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-0">
-                    {/* Add scroll wrapper for the table */}
-                    <div className="overflow-x-auto">
-                      <Table className="min-w-[600px]">
-                        <TableHeader>
-                          <TableRow>
-                             {/* Add whitespace-nowrap to prevent wrapping */}
-                            <TableHead className="w-[40%] whitespace-nowrap">Asset</TableHead>
-                            <TableHead className="w-[20%] text-right whitespace-nowrap">APY</TableHead>
-                            <TableHead className="w-[20%] text-right whitespace-nowrap">Wallet</TableHead>
-                            <TableHead className="w-[20%] text-right whitespace-nowrap">Collateral</TableHead>
-                            <TableHead className="w-[0%]"></TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredSupplyData.map((asset) => (
-                            <AssetRow
-                              key={asset.id}
-                              asset={asset}
-                              isSupply={true}
-                              onOpenDetailModal={handleOpenDetailModal}
-                              onToggleCollateral={handleToggleCollateral}
-                              isDemoMode={isDemoMode}
-                              onQuickSupplyClick={handleQuickSupplyClick}
-                            />
-                          ))}
-                        </TableBody>
-                      </Table>
+                  
+                  <CardContent className="pt-0 px-[0.1rem] md:px-6 pb-[0.1rem] md:pb-6">
+                    <div className="space-y-2">
+                      {/* Header Row */}
+                      <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-3 py-2 bg-white/40 dark:bg-white/5 rounded-lg backdrop-blur-sm">
+                        <div className="flex-1">Asset</div>
+                        <div className="w-16 text-right">APY</div>
+                        <div className="w-20 text-right">Balance</div>
+                        <div className="w-20 text-center">Collateral</div>
+                        <div className="w-16"></div>
+                      </div>
+                      
+                      {/* Asset Rows */}
+                      <div className="space-y-1">
+                        {filteredSupplyData.map((asset, index) => (
+                          <motion.div
+                            key={asset.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="group relative"
+                          >
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/80 dark:hover:bg-white/10 hover:shadow-lg hover:border-green-200 dark:hover:border-green-800 transition-all duration-300 cursor-pointer"
+                                 onClick={() => handleOpenDetailModal(asset, true)}>
+                              
+                              {/* Asset Info */}
+                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <div className="relative">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center overflow-hidden">
+                                    <Image
+                                      src={asset.icon}
+                                      alt={asset.name}
+                                      width={32}
+                                      height={32}
+                                      className="rounded-full"
+                                    />
+                                  </div>
+                                  {/* Live indicator */}
+                                  <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-semibold text-sm truncate">{asset.name}</div>
+                                  <div className="text-xs text-muted-foreground">{asset.symbol}</div>
+                                </div>
+                              </div>
+                              
+                              {/* APY */}
+                              <div className="w-16 text-right">
+                                <div className="font-bold text-sm text-green-600">{asset.apy}%</div>
+                                <div className="text-xs text-muted-foreground">APY</div>
+                              </div>
+                              
+                              {/* Balance */}
+                              <div className="w-20 text-right">
+                                <div className="font-medium text-sm">{parseFloat(asset.wallet.split(" ")[0]).toFixed(2)}</div>
+                                <div className="text-xs text-muted-foreground">{asset.symbol}</div>
+                              </div>
+                              
+                              {/* Collateral Toggle */}
+                              <div className="w-20 flex justify-center">
+                                <motion.button
+                                  className={cn(
+                                    "w-10 h-5 rounded-full flex items-center transition-colors duration-200",
+                                    asset.collateral ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600",
+                                    parseFloat(asset.wallet.split(" ")[0]) <= 0 && "opacity-50 cursor-not-allowed"
+                                  )}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (parseFloat(asset.wallet.split(" ")[0]) > 0) {
+                                      handleToggleCollateral(asset.id);
+                                    }
+                                  }}
+                                  whileHover={parseFloat(asset.wallet.split(" ")[0]) > 0 ? { scale: 1.05 } : {}}
+                                  whileTap={parseFloat(asset.wallet.split(" ")[0]) > 0 ? { scale: 0.95 } : {}}
+                                >
+                                  <motion.div
+                                    className="w-4 h-4 bg-white rounded-full shadow-sm"
+                                    animate={{
+                                      x: asset.collateral ? 20 : 2
+                                    }}
+                                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                  />
+                                </motion.button>
+                              </div>
+                              
+                              {/* Quick Action */}
+                              <div className="w-16 flex justify-end">
+                                <motion.div
+                                  initial={{ scale: 0, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <Button
+                                    size="sm"
+                                    className="h-7 px-2 bg-green-500 hover:bg-green-600 text-white text-xs rounded-lg"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleQuickSupplyClick(asset);
+                                    }}
+                                  >
+                                    Supply
+                                  </Button>
+                                </motion.div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                      
+                      {/* Summary Footer */}
+                      <div className="mt-4 p-3 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 border border-green-200/50 dark:border-green-800/50">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                            <span className="font-medium">Live Markets</span>
+                          </div>
+                          <div className="text-muted-foreground">
+                            {filteredSupplyData.length} assets available
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               </AnimatedCard>
 
-               {/* Borrow Markets Card */}
-              <AnimatedCard delay={0.1}> 
-                 <Card>
-                   <CardHeader className="pb-2">
-                     <div className="flex items-center justify-between">
-                       <CardTitle>Borrow Markets</CardTitle>
-                       <div className="flex gap-2">
-                         {/* Add Filter/Search Icons if needed */}
-                         <TooltipProvider>
-                           <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button variant="outline" size="icon" className="h-8 w-8">
-                                <Filter className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Filter</p></TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button variant="outline" size="icon" className="h-8 w-8">
-                                <Search className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent><p>Search</p></TooltipContent>
-                          </Tooltip>
-                         </TooltipProvider>
-                       </div>
-                     </div>
-                   </CardHeader>
-                   <CardContent className="p-0">
-                     {/* Add scroll wrapper for the table */}
-                     <div className="overflow-x-auto">
-                       <Table className="min-w-[600px]">
-                         <TableHeader>
-                           <TableRow>
-                             {/* Add whitespace-nowrap to prevent wrapping */}
-                             <TableHead className="w-[40%] whitespace-nowrap">Asset</TableHead>
-                             <TableHead className="w-[20%] text-right whitespace-nowrap">APY</TableHead>
-                             <TableHead className="w-[20%] text-right whitespace-nowrap">Liquidity</TableHead>
-                             <TableHead className="w-[20%] whitespace-nowrap"></TableHead> 
-                             <TableHead className="w-[0%]"></TableHead>
-                           </TableRow>
-                         </TableHeader>
-                         <TableBody>
-                           {filteredBorrowData.map((asset) => (
-                             <AssetRow
-                               key={asset.id}
-                               asset={asset}
-                               isSupply={false}
-                               onOpenDetailModal={handleOpenDetailModal}
-                               isDemoMode={isDemoMode}
-                             />
-                           ))}
-                         </TableBody>
-                       </Table>
-                     </div>
-                   </CardContent>
-                 </Card>
-               </AnimatedCard>
+              {/* Borrow Markets Card */}
+              <AnimatedCard>
+                <Card className="overflow-hidden bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-red-50/50 dark:from-blue-950/20 dark:via-purple-950/10 dark:to-red-950/20 border-0 shadow-xl">
+                  <CardHeader className="pb-4 px-[0.1rem] md:px-6 py-[0.1rem] md:py-6">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg">
+                          <TrendingDown className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-lg">Borrow Markets</CardTitle>
+                          <p className="text-xs text-muted-foreground">Access liquidity instantly</p>
+                        </div>
+                      </div>
+                      
+                      {/* Market Stats */}
+                      <div className="flex items-center gap-3">
+                        <div className="text-right">
+                          <div className="text-xs text-muted-foreground">Best Rate</div>
+                          <div className="text-sm font-bold text-blue-600">
+                            {Math.min(...borrowData.map(asset => asset.apy || 0)).toFixed(2)}%
+                          </div>
+                        </div>
+                        <div className="flex gap-1">
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-white/60 dark:hover:bg-white/10">
+                                  <Search className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Search assets</p></TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg hover:bg-white/60 dark:hover:bg-white/10">
+                                  <Filter className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent><p>Filter by rate</p></TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="pt-0 px-[0.1rem] md:px-6 pb-[0.1rem] md:pb-6">
+                    <div className="space-y-2">
+                      {/* Header Row */}
+                      <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-3 py-2 bg-white/40 dark:bg-white/5 rounded-lg backdrop-blur-sm">
+                        <div className="flex-1">Asset</div>
+                        <div className="w-16 text-right">APY</div>
+                        <div className="w-24 text-right">Liquidity</div>
+                        <div className="w-20 text-center">Available</div>
+                        <div className="w-16"></div>
+                      </div>
+                      
+                      {/* Asset Rows */}
+                      <div className="space-y-1">
+                        {filteredBorrowData.map((asset, index) => (
+                          <motion.div
+                            key={asset.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05 }}
+                            className="group relative"
+                          >
+                            <div className="flex items-center justify-between p-3 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/80 dark:hover:bg-white/10 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 cursor-pointer"
+                                 onClick={() => handleOpenDetailModal(asset, false)}>
+                              
+                              {/* Asset Info */}
+                              <div className="flex items-center gap-3 flex-1 min-w-0">
+                                <div className="relative">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center overflow-hidden">
+                                    <Image
+                                      src={asset.icon}
+                                      alt={asset.name}
+                                      width={32}
+                                      height={32}
+                                      className="rounded-full"
+                                    />
+                                  </div>
+                                  {/* Live indicator */}
+                                  <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-blue-500 rounded-full border-2 border-white dark:border-gray-900 animate-pulse"></div>
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <div className="font-semibold text-sm truncate">{asset.name}</div>
+                                  <div className="text-xs text-muted-foreground">{asset.symbol}</div>
+                                </div>
+                              </div>
+                              
+                              {/* APY */}
+                              <div className="w-16 text-right">
+                                <div className="font-bold text-sm text-blue-600">{asset.apy}%</div>
+                                <div className="text-xs text-muted-foreground">APY</div>
+                              </div>
+                              
+                              {/* Liquidity */}
+                              <div className="w-24 text-right">
+                                <div className="font-medium text-sm">{asset.liquidity}</div>
+                                <div className="text-xs text-muted-foreground">Available</div>
+                              </div>
+                              
+                              {/* Utilization Bar */}
+                              <div className="w-20 flex justify-center">
+                                <div className="w-12">
+                                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-1">
+                                    <div 
+                                      className="bg-gradient-to-r from-blue-500 to-purple-500 h-1.5 rounded-full transition-all duration-300" 
+                                      style={{ width: `${Math.min((Math.random() * 80 + 10), 95)}%` }}
+                                    ></div>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground text-center">
+                                    {Math.floor(Math.random() * 80 + 10)}%
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Quick Action */}
+                              <div className="w-16 flex justify-end">
+                                <motion.div
+                                  initial={{ scale: 0, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                >
+                                  <Button
+                                    size="sm"
+                                    className="h-7 px-2 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenDetailModal(asset, false);
+                                    }}
+                                  >
+                                    Borrow
+                                  </Button>
+                                </motion.div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </div>
+                      
+                      {/* Summary Footer */}
+                      <div className="mt-4 p-3 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 border border-blue-200/50 dark:border-blue-800/50">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                            <span className="font-medium">Live Rates</span>
+                          </div>
+                          <div className="text-muted-foreground">
+                            Total liquidity: $42.5M
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimatedCard>
             </div>
           </TabsContent>
 
@@ -1376,46 +1691,179 @@ export default function AppPage() {
 
 
               {/* Cross-Chain Transaction Flow */}
-              <AnimatedCard delay={0.1}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <ArrowRight className="h-5 w-5 text-green-500" />
-                      How Cross-Chain Lending Works
-                    </CardTitle>
+              <AnimatedCard>
+                <Card className="overflow-hidden bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-green-50/50 dark:from-blue-950/20 dark:via-purple-950/10 dark:to-green-950/20 border-0 shadow-xl">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2 text-lg">
+                        <div className="p-2 rounded-lg bg-gradient-to-r from-emerald-600 to-green-600">
+                          <ArrowRight className="h-4 w-4 text-white" />
+                        </div>
+                        How Cross-Chain Lending Works
+                      </CardTitle>
+                      <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/50 dark:bg-black/20 text-xs font-medium">
+                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                        Live Protocol
+                      </div>
+                    </div>
                   </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div className="text-center">
-                        <div className="w-16 h-16 mx-auto mb-3 bg-blue-500/10 rounded-full flex items-center justify-center">
-                          <span className="text-2xl font-bold text-blue-500">1</span>
-                        </div>
-                        <h4 className="font-medium mb-2">Deposit on Spoke</h4>
-                        <p className="text-sm text-muted-foreground">Supply assets on your preferred chain (Ethereum, Solana, etc.)</p>
+                  <CardContent className="pt-0">
+                    {/* Compact Flow with Animated Connections */}
+                    <div className="relative">
+                      {/* Mobile: Vertical Flow */}
+                      <div className="md:hidden space-y-3">
+                        {[
+                          { 
+                            num: "1", 
+                            title: "Deposit", 
+                            desc: "Supply assets on any spoke chain", 
+                            color: "emerald",
+                            icon: "💰"
+                          },
+                          { 
+                            num: "2", 
+                            title: "Bridge", 
+                            desc: "Wormhole securely transfers intent", 
+                            color: "slate",
+                            icon: "🌉"
+                          },
+                          { 
+                            num: "3", 
+                            title: "Process", 
+                            desc: "Hub calculates global liquidity", 
+                            color: "green",
+                            icon: "⚡"
+                          },
+                          { 
+                            num: "4", 
+                            title: "Borrow", 
+                            desc: "Access funds on any chain", 
+                            color: "gray",
+                            icon: "🚀"
+                          }
+                        ].map((step, index) => (
+                          <div key={step.num} className="relative">
+                            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/20">
+                              <div className={`w-8 h-8 rounded-full bg-${step.color}-500/10 flex items-center justify-center flex-shrink-0`}>
+                                <span className="text-lg">{step.icon}</span>
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <h4 className="font-semibold text-sm">{step.title}</h4>
+                                <p className="text-xs text-muted-foreground">{step.desc}</p>
+                              </div>
+                              <div className={`w-6 h-6 rounded-full bg-${step.color}-500 flex items-center justify-center flex-shrink-0`}>
+                                <span className="text-xs font-bold text-white">{step.num}</span>
+                              </div>
+                            </div>
+                            {index < 3 && (
+                              <div className="absolute left-7 top-full w-0.5 h-3 bg-gradient-to-b from-emerald-300 to-transparent dark:from-emerald-600"></div>
+                            )}
+                          </div>
+                        ))}
                       </div>
-                      
-                      <div className="text-center">
-                        <div className="w-16 h-16 mx-auto mb-3 bg-purple-500/10 rounded-full flex items-center justify-center">
-                          <span className="text-2xl font-bold text-purple-500">2</span>
+
+                      {/* Desktop: Horizontal Flow with Animated Arrows */}
+                      <div className="hidden md:block">
+                        <div className="grid grid-cols-4 gap-2 relative">
+                          {/* Animated Connection Lines */}
+                          <div className="absolute top-6 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500 via-green-500 via-slate-500 to-gray-500 opacity-30"></div>
+                          <div className="absolute top-6 left-0 w-0 h-0.5 bg-gradient-to-r from-emerald-500 via-green-500 via-slate-500 to-gray-500 animate-pulse"></div>
+                          
+                          {[
+                            { 
+                              num: "1", 
+                              title: "Deposit", 
+                              desc: "Supply on spoke", 
+                              color: "emerald",
+                              bgColor: "bg-emerald-500",
+                              icon: "💰",
+                              detail: "Any Chain"
+                            },
+                            { 
+                              num: "2", 
+                              title: "Bridge", 
+                              desc: "Wormhole transfer", 
+                              color: "slate",
+                              bgColor: "bg-slate-500",
+                              icon: "🌉",
+                              detail: "Secure"
+                            },
+                            { 
+                              num: "3", 
+                              title: "Process", 
+                              desc: "Hub calculation", 
+                              color: "green",
+                              bgColor: "bg-green-500",
+                              icon: "⚡",
+                              detail: "Instant"
+                            },
+                            { 
+                              num: "4", 
+                              title: "Borrow", 
+                              desc: "Access anywhere", 
+                              color: "gray",
+                              bgColor: "bg-gray-500",
+                              icon: "🚀",
+                              detail: "Global"
+                            }
+                          ].map((step, index) => (
+                            <div key={step.num} className="relative z-10">
+                              <div className="group cursor-pointer">
+                                <div className="relative p-3 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/80 dark:hover:bg-white/10 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+                                  {/* Step Number Badge */}
+                                  <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full ${step.bgColor} flex items-center justify-center shadow-lg`}>
+                                    <span className="text-xs font-bold text-white">{step.num}</span>
+                                  </div>
+                                  
+                                  {/* Content */}
+                                  <div className="text-center">
+                                    <div className="text-2xl mb-2">{step.icon}</div>
+                                    <h4 className="font-semibold text-sm mb-1">{step.title}</h4>
+                                    <p className="text-xs text-muted-foreground mb-1">{step.desc}</p>
+                                    <div className={`inline-block px-2 py-0.5 rounded-full bg-${step.color}-100 dark:bg-${step.color}-900/30 text-${step.color}-700 dark:text-${step.color}-300 text-xs font-medium`}>
+                                      {step.detail}
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Hover Details */}
+                                  <div className="absolute inset-x-0 top-full mt-2 p-2 bg-white dark:bg-gray-900 rounded-lg shadow-xl border opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                                    <p className="text-xs text-center">
+                                      {step.num === "1" && "Deposit assets on Ethereum, Solana, Base, or any supported chain"}
+                                      {step.num === "2" && "Wormhole protocol securely bridges your intent to the Hub"}
+                                      {step.num === "3" && "Sei Hub processes and updates your global vault instantly"}
+                                      {step.num === "4" && "Borrow against your collateral on any connected chain"}
+                                    </p>
+                                  </div>
+                                </div>
+                                
+                                {/* Arrow Connector */}
+                                {index < 3 && (
+                                  <div className="absolute top-6 -right-1 w-4 h-4 flex items-center justify-center">
+                                    <ArrowRight className="h-3 w-3 text-emerald-400 group-hover:text-emerald-600 transition-colors" />
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                        <h4 className="font-medium mb-2">Wormhole Message</h4>
-                        <p className="text-sm text-muted-foreground">Assets and intent are bridged to the Hub chain via Wormhole</p>
-                      </div>
-                      
-                      <div className="text-center">
-                        <div className="w-16 h-16 mx-auto mb-3 bg-green-500/10 rounded-full flex items-center justify-center">
-                          <span className="text-2xl font-bold text-green-500">3</span>
+                        
+                        {/* Benefits Bar */}
+                        <div className="mt-6 flex items-center justify-center gap-6 py-3 px-4 rounded-xl bg-white/40 dark:bg-white/5 backdrop-blur-sm">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Zap className="h-4 w-4 text-emerald-500" />
+                            <span className="font-medium">Instant</span>
+                          </div>
+                          <div className="w-px h-4 bg-emerald-300 dark:bg-emerald-600"></div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Globe className="h-4 w-4 text-green-500" />
+                            <span className="font-medium">Multi-Chain</span>
+                          </div>
+                          <div className="w-px h-4 bg-emerald-300 dark:bg-emerald-600"></div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-emerald-500" />
+                            <span className="font-medium">Secure</span>
+                          </div>
                         </div>
-                        <h4 className="font-medium mb-2">Hub Processing</h4>
-                        <p className="text-sm text-muted-foreground">Hub updates your vault and calculates global liquidity</p>
-                      </div>
-                      
-                      <div className="text-center">
-                        <div className="w-16 h-16 mx-auto mb-3 bg-orange-500/10 rounded-full flex items-center justify-center">
-                          <span className="text-2xl font-bold text-orange-500">4</span>
-                        </div>
-                        <h4 className="font-medium mb-2">Borrow Anywhere</h4>
-                        <p className="text-sm text-muted-foreground">Borrow assets on any connected Spoke chain</p>
                       </div>
                     </div>
                   </CardContent>
@@ -1423,7 +1871,7 @@ export default function AppPage() {
               </AnimatedCard>
 
               {/* Cross-Chain Asset Overview */}
-              <AnimatedCard delay={0.2}>
+              <AnimatedCard>
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -1538,7 +1986,7 @@ export default function AppPage() {
               </AnimatedCard>
 
               {/* Coming Soon Features */}
-              <AnimatedCard delay={0.3}>
+              <AnimatedCard>
                 <Card className="border-dashed">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -1572,7 +2020,7 @@ export default function AppPage() {
 
             {/* Market Insights for deeper analysis */}
             <div className="mt-6">
-              <AnimatedCard delay={0.2}>
+              <AnimatedCard>
                 <MarketInsightsCard
                   markets={demoMarketData}
                   isDemoMode={isDemoMode}
@@ -1643,7 +2091,7 @@ export default function AppPage() {
              </AnimatedCard>
 
              {/* User Positions */}
-             <AnimatedCard delay={0.1}>
+             <AnimatedCard>
                <UserPositionsCard
                  positions={userPositions}
                  isDemoMode={isDemoMode}
@@ -1655,7 +2103,7 @@ export default function AppPage() {
 
              {/* Risk Management */}
              {(userTotalBorrowed > 0 || userPositions.some(p => p.type === "borrow")) && (
-               <AnimatedCard delay={0.2}>
+               <AnimatedCard>
                  <RiskManagementCard
                    riskData={riskData}
                    isDemoMode={isDemoMode}
@@ -1666,7 +2114,7 @@ export default function AppPage() {
              )}
 
              {/* Market Insights */}
-             <AnimatedCard delay={0.3}>
+             <AnimatedCard>
                <MarketInsightsCard
                  markets={demoMarketData}
                  isDemoMode={isDemoMode}
@@ -1676,7 +2124,7 @@ export default function AppPage() {
              </AnimatedCard>
 
              {/* Legacy Portfolio Assets Table */}
-             <AnimatedCard delay={0.4}>
+             <AnimatedCard>
                <Card>
                  <CardHeader>
                    <CardTitle>Asset Holdings</CardTitle>
@@ -1875,7 +2323,7 @@ export default function AppPage() {
               </AnimatedCard>
 
               {/* Contract Functions */}
-              <AnimatedCard delay={0.1}>
+              <AnimatedCard>
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -1985,7 +2433,7 @@ export default function AppPage() {
               </AnimatedCard>
 
               {/* Connection Status */}
-              <AnimatedCard delay={0.2}>
+              <AnimatedCard>
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">

@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useAppKitAccount, useAppKitNetwork } from '@reown/appkit/react'
 import { useAppKitConnection } from '@reown/appkit-adapter-solana/react'
 import { 
@@ -15,21 +16,30 @@ export function useSolana() {
   const { caipNetwork } = useAppKitNetwork()
   const { connection } = useAppKitConnection()
 
-  // Debug logging
-  console.log('useSolana Debug:', {
-    address,
-    isConnected,
-    caipNetwork,
-    networkId: caipNetwork?.id,
-    networkName: caipNetwork?.name,
-    connection: !!connection
-  })
+  // Optimized debug logging - only log when values change
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('useSolana State Changed:', {
+        address,
+        isConnected,
+        caipNetwork,
+        networkId: caipNetwork?.id,
+        networkName: caipNetwork?.name,
+        connection: !!connection
+      })
+    }
+  }, [address, isConnected, caipNetwork?.id, caipNetwork?.name, connection])
 
   // Improved Solana detection based on official AppKit documentation
   // The primary indicator is having both isConnected and a Solana connection object
   const isSolanaConnected = isConnected && !!connection
 
-  console.log('isSolanaConnected:', isSolanaConnected)
+  // Optimized debug logging for connection status
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Solana connection status changed:', isSolanaConnected)
+    }
+  }, [isSolanaConnected])
   
   const getBalance = async (publicKey?: PublicKey | string): Promise<number> => {
     if (!connection) throw new Error('No Solana connection available')
