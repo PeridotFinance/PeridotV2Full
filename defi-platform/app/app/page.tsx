@@ -272,6 +272,138 @@ const borrowMarkets: Asset[] = [
   },
 ]
 
+// Portfolio asset types
+type PortfolioAsset = {
+  id: string
+  name: string
+  symbol: string
+  icon: string
+  price: number
+  amount: number
+  value: number
+  allocation: number
+  change24h: number
+}
+
+// Staking asset types
+type StakingAsset = {
+  id: string
+  name: string
+  symbol: string
+  icon: string
+  apy: number
+  staked: number
+  rewards: number
+  totalValue: number
+  change24h: number
+  lockPeriod?: string
+  status: "active" | "pending" | "unlocking"
+}
+
+// Sample portfolio data
+const portfolioAssets: PortfolioAsset[] = [
+  {
+    id: "sol",
+    name: "Solana",
+    symbol: "SOL",
+    icon: "/tokenimages/app/solana-sol-logo.svg",
+    price: 148.93,
+    amount: 150.5,
+    value: 22413.96,
+    allocation: 40.1,
+    change24h: 4.78,
+  },
+  {
+    id: "peridot",
+    name: "Peridot",
+    symbol: "PDT",
+    icon: "/logo.svg",
+    price: 14.86,
+    amount: 1200,
+    value: 17832.00,
+    allocation: 31.9,
+    change24h: 7.21,
+  },
+  {
+    id: "eth",
+    name: "Ether",
+    symbol: "ETH",
+    icon: "/tokenimages/app/ethereum-eth-logo.svg",
+    price: 3521.48,
+    amount: 3,
+    value: 10564.44,
+    allocation: 18.9,
+    change24h: 2.34,
+  },
+  {
+    id: "usdc",
+    name: "USD Coin",
+    symbol: "USDC",
+    icon: "/tokenimages/app/usd-coin-usdc-logo.svg",
+    price: 1.0,
+    amount: 5062.60,
+    value: 5062.60,
+    allocation: 9.1,
+    change24h: 0.01,
+  },
+]
+
+// Sample staking data
+const stakingAssets: StakingAsset[] = [
+  {
+    id: "sol-stake",
+    name: "Solana",
+    symbol: "SOL",
+    icon: "/tokenimages/app/solana-sol-logo.svg",
+    apy: 6.8,
+    staked: 500,
+    rewards: 12.45,
+    totalValue: 76345.50,
+    change24h: 4.78,
+    lockPeriod: "21 days",
+    status: "active",
+  },
+  {
+    id: "pdt-stake",
+    name: "Peridot",
+    symbol: "PDT",
+    icon: "/logo.svg",
+    apy: 12.5,
+    staked: 2500,
+    rewards: 156.25,
+    totalValue: 39471.25,
+    change24h: 7.21,
+    lockPeriod: "14 days",
+    status: "active",
+  },
+  {
+    id: "eth-stake",
+    name: "Ethereum",
+    symbol: "ETH",
+    icon: "/tokenimages/app/ethereum-eth-logo.svg",
+    apy: 4.2,
+    staked: 5,
+    rewards: 0.35,
+    totalValue: 17842.75,
+    change24h: 2.34,
+    lockPeriod: "32 days",
+    status: "active",
+  },
+  {
+    id: "xlm-stake",
+    name: "Stellar",
+    symbol: "XLM",
+    icon: "/tokenimages/app/stellar.svg",
+    apy: 8.7,
+    staked: 10000,
+    rewards: 435.0,
+    totalValue: 25535.0,
+    change24h: 9.87,
+    lockPeriod: "7 days",
+    status: "pending",
+  },
+]
+
 // Sample chart data
 const generateChartData = (days = 30, volatility = 0.1, uptrend = true) => {
   const data = []
@@ -351,33 +483,21 @@ const MiniChart = ({
   const pathRef = useRef(null)
   const isInView = useInView(pathRef, { once: true })
 
+  // Normalize data for the chart
+  const maxValue = Math.max(...data.map((d) => d.value))
+  const minValue = Math.min(...data.map((d) => d.value))
+  const range = maxValue - minValue
+
   // Create SVG path
   const createPath = () => {
-    if (!data || data.length < 2) { // Need at least 2 points to draw a line
-      return ""; 
-    }
-
-    const values = data.map(d => d.value);
-    const maxValue = Math.max(...values);
-    const minValue = Math.min(...values);
-    let range = maxValue - minValue;
-
-    // If range is 0 (all points are the same), draw a horizontal line in the middle.
-    if (range === 0) {
-      const y = height / 2;
-      // Ensure x coordinates are distinct for a line
-      return `M${(0).toFixed(2)},${y.toFixed(2)} L${width.toFixed(2)},${y.toFixed(2)}`;
-    }
-
     const points = data.map((d, i) => {
-      const x = (i / (data.length - 1)) * width;
-      const yValue = d.value - minValue;
-      const y = height - ((yValue / range) * height);
-      return `${x.toFixed(2)},${y.toFixed(2)}`;
-    });
+      const x = (i / (data.length - 1)) * width
+      const y = height - ((d.value - minValue) / range) * height
+      return `${x},${y}`
+    })
 
-    return `M${points.join(" L")}`;
-  };
+    return `M${points.join(" L")}`
+  }
 
   return (
     <svg width={width} height={height} className="overflow-visible">
@@ -506,6 +626,255 @@ const DonutChart = ({
   )
 }
 
+// Portfolio asset row component
+const PortfolioAssetRow = ({
+  asset,
+  onViewDetails,
+}: {
+  asset: PortfolioAsset;
+  onViewDetails: (asset: PortfolioAsset) => void;
+}) => {
+  const [isHovered, setIsHovered] = useState(false)
+  const { theme } = useTheme()
+  const isDark = theme === "dark"
+
+  const chartData = generateChartData(30, 0.05, asset.change24h > 0)
+  const chartColor = asset.change24h > 0 ? "#22c55e" : "#ef4444"
+
+  return (
+    <motion.tr
+      className="relative group cursor-pointer"
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      whileHover={{
+        backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+        transition: { duration: 0.2 },
+      }}
+      onClick={() => onViewDetails(asset)}
+      layout
+    >
+      <TableCell className="relative whitespace-nowrap">
+        <div className="flex items-center space-x-3">
+          <motion.div
+            className="w-10 h-10 rounded-full flex items-center justify-center relative overflow-hidden"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur-sm"></div>
+            <div className="absolute inset-0 bg-card rounded-full"></div>
+            <Image
+              src={asset.icon}
+              alt={asset.name}
+              width={32}
+              height={32}
+              className="relative z-10"
+            />
+          </motion.div>
+          <div>
+            <div className="font-medium">{asset.name}</div>
+            <div className="text-xs text-text/60">{asset.symbol}</div>
+          </div>
+        </div>
+
+        <motion.div
+          className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary rounded-full"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{
+            height: isHovered ? "100%" : "0%",
+            opacity: isHovered ? 1 : 0,
+          }}
+          transition={{ duration: 0.2 }}
+        />
+      </TableCell>
+
+      <TableCell className="whitespace-nowrap">
+        <div className="font-medium">${asset.price.toLocaleString()}</div>
+      </TableCell>
+
+      <TableCell className="whitespace-nowrap">
+        <div className="font-medium">{asset.amount.toLocaleString()}</div>
+      </TableCell>
+
+      <TableCell className="whitespace-nowrap">
+        <div className="font-medium">${asset.value.toLocaleString()}</div>
+      </TableCell>
+
+      <TableCell className="whitespace-nowrap">
+        <div className="flex items-center space-x-2">
+          <div className="flex flex-col">
+            <span className="font-medium">{asset.allocation}%</span>
+            <Progress 
+              value={asset.allocation} 
+              className="h-1 w-12 bg-muted [&>div]:bg-primary" 
+            />
+          </div>
+        </div>
+      </TableCell>
+
+      <TableCell className="whitespace-nowrap">
+        <div className="flex items-center space-x-2">
+          <div
+            className={cn(
+              "flex items-center px-2 py-1 rounded-full text-xs font-medium",
+              asset.change24h > 0 ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500",
+            )}
+          >
+            {asset.change24h > 0 ? (
+              <TrendingUp className="h-3 w-3 mr-1" />
+            ) : (
+              <TrendingDown className="h-3 w-3 mr-1" />
+            )}
+            {asset.change24h > 0 ? "+" : ""}{asset.change24h}%
+          </div>
+          <MiniChart data={chartData} color={chartColor} width={60} height={20} />
+        </div>
+      </TableCell>
+    </motion.tr>
+  )
+}
+
+// Staking asset row component
+const StakingAssetRow = ({
+  asset,
+  onManageStake,
+  onClaimRewards,
+}: {
+  asset: StakingAsset;
+  onManageStake: (asset: StakingAsset) => void;
+  onClaimRewards: (asset: StakingAsset) => void;
+}) => {
+  const [isHovered, setIsHovered] = useState(false)
+  const { theme } = useTheme()
+  const isDark = theme === "dark"
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active": return "bg-green-500/10 text-green-500"
+      case "pending": return "bg-yellow-500/10 text-yellow-500"
+      case "unlocking": return "bg-blue-500/10 text-blue-500"
+      default: return "bg-gray-500/10 text-gray-500"
+    }
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "active": return <Check className="h-3 w-3 mr-1" />
+      case "pending": return <RefreshCw className="h-3 w-3 mr-1 animate-spin" />
+      case "unlocking": return <History className="h-3 w-3 mr-1" />
+      default: return null
+    }
+  }
+
+  return (
+    <motion.tr
+      className="relative group"
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      whileHover={{
+        backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+        transition: { duration: 0.2 },
+      }}
+      layout
+    >
+      <TableCell className="relative whitespace-nowrap">
+        <div className="flex items-center space-x-3">
+          <motion.div
+            className="w-10 h-10 rounded-full flex items-center justify-center relative overflow-hidden"
+            whileHover={{ scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 400, damping: 10 }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur-sm"></div>
+            <div className="absolute inset-0 bg-card rounded-full"></div>
+            <Image
+              src={asset.icon}
+              alt={asset.name}
+              width={32}
+              height={32}
+              className="relative z-10"
+            />
+          </motion.div>
+          <div>
+            <div className="font-medium">{asset.name}</div>
+            <div className="text-xs text-text/60">{asset.symbol}</div>
+          </div>
+        </div>
+
+        <motion.div
+          className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary rounded-full"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{
+            height: isHovered ? "100%" : "0%",
+            opacity: isHovered ? 1 : 0,
+          }}
+          transition={{ duration: 0.2 }}
+        />
+      </TableCell>
+
+      <TableCell className="whitespace-nowrap">
+        <div className="flex flex-col">
+          <div className="font-medium">{asset.apy}%</div>
+          <div className="text-xs text-text/60">APY</div>
+        </div>
+      </TableCell>
+
+      <TableCell className="whitespace-nowrap">
+        <div className="flex flex-col">
+          <div className="font-medium">{asset.staked.toLocaleString()}</div>
+          <div className="text-xs text-green-500">+{asset.rewards.toFixed(2)} rewards</div>
+        </div>
+      </TableCell>
+
+      <TableCell className="whitespace-nowrap">
+        <div className="font-medium">${asset.totalValue.toLocaleString()}</div>
+      </TableCell>
+
+      <TableCell className="whitespace-nowrap">
+        <div className={cn("px-2 py-1 rounded-full text-xs font-medium flex items-center w-fit", getStatusColor(asset.status))}>
+          {getStatusIcon(asset.status)}
+          {asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}
+        </div>
+        {asset.lockPeriod && (
+          <div className="text-xs text-text/60 mt-1">Lock: {asset.lockPeriod}</div>
+        )}
+      </TableCell>
+
+      <TableCell className="opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex gap-1">
+          <motion.div initial={{ x: 10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.2 }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClaimRewards(asset);
+              }}
+              disabled={asset.rewards <= 0}
+            >
+              <Zap className="h-3 w-3 mr-1" />
+              Claim
+            </Button>
+          </motion.div>
+          <motion.div initial={{ x: 10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.2, delay: 0.05 }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                onManageStake(asset);
+              }}
+            >
+              <ArrowRight className="h-3 w-3 mr-1" />
+              Manage
+            </Button>
+          </motion.div>
+        </div>
+      </TableCell>
+    </motion.tr>
+  )
+}
+
 // Interactive asset row component
 const AssetRow = ({
   asset,
@@ -525,14 +894,8 @@ const AssetRow = ({
   const [isHovered, setIsHovered] = useState(false)
   const { theme } = useTheme()
   const isDark = theme === "dark"
-  const [clientChartData, setClientChartData] = useState<Array<{day: number; value: number}>>([]);
 
-  useEffect(() => {
-    // Generate chart data on the client side
-    const generatedData = generateChartData(30, 0.05, asset.change24h ? asset.change24h > 0 : true);
-    setClientChartData(generatedData);
-  }, [asset.id, asset.change24h]); // Regenerate if asset or its relevant properties change
-
+  const chartData = generateChartData(30, 0.05, asset.change24h ? asset.change24h > 0 : true)
   const chartColor = asset.change24h && asset.change24h > 0 ? "#22c55e" : "#ef4444"
 
   return (
@@ -642,7 +1005,7 @@ const AssetRow = ({
         <TableCell className="whitespace-nowrap">
           <div className="flex items-center space-x-2">
             <div>{asset.liquidity}</div>
-            <MiniChart data={clientChartData} color={chartColor} />
+            <MiniChart data={chartData} color={chartColor} />
           </div>
         </TableCell>
       )}
@@ -664,6 +1027,457 @@ const AssetRow = ({
         </motion.div>
       </TableCell>
     </motion.tr>
+  )
+}
+
+// Portfolio Detail Modal component
+const PortfolioDetailModal = ({
+  asset,
+  onClose,
+  onTransaction,
+  isDemoMode,
+}: {
+  asset: PortfolioAsset;
+  onClose: () => void;
+  onTransaction: (asset: PortfolioAsset, amount: number, type: "buy" | "sell") => void;
+  isDemoMode: boolean;
+}) => {
+  const [amount, setAmount] = useState("")
+  const [transactionType, setTransactionType] = useState<"buy" | "sell">("buy")
+  const [showConfirmation, setShowConfirmation] = useState(false)
+
+  const chartData = generateChartData(30, 0.05, asset.change24h > 0)
+  const chartColor = asset.change24h > 0 ? "#22c55e" : "#ef4444"
+
+  const handleTransaction = () => {
+    if (!isDemoMode) return;
+
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+
+    onTransaction(asset, numericAmount, transactionType);
+    setAmount("");
+    setShowConfirmation(true);
+    setTimeout(() => setShowConfirmation(false), 2000);
+  };
+
+  const currentValue = asset.value;
+  const estimatedValue = parseFloat(amount) * asset.price || 0;
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 backdrop-blur-sm pt-30 pb-8 overflow-y-auto"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="bg-card border border-border/50 rounded-xl shadow-xl w-full max-w-3xl overflow-hidden"
+        initial={{ scale: 0.9, y: 20, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.9, y: 20, opacity: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 border-b border-border/50 bg-gradient-to-r from-primary/5 to-accent/5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <motion.div 
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              >
+                <Image
+                  src={asset.icon}
+                  alt={asset.name}
+                  width={48}
+                  height={48}
+                />
+              </motion.div>
+              <div>
+                <h3 className="text-2xl font-bold">{asset.name}</h3>
+                <div className="text-sm text-text/60">{asset.symbol}</div>
+                <div className="flex items-center mt-1">
+                  <Badge variant="secondary" className="mr-2">
+                    {asset.allocation}% of portfolio
+                  </Badge>
+                  <div
+                    className={cn(
+                      "flex items-center px-2 py-1 rounded-full text-xs font-medium",
+                      asset.change24h > 0 ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500",
+                    )}
+                  >
+                    {asset.change24h > 0 ? (
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                    ) : (
+                      <TrendingDown className="h-3 w-3 mr-1" />
+                    )}
+                    {asset.change24h > 0 ? "+" : ""}{asset.change24h}%
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-text/60 mb-1">Current Price</h4>
+                <div className="text-xl font-bold">${asset.price.toLocaleString()}</div>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-text/60 mb-1">Holdings</h4>
+                <div className="text-xl font-bold">{asset.amount.toLocaleString()}</div>
+              </div>
+            </div>
+
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-text/60 mb-1">Total Value</h4>
+              <div className="text-2xl font-bold">${asset.value.toLocaleString()}</div>
+              <div className="text-sm text-text/60 mt-1">
+                {asset.allocation}% of your portfolio
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-medium text-text/60 mb-3">Price Chart (30 Days)</h4>
+              <div className="h-[180px] w-full bg-card/50 rounded-lg border border-border/50 p-4 flex items-center justify-center">
+                <MiniChart data={chartData} color={chartColor} height={140} width={300} />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <h4 className="text-sm font-medium text-text/60 mb-3">Transaction Type</h4>
+              <div className="flex space-x-2">
+                <Button
+                  variant={transactionType === "buy" ? "default" : "outline"}
+                  onClick={() => setTransactionType("buy")}
+                  className="flex-1"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Buy More
+                </Button>
+                <Button
+                  variant={transactionType === "sell" ? "default" : "outline"}
+                  onClick={() => setTransactionType("sell")}
+                  className="flex-1"
+                >
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  Sell
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-medium text-text/60 mb-3">Amount</h4>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 rounded-lg bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  disabled={!isDemoMode}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2">
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                    MAX
+                  </Button>
+                  <span className="text-sm font-medium">{asset.symbol}</span>
+                </div>
+              </div>
+
+              {isDemoMode && estimatedValue > 0 && (
+                <div className="mt-3 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                  <div className="text-sm text-text/60">
+                    Estimated {transactionType === "buy" ? "cost" : "proceeds"}:
+                  </div>
+                  <div className="text-lg font-bold text-primary">${estimatedValue.toLocaleString()}</div>
+                  {transactionType === "sell" && (
+                    <div className="text-xs text-text/60 mt-1">
+                      After transaction: {(asset.amount - parseFloat(amount)).toLocaleString()} {asset.symbol}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <Button
+              className="w-full bg-primary text-background hover:bg-primary/90 h-12"
+              onClick={handleTransaction}
+              disabled={!isDemoMode || parseFloat(amount) <= 0 || isNaN(parseFloat(amount))}
+            >
+              {transactionType === "buy" ? "Buy" : "Sell"} {asset.symbol}
+            </Button>
+
+            {showConfirmation && isDemoMode && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-2 text-sm text-center text-green-500 flex items-center justify-center bg-green-500/10 rounded-lg p-3"
+              >
+                <Check className="h-4 w-4 mr-2" />
+                Transaction Successful!
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// Staking Management Modal component
+const StakingManageModal = ({
+  asset,
+  onClose,
+  onStakeTransaction,
+  onClaimRewards,
+  isDemoMode,
+  mode = "manage",
+}: {
+  asset: StakingAsset;
+  onClose: () => void;
+  onStakeTransaction: (asset: StakingAsset, amount: number, type: "stake" | "unstake") => void;
+  onClaimRewards: (asset: StakingAsset) => void;
+  isDemoMode: boolean;
+  mode?: "manage" | "claim";
+}) => {
+  const [amount, setAmount] = useState("")
+  const [transactionType, setTransactionType] = useState<"stake" | "unstake">("stake")
+  const [showConfirmation, setShowConfirmation] = useState(false)
+  const [confirmationType, setConfirmationType] = useState<"stake" | "unstake" | "claim">("stake")
+
+  const handleStakeTransaction = () => {
+    if (!isDemoMode) return;
+
+    const numericAmount = parseFloat(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+
+    onStakeTransaction(asset, numericAmount, transactionType);
+    setAmount("");
+    setConfirmationType(transactionType);
+    setShowConfirmation(true);
+    setTimeout(() => setShowConfirmation(false), 2000);
+  };
+
+  const handleClaimRewards = () => {
+    if (!isDemoMode) return;
+    onClaimRewards(asset);
+    setConfirmationType("claim");
+    setShowConfirmation(true);
+    setTimeout(() => setShowConfirmation(false), 2000);
+  };
+
+  const estimatedYearlyRewards = parseFloat(amount) * (asset.apy / 100) || 0;
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 backdrop-blur-sm pt-20 pb-8 overflow-y-auto"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="bg-card border border-border/50 rounded-xl shadow-xl w-full max-w-3xl overflow-hidden"
+        initial={{ scale: 0.9, y: 20, opacity: 0 }}
+        animate={{ scale: 1, y: 0, opacity: 1 }}
+        exit={{ scale: 0.9, y: 20, opacity: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="p-6 border-b border-border/50 bg-gradient-to-r from-green-500/10 to-blue-500/10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <motion.div 
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500/20 to-blue-500/20 flex items-center justify-center"
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              >
+                <Image
+                  src={asset.icon}
+                  alt={asset.name}
+                  width={48}
+                  height={48}
+                />
+              </motion.div>
+              <div>
+                <h3 className="text-2xl font-bold">{asset.name} Staking</h3>
+                <div className="text-sm text-text/60">{asset.symbol}</div>
+                <div className="flex items-center mt-1 space-x-2">
+                  <Badge variant="secondary">
+                    {asset.apy}% APY
+                  </Badge>
+                  <div className={cn("px-2 py-1 rounded-full text-xs font-medium flex items-center", 
+                    asset.status === "active" ? "bg-green-500/10 text-green-500" :
+                    asset.status === "pending" ? "bg-yellow-500/10 text-yellow-500" :
+                    "bg-blue-500/10 text-blue-500"
+                  )}>
+                    {asset.status === "active" && <Check className="h-3 w-3 mr-1" />}
+                    {asset.status === "pending" && <RefreshCw className="h-3 w-3 mr-1 animate-spin" />}
+                    {asset.status === "unlocking" && <History className="h-3 w-3 mr-1" />}
+                    {asset.status.charAt(0).toUpperCase() + asset.status.slice(1)}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Button variant="ghost" size="icon" className="rounded-full" onClick={onClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-text/60 mb-1">Currently Staked</h4>
+                <div className="text-xl font-bold">{asset.staked.toLocaleString()}</div>
+                <div className="text-sm text-text/60">{asset.symbol}</div>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-text/60 mb-1">Total Value</h4>
+                <div className="text-xl font-bold">${asset.totalValue.toLocaleString()}</div>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg p-4 border border-green-500/20">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-medium text-green-500">Available Rewards</h4>
+                <Zap className="h-4 w-4 text-green-500" />
+              </div>
+              <div className="text-2xl font-bold text-green-500 mb-2">
+                {asset.rewards.toFixed(2)} {asset.symbol}
+              </div>
+              <Button
+                onClick={handleClaimRewards}
+                disabled={!isDemoMode || asset.rewards <= 0}
+                className="w-full bg-green-500 hover:bg-green-600 text-white"
+                size="sm"
+              >
+                <Zap className="h-4 w-4 mr-2" />
+                Claim Rewards
+              </Button>
+            </div>
+
+            <div className="bg-muted/50 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-text/60 mb-2">Staking Details</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span>APY:</span>
+                  <span className="font-medium">{asset.apy}%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Lock Period:</span>
+                  <span className="font-medium">{asset.lockPeriod || "Flexible"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Status:</span>
+                  <span className="font-medium capitalize">{asset.status}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <h4 className="text-sm font-medium text-text/60 mb-3">Action Type</h4>
+              <div className="flex space-x-2">
+                <Button
+                  variant={transactionType === "stake" ? "default" : "outline"}
+                  onClick={() => setTransactionType("stake")}
+                  className="flex-1"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Stake More
+                </Button>
+                <Button
+                  variant={transactionType === "unstake" ? "default" : "outline"}
+                  onClick={() => setTransactionType("unstake")}
+                  className="flex-1"
+                  disabled={asset.status !== "active"}
+                >
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  Unstake
+                </Button>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-medium text-text/60 mb-3">Amount</h4>
+              <div className="relative">
+                <input
+                  type="text"
+                  className="w-full px-4 py-3 rounded-lg bg-background border border-border focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="0.00"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  disabled={!isDemoMode}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-2">
+                  <Button variant="ghost" size="sm" className="h-7 px-2 text-xs">
+                    MAX
+                  </Button>
+                  <span className="text-sm font-medium">{asset.symbol}</span>
+                </div>
+              </div>
+
+              {isDemoMode && estimatedYearlyRewards > 0 && transactionType === "stake" && (
+                <div className="mt-3 p-3 bg-green-500/5 rounded-lg border border-green-500/20">
+                  <div className="text-sm text-text/60">
+                    Estimated yearly rewards:
+                  </div>
+                  <div className="text-lg font-bold text-green-500">
+                    {estimatedYearlyRewards.toFixed(2)} {asset.symbol}
+                  </div>
+                  <div className="text-xs text-text/60 mt-1">
+                    At {asset.apy}% APY
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <Button
+              className="w-full bg-primary text-background hover:bg-primary/90 h-12"
+              onClick={handleStakeTransaction}
+              disabled={!isDemoMode || parseFloat(amount) <= 0 || isNaN(parseFloat(amount))}
+            >
+              {transactionType === "stake" ? "Stake" : "Unstake"} {asset.symbol}
+            </Button>
+
+            {showConfirmation && isDemoMode && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={cn(
+                  "mt-2 text-sm text-center flex items-center justify-center rounded-lg p-3",
+                  confirmationType === "claim" ? "text-green-500 bg-green-500/10" : "text-blue-500 bg-blue-500/10"
+                )}
+              >
+                <Check className="h-4 w-4 mr-2" />
+                {confirmationType === "claim" ? "Rewards Claimed!" : 
+                 confirmationType === "stake" ? "Staking Successful!" : "Unstaking Initiated!"}
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }
 
@@ -728,7 +1542,7 @@ const AssetDetailCard = ({
 
   return (
     <motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start justify-center bg-background/80 backdrop-blur-sm pt-20 pb-8 overflow-y-auto"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -912,7 +1726,16 @@ export default function AppPage() {
   const [activeTab, setActiveTab] = useState("markets")
   const [isDemoMode, setIsDemoMode] = useState(true)
   const [showLiveModeComingSoon, setShowLiveModeComingSoon] = useState(false)
-  const [focusAmountInputInModal, setFocusAmountInputInModal] = useState(false);
+  const [focusAmountInputInModal, setFocusAmountInputInModal] = useState(false)
+  const [portfolioData, setPortfolioData] = useState<PortfolioAsset[]>(portfolioAssets)
+  const [stakingData, setStakingData] = useState<StakingAsset[]>(stakingAssets)
+  const [totalPortfolioValue, setTotalPortfolioValue] = useState(55873)
+  const [totalStakedValue, setTotalStakedValue] = useState(159194.50)
+  const [totalRewards, setTotalRewards] = useState(604.05)
+  const [selectedPortfolioAsset, setSelectedPortfolioAsset] = useState<PortfolioAsset | null>(null)
+  const [selectedStakingAsset, setSelectedStakingAsset] = useState<StakingAsset | null>(null)
+  const [showRewardsModal, setShowRewardsModal] = useState(false)
+  const [stakingModalMode, setStakingModalMode] = useState<"manage" | "claim">("manage")
 
   const heroRef = useRef<HTMLDivElement>(null)
   const summaryRef = useRef<HTMLDivElement>(null)
@@ -1084,6 +1907,97 @@ export default function AppPage() {
     
     // Net APY could be more dynamic, but for demo, major totals are enough
     // setNetAPY(...) 
+  };
+
+  const handleViewPortfolioDetails = (asset: PortfolioAsset) => {
+    if (!isDemoMode) return;
+    setSelectedPortfolioAsset(asset);
+  };
+
+  const handleManageStake = (asset: StakingAsset) => {
+    if (!isDemoMode) return;
+    setSelectedStakingAsset(asset);
+    setStakingModalMode("manage");
+  };
+
+  const handleClaimRewards = (asset: StakingAsset) => {
+    if (!isDemoMode) return;
+    setSelectedStakingAsset(asset);
+    setStakingModalMode("claim");
+  };
+
+  const handlePortfolioTransaction = (asset: PortfolioAsset, amount: number, type: "buy" | "sell") => {
+    if (!isDemoMode) return;
+
+    const transactionValue = amount * asset.price;
+
+    setPortfolioData(prevData =>
+      prevData.map(portfolioAsset => {
+        if (portfolioAsset.id === asset.id) {
+          const newAmount = type === "buy" 
+            ? portfolioAsset.amount + amount 
+            : Math.max(0, portfolioAsset.amount - amount);
+          const newValue = newAmount * portfolioAsset.price;
+          
+          return {
+            ...portfolioAsset,
+            amount: newAmount,
+            value: newValue,
+          };
+        }
+        return portfolioAsset;
+      })
+    );
+
+    // Update total portfolio value
+    setTotalPortfolioValue(prev => type === "buy" ? prev + transactionValue : prev - transactionValue);
+  };
+
+  const handleStakeTransaction = (asset: StakingAsset, amount: number, type: "stake" | "unstake") => {
+    if (!isDemoMode) return;
+
+    setStakingData(prevData =>
+      prevData.map(stakingAsset => {
+        if (stakingAsset.id === asset.id) {
+          const newStaked = type === "stake" 
+            ? stakingAsset.staked + amount 
+            : Math.max(0, stakingAsset.staked - amount);
+          const newTotalValue = newStaked * 15.5; // Rough calculation for demo
+          
+          return {
+            ...stakingAsset,
+            staked: newStaked,
+            totalValue: newTotalValue,
+            status: type === "unstake" && newStaked === 0 ? "pending" as const : stakingAsset.status,
+          };
+        }
+        return stakingAsset;
+      })
+    );
+
+    // Update total staked value
+    const valueChange = amount * 15.5; // Rough calculation for demo
+    setTotalStakedValue(prev => type === "stake" ? prev + valueChange : prev - valueChange);
+  };
+
+  const handleStakeRewardsClaim = (asset: StakingAsset) => {
+    if (!isDemoMode) return;
+    
+    // Simulate claiming rewards
+    setStakingData(prevData =>
+      prevData.map(stakingAsset => {
+        if (stakingAsset.id === asset.id && stakingAsset.rewards > 0) {
+          return {
+            ...stakingAsset,
+            rewards: 0,
+          };
+        }
+        return stakingAsset;
+      })
+    );
+    
+    // Update total rewards
+    setTotalRewards(prev => prev - asset.rewards);
   };
 
   const filteredSupplyData = supplyData.filter(
@@ -1259,11 +2173,10 @@ export default function AppPage() {
 
         {/* Markets Section with Tabs */}
         <Tabs defaultValue="markets" value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid grid-cols-4 w-full md:w-auto mb-4">
+          <TabsList className="grid grid-cols-3 w-full md:w-auto mb-4">
             <TabsTrigger value="markets">Markets</TabsTrigger>
             <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
             <TabsTrigger value="stake">Stake</TabsTrigger>
-            <TabsTrigger value="bridge">Bridge</TabsTrigger>
           </TabsList>
 
           {/* Markets Tab Content */} 
@@ -1317,7 +2230,7 @@ export default function AppPage() {
                   <CardContent className="p-0">
                     {/* Add scroll wrapper for the table */}
                     <div className="overflow-x-auto">
-                      <Table className="min-w-[600px]">
+                      <Table className="min-w-[600px]"> { /* Ensure minimum width */}
                         <TableHeader>
                           <TableRow>
                              {/* Add whitespace-nowrap to prevent wrapping */}
@@ -1379,7 +2292,7 @@ export default function AppPage() {
                    <CardContent className="p-0">
                      {/* Add scroll wrapper for the table */}
                      <div className="overflow-x-auto">
-                       <Table className="min-w-[600px]">
+                       <Table className="min-w-[600px]"> { /* Ensure minimum width */}
                          <TableHeader>
                            <TableRow>
                              {/* Add whitespace-nowrap to prevent wrapping */}
@@ -1409,10 +2322,245 @@ export default function AppPage() {
              </div>
            </TabsContent>
 
-           {/* Placeholder Content for other tabs */}
-          <TabsContent value="portfolio"><Card><CardContent className="pt-6">Portfolio Content Placeholder</CardContent></Card></TabsContent>
-          <TabsContent value="stake"><Card><CardContent className="pt-6">Stake Content Placeholder</CardContent></Card></TabsContent>
-          <TabsContent value="bridge"><Card><CardContent className="pt-6">Bridge Content Placeholder</CardContent></Card></TabsContent>
+           {/* Portfolio Tab Content */}
+          <TabsContent value="portfolio">
+            <div className="space-y-6">
+              {/* Portfolio Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <AnimatedCard>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm">Total Portfolio Value</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="text-2xl font-bold">
+                        <AnimatedCounter value={totalPortfolioValue} prefix="$" />
+                      </div>
+                      <div className="flex items-center text-sm text-green-500">
+                        <TrendingUp className="h-4 w-4 mr-1" />
+                        +$1234 (2.25%) 24h
+                      </div>
+                    </CardContent>
+                  </Card>
+                </AnimatedCard>
+
+                <AnimatedCard delay={0.1}>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm">Asset Allocation</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0 flex items-center justify-center">
+                      <DonutChart value={40} max={100} size={80} color="var(--primary)" />
+                      <div className="ml-4 space-y-1">
+                        {portfolioData.slice(0, 4).map((asset, index) => {
+                          const colors = ['text-blue-500', 'text-green-500', 'text-orange-500', 'text-pink-500']
+                          return (
+                            <div key={asset.id} className="flex items-center text-xs">
+                              <div className={cn("w-2 h-2 rounded-full mr-2", colors[index]?.replace('text-', 'bg-'))} />
+                              <span className="font-medium">{asset.symbol}:</span>
+                              <span className="ml-1">{asset.allocation}%</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </AnimatedCard>
+
+                <AnimatedCard delay={0.2}>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm">24h Performance</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="text-2xl font-bold text-green-500">+2.25%</div>
+                      <div className="text-sm text-muted-foreground">Best: SOL +4.78%</div>
+                    </CardContent>
+                  </Card>
+                </AnimatedCard>
+              </div>
+
+              {/* My Assets Table */}
+              <AnimatedCard delay={0.3}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>My Assets</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table className="min-w-[700px]">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[25%]">Asset</TableHead>
+                            <TableHead className="w-[15%] text-right">Price</TableHead>
+                            <TableHead className="w-[15%] text-right">Amount</TableHead>
+                            <TableHead className="w-[15%] text-right">Value</TableHead>
+                            <TableHead className="w-[15%] text-right">Allocation</TableHead>
+                            <TableHead className="w-[15%] text-right">24h</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {portfolioData.map((asset) => (
+                            <PortfolioAssetRow
+                              key={asset.id}
+                              asset={asset}
+                              onViewDetails={handleViewPortfolioDetails}
+                            />
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimatedCard>
+            </div>
+          </TabsContent>
+
+          {/* Stake Tab Content */}
+          <TabsContent value="stake">
+            <div className="space-y-6">
+              {/* Staking Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <AnimatedCard>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center">
+                        <PiggyBank className="h-4 w-4 mr-2" />
+                        Total Staked Value
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="text-2xl font-bold">
+                        <AnimatedCounter value={totalStakedValue} prefix="$" />
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Across {stakingData.length} pools
+                      </div>
+                    </CardContent>
+                  </Card>
+                </AnimatedCard>
+
+                <AnimatedCard delay={0.1}>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center">
+                        <Zap className="h-4 w-4 mr-2" />
+                        Total Rewards
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="text-2xl font-bold text-green-500">
+                        <AnimatedCounter value={totalRewards} prefix="$" />
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Available to claim
+                      </div>
+                    </CardContent>
+                  </Card>
+                </AnimatedCard>
+
+                <AnimatedCard delay={0.2}>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-sm flex items-center">
+                        <BarChart4 className="h-4 w-4 mr-2" />
+                        Average APY
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="text-2xl font-bold">
+                        {(stakingData.reduce((acc, asset) => acc + asset.apy, 0) / stakingData.length).toFixed(1)}%
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        Weighted average
+                      </div>
+                    </CardContent>
+                  </Card>
+                </AnimatedCard>
+              </div>
+
+              {/* Active Stakes Table */}
+              <AnimatedCard delay={0.3}>
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <CardTitle>Active Stakes</CardTitle>
+                      <Badge variant="outline" className="text-xs">
+                        {stakingData.filter(asset => asset.status === "active").length} Active
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="overflow-x-auto">
+                      <Table className="min-w-[800px]">
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-[20%]">Asset</TableHead>
+                            <TableHead className="w-[15%] text-right">APY</TableHead>
+                            <TableHead className="w-[20%] text-right">Staked Amount</TableHead>
+                            <TableHead className="w-[15%] text-right">Total Value</TableHead>
+                            <TableHead className="w-[15%] text-center">Status</TableHead>
+                            <TableHead className="w-[15%]">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {stakingData.map((asset) => (
+                            <StakingAssetRow
+                              key={asset.id}
+                              asset={asset}
+                              onManageStake={handleManageStake}
+                              onClaimRewards={handleClaimRewards}
+                            />
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimatedCard>
+
+              {/* Quick Actions */}
+              <AnimatedCard delay={0.4}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm">Quick Actions</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-wrap gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => isDemoMode && alert("Claim All Rewards: $" + totalRewards.toFixed(2))}
+                        disabled={!isDemoMode || totalRewards <= 0}
+                      >
+                        <Zap className="h-4 w-4 mr-1" />
+                        Claim All Rewards
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => isDemoMode && alert("Auto-compound feature coming soon!")}
+                        disabled={!isDemoMode}
+                      >
+                        <RefreshCw className="h-4 w-4 mr-1" />
+                        Auto-Compound
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => isDemoMode && alert("Portfolio rebalancing coming soon!")}
+                        disabled={!isDemoMode}
+                      >
+                        <BarChart3 className="h-4 w-4 mr-1" />
+                        Rebalance
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              </AnimatedCard>
+            </div>
+          </TabsContent>
+
 
         </Tabs>
 
@@ -1427,6 +2575,32 @@ export default function AppPage() {
               isDemoMode={isDemoMode}
               focusAmountInput={focusAmountInputInModal}
               onAmountInputFocused={() => setFocusAmountInputInModal(false)}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Portfolio Detail Modal */}
+        <AnimatePresence>
+          {selectedPortfolioAsset && isDemoMode && (
+            <PortfolioDetailModal
+              asset={selectedPortfolioAsset}
+              onClose={() => setSelectedPortfolioAsset(null)}
+              onTransaction={handlePortfolioTransaction}
+              isDemoMode={isDemoMode}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Staking Management Modal */}
+        <AnimatePresence>
+          {selectedStakingAsset && isDemoMode && (
+            <StakingManageModal
+              asset={selectedStakingAsset}
+              onClose={() => setSelectedStakingAsset(null)}
+              onStakeTransaction={handleStakeTransaction}
+              onClaimRewards={handleStakeRewardsClaim}
+              isDemoMode={isDemoMode}
+              mode={stakingModalMode}
             />
           )}
         </AnimatePresence>
