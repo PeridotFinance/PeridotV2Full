@@ -1,4 +1,3 @@
-import { cookieStorage, createStorage } from '@wagmi/core'
 import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 
 import {
@@ -20,10 +19,6 @@ export const networks = [mainnet, arbitrum, solana, solanaTestnet, solanaDevnet]
 
 // Set up the Wagmi Adapter (Config)
 export const wagmiAdapter = new WagmiAdapter({
-  // Using cookieStorage for SSR compatibility
-  storage: createStorage({
-    storage: cookieStorage
-  }),
   ssr: true, // Enable SSR support
   projectId,
   networks
