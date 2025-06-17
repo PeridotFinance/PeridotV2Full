@@ -1121,7 +1121,7 @@ export default function Home() {
       {/* Hero Section */}
       <motion.section
         ref={heroRef}
-        className="relative pt-28 md:pt-40 pb-20 md:pb-32 overflow-hidden"
+        className="relative pt-16 md:pt-40 pb-20 md:pb-32 overflow-hidden"
         style={{
           y: heroY,
           opacity: heroOpacity,
@@ -1314,7 +1314,7 @@ export default function Home() {
             )}
           </div>
 
-          {!isLowPerfDevice && <ScrollIndicator />}
+          {!isLowPerfDevice && !isMobile && <ScrollIndicator />}
         </div>
       </motion.section>
 

@@ -93,6 +93,8 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@stagewise-plugins/react": "^0.4.8",
+    "@stagewise/toolbar-next": "^0.4.8",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",

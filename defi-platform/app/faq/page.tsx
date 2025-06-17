@@ -67,12 +67,12 @@ export default function FAQ() {
               </AccordionItem>
 
               <AccordionItem value="item-5" className="bg-card border border-border/50 rounded-lg px-6">
-                <AccordionTrigger className="text-lg font-medium py-4">What are cTokens?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-medium py-4">What are pTokens?</AccordionTrigger>
                 <AccordionContent className="text-text/80 pb-4">
-                  cTokens are interest-bearing tokens that represent your deposit in the Peridot protocol. When you
-                  supply assets, you receive cTokens in return. These tokens automatically accumulate interest over
+                  pTokens are interest-bearing tokens that represent your deposit in the Peridot protocol. When you
+                  supply assets, you receive pTokens in return. These tokens automatically accumulate interest over
                   time, increasing in value relative to the underlying asset. When you want to withdraw your assets, you
-                  redeem your cTokens for the original asset plus accrued interest.
+                  redeem your pTokens for the original asset plus accrued interest.
                 </AccordionContent>
               </AccordionItem>
 

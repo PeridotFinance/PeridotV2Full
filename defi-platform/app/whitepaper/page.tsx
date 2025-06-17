@@ -48,7 +48,7 @@ export default function Whitepaper() {
                 while maintaining security, efficiency, and decentralization.
               </p>
               <p className="text-text/80">
-                The protocol introduces cTokens as interest-bearing assets, implements algorithmic interest rate models
+                The protocol introduces pTokens as interest-bearing assets, implements algorithmic interest rate models
                 based on utilization rates, and establishes a robust liquidation mechanism to manage risk. Peridot's
                 unique contribution is its cross-chain architecture, which allows users to supply assets on one chain
                 and borrow on another without manually bridging assets.
