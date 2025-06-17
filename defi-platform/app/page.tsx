@@ -400,7 +400,7 @@ const ScrollIndicator = () => {
 
   return (
     <motion.div
-      className="flex flex-col items-center mt-12 mb-4"
+      className="hidden md:flex flex-col items-center mt-12 mb-4"
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 2, duration: 0.5 }}
@@ -1121,7 +1121,7 @@ export default function Home() {
       {/* Hero Section */}
       <motion.section
         ref={heroRef}
-        className="relative pt-28 md:pt-40 pb-20 md:pb-32 overflow-hidden"
+        className="relative pt-0 md:pt-40 pb-20 md:pb-32 overflow-hidden"
         style={{
           y: heroY,
           opacity: heroOpacity,

@@ -247,7 +247,6 @@ export function SiteHeader() {
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
-            {isAppRoute && <ConnectWalletButton />}
             <ThemeToggle />
 
             <Button asChild size="sm" className="bg-primary text-background hover:bg-primary/90 rounded-xl">
@@ -287,7 +286,6 @@ export function SiteHeader() {
               {renderMobileNavLinks()}
               <div className="flex flex-col space-y-2 pt-2">
                 <div className="flex justify-start gap-2 py-2">
-                  {isAppRoute && <ConnectWalletButton />}
                   <ThemeToggle />
                 </div>
 

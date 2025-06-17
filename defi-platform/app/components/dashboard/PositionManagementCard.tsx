@@ -7,7 +7,8 @@ import {
   TrendingDown, 
   AlertTriangle, 
   Zap, 
-  Info 
+  Info,
+  ArrowUpDown
 } from "lucide-react"
 import { AnimatedCard } from "../ui/ChartComponents"
 import type { UserPosition } from "../markets/UserPositionsCard"
@@ -41,21 +42,21 @@ export function PositionManagementCard({
 
   return (
     <AnimatedCard delay={0.6}>
-      <Card className="mb-4">
+      <Card className="mb-4 bg-white/10 dark:bg-black/10 backdrop-blur-xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5 hover:shadow-emerald-500/10 transition-all duration-300">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
+              <Users className="h-4 w-4 text-emerald-500" />
               <CardTitle className="text-sm">Position Management</CardTitle>
               {isDemoMode && (
-                <Badge variant="outline" className="text-xs h-5">Demo</Badge>
+                <Badge variant="outline" className="text-xs h-5 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5">Demo</Badge>
               )}
             </div>
             <Button 
               size="sm" 
               variant="outline"
               onClick={onNavigateToPortfolio}
-              className="text-xs h-6 px-2 hidden md:flex"
+              className="text-xs h-6 px-2 hidden md:flex border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
             >
               View All
             </Button>
@@ -67,21 +68,21 @@ export function PositionManagementCard({
             <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scroll-smooth">
               {/* Supply Positions Summary */}
               {supplyPositions.length > 0 && (
-                <div className="flex-none w-32 p-2 border rounded-md bg-green-50/50 dark:bg-green-950/20">
+                <div className="flex-none w-32 p-2 border border-border/30 rounded-lg bg-card/50 backdrop-blur-sm hover:border-emerald-500/30 transition-colors">
                   <div className="flex items-center gap-1 mb-1">
-                    <TrendingUp className="h-3 w-3 text-green-600" />
-                    <span className="text-xs font-medium text-green-700">Supply</span>
+                    <TrendingUp className="h-3 w-3 text-emerald-500" />
+                    <span className="text-xs font-medium">Supply</span>
                   </div>
-                  <p className="text-lg font-bold text-green-700 leading-none mb-1">
+                  <p className="text-lg font-bold leading-none mb-1">
                     {supplyPositions.length}
                   </p>
-                  <p className="text-xs text-green-600 mb-2 leading-none">
+                  <p className="text-xs text-muted-foreground mb-2 leading-none">
                     ${(totalSuppliedUSD / 1000).toFixed(1)}k
                   </p>
                   <Button 
                     size="sm" 
                     variant="outline"
-                    className="w-full text-xs h-5"
+                    className="w-full text-xs h-5 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
                     onClick={onNavigateToPortfolio}
                   >
                     Manage
@@ -91,21 +92,21 @@ export function PositionManagementCard({
 
               {/* Borrow Positions Summary */}
               {borrowPositions.length > 0 && (
-                <div className="flex-none w-32 p-2 border rounded-md bg-blue-50/50 dark:bg-blue-950/20">
+                <div className="flex-none w-32 p-2 border border-border/30 rounded-lg bg-card/30 backdrop-blur-sm hover:border-emerald-500/30 transition-colors">
                   <div className="flex items-center gap-1 mb-1">
-                    <TrendingDown className="h-3 w-3 text-blue-600" />
-                    <span className="text-xs font-medium text-blue-700">Borrow</span>
+                    <TrendingDown className="h-3 w-3 text-emerald-500" />
+                    <span className="text-xs font-medium">Borrow</span>
                   </div>
-                  <p className="text-lg font-bold text-blue-700 leading-none mb-1">
+                  <p className="text-lg font-bold leading-none mb-1">
                     {borrowPositions.length}
                   </p>
-                  <p className="text-xs text-blue-600 mb-2 leading-none">
+                  <p className="text-xs text-muted-foreground mb-2 leading-none">
                     ${(totalBorrowedUSD / 1000).toFixed(1)}k
                   </p>
                   <Button 
                     size="sm" 
                     variant="outline"
-                    className="w-full text-xs h-5"
+                    className="w-full text-xs h-5 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
                     onClick={onNavigateToPortfolio}
                   >
                     Manage
@@ -115,21 +116,21 @@ export function PositionManagementCard({
 
               {/* Health Factor Warning */}
               {userHealthFactor && userHealthFactor < 1.5 && (
-                <div className="flex-none w-32 p-2 border rounded-md bg-amber-50/50 dark:bg-amber-950/20 border-amber-200">
+                <div className="flex-none w-32 p-2 border border-amber-400/30 rounded-lg bg-amber-500/5 backdrop-blur-sm">
                   <div className="flex items-center gap-1 mb-1">
-                    <AlertTriangle className="h-3 w-3 text-amber-600" />
-                    <span className="text-xs font-medium text-amber-700">Health</span>
+                    <AlertTriangle className="h-3 w-3 text-amber-500" />
+                    <span className="text-xs font-medium">Health</span>
                   </div>
-                  <p className="text-lg font-bold text-amber-700 leading-none mb-1">
+                  <p className="text-lg font-bold leading-none mb-1">
                     {userHealthFactor.toFixed(2)}
                   </p>
-                  <p className="text-xs text-amber-600 mb-2 leading-none">
+                  <p className="text-xs text-muted-foreground mb-2 leading-none">
                     Factor
                   </p>
                   <Button 
                     size="sm" 
                     variant="default"
-                    className="w-full text-xs h-5 bg-amber-600 hover:bg-amber-700"
+                    className="w-full text-xs h-5 bg-amber-500 hover:bg-amber-600 text-white"
                     onClick={onNavigateToPortfolio}
                   >
                     Fix
@@ -138,16 +139,16 @@ export function PositionManagementCard({
               )}
 
               {/* Quick Actions */}
-              <div className="flex-none w-32 p-2 border rounded-md bg-purple-50/50 dark:bg-purple-950/20">
+              <div className="flex-none w-32 p-2 border border-border/30 rounded-lg bg-card/30 backdrop-blur-sm hover:border-emerald-500/30 transition-colors">
                 <div className="flex items-center gap-1 mb-1">
-                  <Zap className="h-3 w-3 text-purple-600" />
-                  <span className="text-xs font-medium text-purple-700">Actions</span>
+                  <Zap className="h-3 w-3 text-emerald-500" />
+                  <span className="text-xs font-medium">Actions</span>
                 </div>
                 <div className="space-y-1">
                   <Button 
                     size="sm" 
                     variant="outline"
-                    className="w-full text-xs h-5"
+                    className="w-full text-xs h-5 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
                     onClick={onOpenSupplyModal}
                   >
                     Add
@@ -155,7 +156,7 @@ export function PositionManagementCard({
                   <Button 
                     size="sm" 
                     variant="outline"
-                    className="w-full text-xs h-5"
+                    className="w-full text-xs h-5 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
                     onClick={onOpenBorrowModal}
                   >
                     Repay
@@ -165,114 +166,102 @@ export function PositionManagementCard({
             </div>
           </div>
 
-          {/* Desktop: Grid layout */}
-          <div className="hidden md:grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Supply Positions Summary */}
-            {supplyPositions.length > 0 && (
-              <div className="p-3 border rounded-lg bg-green-50/50 dark:bg-green-950/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium text-green-700">Supply</span>
+          {/* Desktop: Smart Combined Layout */}
+          <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Combined Positions Overview */}
+            <div className="p-4 border border-border/30 rounded-lg bg-card/50 backdrop-blur-sm hover:border-emerald-500/30 hover:bg-card/70 transition-all duration-300">
+              <div className="flex items-center gap-2 mb-3">
+                <ArrowUpDown className="h-4 w-4 text-emerald-500" />
+                <span className="text-sm font-medium">Portfolio Overview</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="text-center p-2 bg-emerald-500/5 rounded border border-emerald-500/10">
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <TrendingUp className="h-3 w-3 text-emerald-500" />
+                    <span className="text-xs text-emerald-400">Supply</span>
+                  </div>
+                  <p className="text-lg font-bold">{supplyPositions.length}</p>
+                  <p className="text-xs text-muted-foreground">${totalSuppliedUSD.toLocaleString()}</p>
                 </div>
-                <p className="text-xl font-bold text-green-700 leading-none mb-1">
-                  {supplyPositions.length}
-                </p>
-                <p className="text-xs text-green-600 mb-2">
-                  ${totalSuppliedUSD.toLocaleString()} supplied
-                </p>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="w-full text-xs h-6"
-                  onClick={onNavigateToPortfolio}
-                >
-                  Manage Supplies
-                </Button>
-              </div>
-            )}
-
-            {/* Borrow Positions Summary */}
-            {borrowPositions.length > 0 && (
-              <div className="p-3 border rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingDown className="h-4 w-4 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-700">Borrow</span>
+                
+                <div className="text-center p-2 bg-red-500/5 rounded border border-red-500/10">
+                  <div className="flex items-center justify-center gap-1 mb-1">
+                    <TrendingDown className="h-3 w-3 text-red-500" />
+                    <span className="text-xs text-red-400">Borrow</span>
+                  </div>
+                  <p className="text-lg font-bold">{borrowPositions.length}</p>
+                  <p className="text-xs text-muted-foreground">${totalBorrowedUSD.toLocaleString()}</p>
                 </div>
-                <p className="text-xl font-bold text-blue-700 leading-none mb-1">
-                  {borrowPositions.length}
-                </p>
-                <p className="text-xs text-blue-600 mb-2">
-                  ${totalBorrowedUSD.toLocaleString()} borrowed
-                </p>
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="w-full text-xs h-6"
-                  onClick={onNavigateToPortfolio}
-                >
-                  Manage Borrows
-                </Button>
               </div>
-            )}
+              
+              <Button 
+                size="sm" 
+                variant="outline"
+                className="w-full text-xs h-6 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
+                onClick={onNavigateToPortfolio}
+              >
+                Manage Portfolio
+              </Button>
+            </div>
 
-            {/* Health Factor Warning */}
-            {userHealthFactor && userHealthFactor < 1.5 && (
-              <div className="p-3 border rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border-amber-200">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-600" />
-                  <span className="text-sm font-medium text-amber-700">Health Monitor</span>
+            {/* AI-Powered Actions */}
+            <div className="p-4 border border-border/30 rounded-lg bg-card/30 backdrop-blur-sm hover:border-emerald-500/30 hover:bg-card/50 transition-all duration-300">
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="h-4 w-4 text-emerald-500" />
+                <span className="text-sm font-medium">AI Assistant</span>
+              </div>
+              
+              {/* Health Factor with AI Optimization */}
+              {userHealthFactor && userHealthFactor < 1.5 && (
+                <div className="mb-3 p-2 bg-amber-500/10 border border-amber-500/20 rounded flex items-center gap-2">
+                  <AlertTriangle className="h-3 w-3 text-amber-500" />
+                  <div className="flex-1">
+                    <span className="text-xs text-amber-300">Health: {userHealthFactor.toFixed(2)}</span>
+                  </div>
                 </div>
-                <p className="text-xl font-bold text-amber-700 leading-none mb-1">
-                  {userHealthFactor.toFixed(2)}
-                </p>
-                <p className="text-xs text-amber-600 mb-2">
-                  Health factor
-                </p>
-                <Button 
-                  size="sm" 
-                  variant="default"
-                  className="w-full text-xs h-6 bg-amber-600 hover:bg-amber-700"
-                  onClick={onNavigateToPortfolio}
-                >
-                  Optimize
-                </Button>
-              </div>
-            )}
-
-            {/* Quick Actions */}
-            <div className="p-3 border rounded-lg bg-purple-50/50 dark:bg-purple-950/20">
-              <div className="flex items-center gap-2 mb-2">
-                <Zap className="h-4 w-4 text-purple-600" />
-                <span className="text-sm font-medium text-purple-700">Actions</span>
-              </div>
-              <div className="space-y-1">
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="w-full text-xs h-6"
-                  onClick={onNavigateToPortfolio}
-                >
-                  View All
-                </Button>
+              )}
+              
+              <div className="space-y-2">
+                {userHealthFactor && userHealthFactor < 1.5 ? (
+                  <Button 
+                    size="sm" 
+                    variant="default"
+                    className="w-full text-xs h-6 bg-emerald-500 hover:bg-emerald-600 text-white"
+                    onClick={onNavigateToPortfolio}
+                  >
+                    🤖 AI Optimize Risk
+                  </Button>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="w-full text-xs h-6 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
+                    onClick={onOpenSupplyModal}
+                  >
+                    🤖 AI Suggest Actions
+                  </Button>
+                )}
+                
                 <Button 
                   size="sm" 
                   variant="outline"
-                  className="w-full text-xs h-6"
-                  onClick={onOpenSupplyModal}
+                  className="w-full text-xs h-6 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
+                  onClick={onOpenBorrowModal}
                 >
-                  Add Collateral
+                  🤖 Smart Rebalance
                 </Button>
               </div>
             </div>
           </div>
 
           {/* Compact educational note for mobile */}
-          <div className="mt-2 p-2 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 rounded-md md:hidden">
+          <div className="mt-2 p-2 bg-muted/50 border border-border/30 rounded-lg md:hidden backdrop-blur-sm">
             <div className="flex items-start gap-2">
-              <Info className="h-3 w-3 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-blue-700">
+              <Info className="h-3 w-3 text-emerald-500 flex-shrink-0 mt-0.5" />
+              <div className="text-xs">
                 <p className="font-medium mb-1">Position Management Tips:</p>
-                <ul className="space-y-0.5">
+                <ul className="space-y-0.5 text-muted-foreground">
                   <li>• Supply assets to earn interest and use them as collateral</li>
                   <li>• Borrow assets for leverage, arbitrage, or liquidity needs</li>
                   <li>• Keep your health factor above 1.5 to maintain healthy positions</li>
@@ -283,12 +272,12 @@ export function PositionManagementCard({
           </div>
 
           {/* Compact educational note for desktop */}
-          <div className="hidden md:block mt-3 p-2 bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200 rounded-lg">
+          <div className="hidden md:block mt-3 p-2 bg-muted/50 border border-border/30 rounded-lg backdrop-blur-sm">
             <div className="flex items-start gap-2">
-              <Info className="h-3 w-3 text-blue-600 flex-shrink-0 mt-0.5" />
-              <div className="text-xs text-blue-700">
+              <Info className="h-3 w-3 text-emerald-500 flex-shrink-0 mt-0.5" />
+              <div className="text-xs">
                 <p className="font-medium mb-1">Position Management Tips:</p>
-                <ul className="space-y-0.5">
+                <ul className="space-y-0.5 text-muted-foreground">
                   <li>• Supply assets to earn interest and use them as collateral</li>
                   <li>• Borrow assets for leverage, arbitrage, or liquidity needs</li>
                   <li>• Keep your health factor above 1.5 to maintain healthy positions</li>

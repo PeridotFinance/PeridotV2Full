@@ -43,6 +43,8 @@
     "@reown/appkit-adapter-wagmi": "^1.7.4",
     "@reown/walletkit": "^1.2.4",
     "@solana/web3.js": "^1.98.2",
+    "@stagewise-plugins/react": "^0.4.8",
+    "@stagewise/toolbar-next": "^0.4.8",
     "@tanstack/react-query": "^5.75.2",
     "@walletconnect/core": "^2.20.2",
     "@walletconnect/utils": "^2.20.2",

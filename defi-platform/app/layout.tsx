@@ -10,6 +10,7 @@ import ContextProvider from '@/context'
 import { Toaster } from "@/components/ui/toaster"
 import { PostHogProvider } from './providers'
 import { NavigationLoader } from './components/ui/NavigationLoader'
+import { StagewiseToolbar } from '@/components/stagewise-toolbar'
 
 // Load Poppins font with multiple weights
 const poppins = Poppins({
@@ -80,6 +81,7 @@ export default async function RootLayout({
                 <SiteFooter />
                 <Toaster />
               </div>
+              <StagewiseToolbar />
             </ThemeProvider>
           </ContextProvider>
         </PostHogProvider>

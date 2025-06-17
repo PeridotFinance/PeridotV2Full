@@ -949,19 +949,8 @@ export default function AppPage() {
               <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-1 min-w-0">
                 <div className="flex items-center gap-2 flex-nowrap">
                   {/* Quick Network Switcher */}
-                  {isSolanaConnected ? (
-                    // Solana Network Display
-                    <div className="flex items-center gap-2 border rounded-xl px-3 py-2 bg-gradient-to-r from-purple-500/10 to-violet-500/10 border-purple-500/20 flex-shrink-0">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                      <span className="text-sm font-medium bg-gradient-to-r from-purple-600 to-violet-600 bg-clip-text text-transparent whitespace-nowrap">
-                        Solana Network
-                      </span>
-                      {isSwitchingNetwork && <Loader2 className="h-3 w-3 animate-spin text-purple-500" />}
-                    </div>
-                  ) : (
-                    // EVM Network Switcher
-                    <div className="flex-shrink-0">
-                      <DropdownMenu>
+                  <div className="flex-shrink-0">
+                    <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="outline"
@@ -1086,6 +1075,78 @@ export default function AppPage() {
                                   </DropdownMenuItem>
                                 )
                               })}
+                              
+                              {/* Solana Network - Clickable */}
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  // Handle Solana connection logic here
+                                  console.log("Switching to Solana network");
+                                }}
+                                className="cursor-pointer rounded-lg p-2 transition-all duration-200 hover:bg-purple-50 dark:hover:bg-purple-950/20"
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-purple-500" />
+                                    <div>
+                                      <div className="text-sm font-medium">Solana</div>
+                                      <div className="text-xs text-muted-foreground">
+                                        Solana Mainnet
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                    <div className="px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">
+                                      Live
+                                    </div>
+                                  </div>
+                                </div>
+                              </DropdownMenuItem>
+
+                              {/* Coming Soon Networks - Non-clickable */}
+                              <div className="px-2 py-1 mt-3">
+                                <div className="text-xs text-muted-foreground mb-2">Coming Soon</div>
+                                <div className="space-y-1">
+                                  {/* Stellar Network - Non-clickable */}
+                                  <div className="rounded-lg p-2 opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-900/30">
+                                    <div className="flex items-center justify-between w-full">
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-gray-400" />
+                                        <div>
+                                          <div className="text-sm font-medium">Stellar</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            Stellar Network
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <div className="px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400">
+                                          Soon
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Avalanche Network - Non-clickable */}
+                                  <div className="rounded-lg p-2 opacity-50 cursor-not-allowed bg-gray-50 dark:bg-gray-900/30">
+                                    <div className="flex items-center justify-between w-full">
+                                      <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-gray-400" />
+                                        <div>
+                                          <div className="text-sm font-medium">Avalanche</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            Avalanche C-Chain
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <div className="px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800/50 dark:text-gray-400">
+                                          Soon
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
                           
@@ -1107,13 +1168,12 @@ export default function AppPage() {
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                  )}
                   
                   {/* Demo Mode Toggle Button */}
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="flex items-center gap-1 border rounded-xl px-3 py-1.5 bg-background relative flex-shrink-0">
-                        <Label htmlFor="demo-mode-switch" className="text-xs cursor-pointer whitespace-nowrap">Demo Mode</Label>
+                        <Label htmlFor="demo-mode-switch" className="text-xs cursor-pointer whitespace-nowrap">Demo</Label>
                         <Switch id="demo-mode-switch" checked={isDemoMode} onCheckedChange={toggleDemoMode} />
                         <HelpCircle className="h-3 w-3 text-muted-foreground ml-1" />
                       </div>
@@ -1133,6 +1193,8 @@ export default function AppPage() {
                     <TooltipContent><p className="max-w-xs text-xs">Switch to Easy Mode for a simplified interface.</p></TooltipContent>
                   </Tooltip>
                   
+                  {/* Connect Wallet Button - Moved from header */}
+                  <ConnectWalletButton className="w-full md:w-auto flex-shrink-0" />
 
                 </div>
               </div>
@@ -1317,38 +1379,7 @@ export default function AppPage() {
 
           {/* Markets Tab Content - OPTIMIZED FOR IMMEDIATE RENDERING */} 
           <TabsContent value="markets" className="space-y-6">
-            {/* User Guidance Banner */}
-            {userPositions.length > 0 && (
-              <div className={shouldUseReducedAnimations ? "" : "animate-in fade-in duration-300"}>
-                <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                          <Users className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-blue-900 dark:text-blue-100">
-                            You have {userPositions.length} active position{userPositions.length > 1 ? 's' : ''}
-                          </p>
-                          <p className="text-sm text-blue-700 dark:text-blue-300">
-                            Go to Portfolio tab to manage withdrawals, repayments, and collateral settings
-                          </p>
-                        </div>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => setActiveTab("portfolio")}
-                        className="border-blue-200 text-blue-700 hover:bg-blue-100"
-                      >
-                        Manage Positions
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
+
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Supply Markets Card */}
