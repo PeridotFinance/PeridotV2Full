@@ -75,9 +75,16 @@ export default async function RootLayout({
           <ContextProvider cookies={cookies}>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
               <NavigationLoader />
-              <div className="flex flex-col min-h-screen">
+              <div className="flex flex-col min-h-screen bg-gradient-to-br from-emerald-50/80 via-green-50/60 to-teal-50/70 dark:from-emerald-950/90 dark:via-green-950/80 dark:to-teal-950/85 bg-fixed">
                 <SiteHeader />
-                <main className="flex-1 pt-24 md:pt-28 lg:pt-32">{children}</main>
+                <main className="flex-1 pt-24 md:pt-28 lg:pt-32 relative">
+                  {/* Enhanced liquid glass overlay with smooth green gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/8 via-green-400/6 to-teal-500/8 dark:from-emerald-400/15 dark:via-green-300/12 dark:to-teal-400/15 pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-transparent via-emerald-500/3 to-transparent dark:from-transparent dark:via-emerald-400/6 dark:to-transparent pointer-events-none" />
+                  <div className="relative z-10 glass-container">
+                    {children}
+                  </div>
+                </main>
                 <SiteFooter />
                 <Toaster />
               </div>

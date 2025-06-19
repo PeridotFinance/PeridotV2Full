@@ -1,8 +1,10 @@
 "use client"
 
+import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react"
+
 // Remove unused imports
 // import { useState } from "react"
-// import { Button } from "@/components/ui/button"
 // import {
 //   Dialog,
 //   DialogContent,
@@ -22,13 +24,59 @@ interface ConnectWalletButtonProps {
   className?: string // Allow passing a className for the wrapper div
 }
 
-// The AppKit button handles its own state and logic
 export function ConnectWalletButton({ className }: ConnectWalletButtonProps) {
-  // Wrap the web component in a div to apply className for layout/positioning
+  const [isConnected, setIsConnected] = useState(false)
+  const [address, setAddress] = useState<string>("")
+
+  useEffect(() => {
+    // Listen for wallet connection changes
+    const checkConnection = () => {
+      // @ts-ignore - AppKit global object
+      if (typeof window !== 'undefined' && window.appkit) {
+        // @ts-ignore
+        const account = window.appkit.getAccount()
+        setIsConnected(!!account?.address)
+        setAddress(account?.address || "")
+      }
+    }
+
+    // Initial check
+    checkConnection()
+
+    // Listen for AppKit events
+    const interval = setInterval(checkConnection, 1000)
+    
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleClick = () => {
+    // @ts-ignore - AppKit global object
+    if (typeof window !== 'undefined' && window.appkit) {
+      if (isConnected) {
+        // @ts-ignore
+        window.appkit.open({ view: 'Account' })
+      } else {
+        // @ts-ignore
+        window.appkit.open()
+      }
+    }
+  }
+
+  const getButtonText = () => {
+    if (isConnected && address) {
+      return `${address.slice(0, 6)}...${address.slice(-4)}`
+    }
+    return "Connect Wallet"
+  }
+
   return (
-    <div className={className}>
-      <appkit-button />
-    </div>
+    <Button
+      onClick={handleClick}
+      size="sm"
+      className={`bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl h-9 px-3 font-medium text-sm ${className || ''}`}
+    >
+      {getButtonText()}
+    </Button>
   )
 }
 

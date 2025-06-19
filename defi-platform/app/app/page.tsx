@@ -196,7 +196,7 @@ export default function AppPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [supplyChartData, setSupplyChartData] = useState<Array<{day: number; value: number}>>([])
   const [borrowChartData, setBorrowChartData] = useState<Array<{day: number; value: number}>>([])
-  const [activeTab, setActiveTab] = useState("markets")
+  const [activeTab, setActiveTab] = useState("lending")
   const [supplyData, setSupplyData] = useState<Asset[]>(supplyMarkets)
   const [borrowData, setBorrowData] = useState<Asset[]>(borrowMarkets)
 
@@ -362,12 +362,12 @@ export default function AppPage() {
 
   const handleAddCollateral = useCallback(() => {
     // Navigate to supply page or open supply modal
-    setActiveTab("markets");
+    setActiveTab("lending");
   }, [])
 
   const handleRepayDebt = useCallback(() => {
     // Navigate to repay page or open repay modal
-    setActiveTab("markets");
+    setActiveTab("lending");
   }, [])
 
   // Refs for animations
@@ -1248,42 +1248,17 @@ export default function AppPage() {
           }}
         />
 
-        {/* Borrow Limit Progress Bar */ } 
-        <Card className="bg-card border-border/50 overflow-hidden shadow-sm mb-4">
-          <div className="p-3">
-             <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center">
-                <h3 className="text-sm font-medium">Borrow Limit</h3>
-                 <Tooltip>
-                   <TooltipTrigger asChild>
-                     <span className="ml-1 cursor-pointer"><HelpCircle className="h-3 w-3 text-text/40" /></span>
-                   </TooltipTrigger>
-                   <TooltipContent side="right"><p className="text-xs max-w-[200px]">Limit based on collateral.</p></TooltipContent>
-                 </Tooltip>
-              </div>
-              <span className="text-xs font-medium">{borrowLimitUsed.toFixed(0)}% Used</span>
-            </div>
-             <Progress value={borrowLimitUsed} className="h-1.5 w-full bg-green-900/30 [&>div]:bg-green-500" />
-             <div className="flex justify-between text-xs text-text/40 mt-1">
-              <span>0%</span>
-              <span>80%</span>
-              <span>100%</span>
-            </div>
-          </div>
-        </Card>
-
-        {/* Markets Section with Tabs - ENHANCED WITH PROFESSIONAL ANIMATIONS */}
-        <Tabs defaultValue="markets" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        {/* Lending Section with Tabs - ENHANCED WITH PROFESSIONAL ANIMATIONS */}
+        <Tabs defaultValue="lending" value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="relative w-full md:w-auto mb-4">
-            <TabsList className="relative grid grid-cols-4 w-full md:w-auto bg-muted/50 backdrop-blur-sm rounded-xl p-1 border border-border/50 shadow-lg">
+            <TabsList className="relative grid grid-cols-3 w-full md:w-auto bg-white/5 dark:bg-black/5 backdrop-blur-xl rounded-xl p-1 border border-emerald-500/10 shadow-2xl shadow-emerald-500/5">
               {/* Dynamic active indicator */}
               <motion.div
-                className="absolute top-1 bottom-1 bg-background rounded-lg shadow-md border border-border/20 z-0"
+                                  className="absolute top-1 bottom-1 bg-white/10 dark:bg-black/10 backdrop-blur-sm rounded-lg shadow-md border border-emerald-500/20 z-0"
                 animate={{
-                  x: activeTab === "markets" ? "0%" : 
-                     activeTab === "cross-chain" ? "100%" :
-                     activeTab === "portfolio" ? "200%" : "300%",
-                  width: "calc(25% - 4px)",
+                  x: activeTab === "lending" ? "0%" : 
+                     activeTab === "portfolio" ? "100%" : "200%",
+                  width: "calc(33.333% - 4px)",
                   opacity: 1
                 }}
                 transition={{
@@ -1295,14 +1270,14 @@ export default function AppPage() {
               />
               
               <TabsTrigger 
-                value="markets" 
+                value="lending" 
                 className="relative overflow-hidden rounded-lg transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg hover:shadow-green-500/10 active:scale-[0.98] z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none group"
               >
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                   initial={false}
                   animate={{ opacity: 0 }}
-                  whileHover={{ opacity: activeTab === "markets" ? 0 : 1 }}
+                  whileHover={{ opacity: activeTab === "lending" ? 0 : 1 }}
                 />
                 <motion.span 
                   className="relative z-10 font-medium"
@@ -1310,28 +1285,7 @@ export default function AppPage() {
                   whileTap={{ y: 0 }}
                   transition={{ type: "spring", stiffness: 400, damping: 17 }}
                 >
-                  Markets
-                </motion.span>
-              </TabsTrigger>
-              
-              <TabsTrigger 
-                value="cross-chain"
-                className="relative overflow-hidden rounded-lg transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/10 active:scale-[0.98] z-10 data-[state=active]:bg-transparent data-[state=active]:shadow-none group"
-              >
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                  initial={false}
-                  animate={{ opacity: 0 }}
-                  whileHover={{ opacity: activeTab === "cross-chain" ? 0 : 1 }}
-                />
-                <motion.span 
-                  className="relative z-10 font-medium"
-                  whileHover={{ y: -1 }}
-                  whileTap={{ y: 0 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                >
-                  <span className="hidden md:inline">Cross-Chain</span>
-                  <span className="md:hidden">X-Chain</span>
+                  Lending
                 </motion.span>
               </TabsTrigger>
               
@@ -1377,19 +1331,19 @@ export default function AppPage() {
             </TabsList>
           </div>
 
-          {/* Markets Tab Content - OPTIMIZED FOR IMMEDIATE RENDERING */} 
-          <TabsContent value="markets" className="space-y-6">
+          {/* Lending Tab Content - OPTIMIZED FOR IMMEDIATE RENDERING */} 
+          <TabsContent value="lending" className="space-y-6">
 
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
               {/* Supply Markets Card */}
               <AnimatedCard>
-                <Card className="overflow-hidden bg-gradient-to-br from-green-50/50 via-emerald-50/30 to-blue-50/50 dark:from-green-950/20 dark:via-emerald-950/10 dark:to-blue-950/20 border-0 shadow-xl">
+                <Card className="overflow-hidden bg-white/5 dark:bg-black/5 backdrop-blur-xl border border-emerald-500/10 shadow-2xl shadow-emerald-500/5 hover:shadow-emerald-500/10 hover:border-emerald-500/20 transition-all duration-500">
                   <CardHeader className="pb-4 px-[0.1rem] md:px-6 py-[0.1rem] md:py-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500 shadow-lg">
-                          <TrendingUp className="h-4 w-4 text-white" />
+                          <TrendingUp className="h-4 w-4 text-gray-900 dark:text-white" />
                         </div>
                         <div>
                           <CardTitle className="text-lg">Supply Markets</CardTitle>
@@ -1556,12 +1510,12 @@ export default function AppPage() {
 
               {/* Borrow Markets Card */}
               <AnimatedCard>
-                <Card className="overflow-hidden bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-red-50/50 dark:from-blue-950/20 dark:via-purple-950/10 dark:to-red-950/20 border-0 shadow-xl">
+                <Card className="overflow-hidden bg-white/5 dark:bg-black/5 backdrop-blur-xl border border-blue-500/10 shadow-2xl shadow-blue-500/5 hover:shadow-blue-500/10 hover:border-blue-500/20 transition-all duration-500">
                   <CardHeader className="pb-4 px-[0.1rem] md:px-6 py-[0.1rem] md:py-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 shadow-lg">
-                          <TrendingDown className="h-4 w-4 text-white" />
+                          <TrendingDown className="h-4 w-4 text-gray-900 dark:text-white" />
                         </div>
                         <div>
                           <CardTitle className="text-lg">Borrow Markets</CardTitle>
@@ -1716,351 +1670,7 @@ export default function AppPage() {
             </div>
           </TabsContent>
 
-          {/* Cross-Chain Tab Content */}
-          <TabsContent value="cross-chain">
-            <div className="space-y-6">
 
-
-              {/* Cross-Chain Transaction Flow */}
-              <AnimatedCard>
-                <Card className="overflow-hidden bg-gradient-to-br from-blue-50/50 via-purple-50/30 to-green-50/50 dark:from-blue-950/20 dark:via-purple-950/10 dark:to-green-950/20 border-0 shadow-xl">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2 text-lg">
-                        <div className="p-2 rounded-lg bg-gradient-to-r from-emerald-600 to-green-600">
-                          <ArrowRight className="h-4 w-4 text-white" />
-                        </div>
-                        How Cross-Chain Lending Works
-                      </CardTitle>
-                      <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-white/50 dark:bg-black/20 text-xs font-medium">
-                        <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
-                        Live Protocol
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    {/* Compact Flow with Animated Connections */}
-                    <div className="relative">
-                      {/* Mobile: Vertical Flow */}
-                      <div className="md:hidden space-y-3">
-                        {[
-                          { 
-                            num: "1", 
-                            title: "Deposit", 
-                            desc: "Supply assets on any spoke chain", 
-                            color: "emerald",
-                            icon: "💰"
-                          },
-                          { 
-                            num: "2", 
-                            title: "Bridge", 
-                            desc: "Wormhole securely transfers intent", 
-                            color: "slate",
-                            icon: "🌉"
-                          },
-                          { 
-                            num: "3", 
-                            title: "Process", 
-                            desc: "Hub calculates global liquidity", 
-                            color: "green",
-                            icon: "⚡"
-                          },
-                          { 
-                            num: "4", 
-                            title: "Borrow", 
-                            desc: "Access funds on any chain", 
-                            color: "gray",
-                            icon: "🚀"
-                          }
-                        ].map((step, index) => (
-                          <div key={step.num} className="relative">
-                            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/20">
-                              <div className={`w-8 h-8 rounded-full bg-${step.color}-500/10 flex items-center justify-center flex-shrink-0`}>
-                                <span className="text-lg">{step.icon}</span>
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <h4 className="font-semibold text-sm">{step.title}</h4>
-                                <p className="text-xs text-muted-foreground">{step.desc}</p>
-                              </div>
-                              <div className={`w-6 h-6 rounded-full bg-${step.color}-500 flex items-center justify-center flex-shrink-0`}>
-                                <span className="text-xs font-bold text-white">{step.num}</span>
-                              </div>
-                            </div>
-                            {index < 3 && (
-                              <div className="absolute left-7 top-full w-0.5 h-3 bg-gradient-to-b from-emerald-300 to-transparent dark:from-emerald-600"></div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Desktop: Horizontal Flow with Animated Arrows */}
-                      <div className="hidden md:block">
-                        <div className="grid grid-cols-4 gap-2 relative">
-                          {/* Animated Connection Lines */}
-                          <div className="absolute top-6 left-0 right-0 h-0.5 bg-gradient-to-r from-emerald-500 via-green-500 via-slate-500 to-gray-500 opacity-30"></div>
-                          <div className="absolute top-6 left-0 w-0 h-0.5 bg-gradient-to-r from-emerald-500 via-green-500 via-slate-500 to-gray-500 animate-pulse"></div>
-                          
-                          {[
-                            { 
-                              num: "1", 
-                              title: "Deposit", 
-                              desc: "Supply on spoke", 
-                              color: "emerald",
-                              bgColor: "bg-emerald-500",
-                              icon: "💰",
-                              detail: "Any Chain"
-                            },
-                            { 
-                              num: "2", 
-                              title: "Bridge", 
-                              desc: "Wormhole transfer", 
-                              color: "slate",
-                              bgColor: "bg-slate-500",
-                              icon: "🌉",
-                              detail: "Secure"
-                            },
-                            { 
-                              num: "3", 
-                              title: "Process", 
-                              desc: "Hub calculation", 
-                              color: "green",
-                              bgColor: "bg-green-500",
-                              icon: "⚡",
-                              detail: "Instant"
-                            },
-                            { 
-                              num: "4", 
-                              title: "Borrow", 
-                              desc: "Access anywhere", 
-                              color: "gray",
-                              bgColor: "bg-gray-500",
-                              icon: "🚀",
-                              detail: "Global"
-                            }
-                          ].map((step, index) => (
-                            <div key={step.num} className="relative z-10">
-                              <div className="group cursor-pointer">
-                                <div className="relative p-3 rounded-xl bg-white/60 dark:bg-white/5 backdrop-blur-sm border border-white/20 hover:bg-white/80 dark:hover:bg-white/10 transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
-                                  {/* Step Number Badge */}
-                                  <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full ${step.bgColor} flex items-center justify-center shadow-lg`}>
-                                    <span className="text-xs font-bold text-white">{step.num}</span>
-                                  </div>
-                                  
-                                  {/* Content */}
-                                  <div className="text-center">
-                                    <div className="text-2xl mb-2">{step.icon}</div>
-                                    <h4 className="font-semibold text-sm mb-1">{step.title}</h4>
-                                    <p className="text-xs text-muted-foreground mb-1">{step.desc}</p>
-                                    <div className={`inline-block px-2 py-0.5 rounded-full bg-${step.color}-100 dark:bg-${step.color}-900/30 text-${step.color}-700 dark:text-${step.color}-300 text-xs font-medium`}>
-                                      {step.detail}
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Hover Details */}
-                                  <div className="absolute inset-x-0 top-full mt-2 p-2 bg-white dark:bg-gray-900 rounded-lg shadow-xl border opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                                    <p className="text-xs text-center">
-                                      {step.num === "1" && "Deposit assets on Ethereum, Solana, Base, or any supported chain"}
-                                      {step.num === "2" && "Wormhole protocol securely bridges your intent to the Hub"}
-                                      {step.num === "3" && "Sei Hub processes and updates your global vault instantly"}
-                                      {step.num === "4" && "Borrow against your collateral on any connected chain"}
-                                    </p>
-                                  </div>
-                                </div>
-                                
-                                {/* Arrow Connector */}
-                                {index < 3 && (
-                                  <div className="absolute top-6 -right-1 w-4 h-4 flex items-center justify-center">
-                                    <ArrowRight className="h-3 w-3 text-emerald-400 group-hover:text-emerald-600 transition-colors" />
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        
-                        {/* Benefits Bar */}
-                        <div className="mt-6 flex items-center justify-center gap-6 py-3 px-4 rounded-xl bg-white/40 dark:bg-white/5 backdrop-blur-sm">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Zap className="h-4 w-4 text-emerald-500" />
-                            <span className="font-medium">Instant</span>
-                          </div>
-                          <div className="w-px h-4 bg-emerald-300 dark:bg-emerald-600"></div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Globe className="h-4 w-4 text-green-500" />
-                            <span className="font-medium">Multi-Chain</span>
-                          </div>
-                          <div className="w-px h-4 bg-emerald-300 dark:bg-emerald-600"></div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Check className="h-4 w-4 text-emerald-500" />
-                            <span className="font-medium">Secure</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedCard>
-
-              {/* Cross-Chain Asset Overview */}
-              <AnimatedCard>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <BarChart4 className="h-5 w-5 text-green-500" />
-                      Cross-Chain Asset Distribution
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {/* Asset by Chain */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="p-4 border rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-blue-500">Ethereum</h4>
-                            <Badge variant="outline" className="text-xs">Spoke</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span>USDC Supplied:</span>
-                              <span className="font-medium">$5,420</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span>ETH Supplied:</span>
-                              <span className="font-medium">$3,210</span>
-                            </div>
-                            <div className="text-xs text-green-500 mt-2">Available for cross-chain borrowing</div>
-                          </div>
-                        </div>
-                        
-                        <div className="p-4 border rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-purple-500">Solana</h4>
-                            <Badge variant="outline" className="text-xs">Spoke</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span>SOL Supplied:</span>
-                              <span className="font-medium">$2,890</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span>USDT Borrowed:</span>
-                              <span className="font-medium text-red-500">-$1,500</span>
-                            </div>
-                            <div className="text-xs text-blue-500 mt-2">Cross-chain collateral active</div>
-                          </div>
-                        </div>
-                        
-                        <div className="p-4 border rounded-lg">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-orange-500">Soneium</h4>
-                            <Badge variant="outline" className="text-xs">Spoke</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span>PERC Supplied:</span>
-                              <span className="font-medium">$1,200</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span>Available:</span>
-                              <span className="font-medium">$980</span>
-                            </div>
-                            <div className="text-xs text-green-500 mt-2">Testing environment</div>
-                          </div>
-                        </div>
-                        
-                        <div className="p-4 border rounded-lg border-blue-500/50 bg-blue-500/5">
-                          <div className="flex items-center justify-between mb-2">
-                            <h4 className="font-medium text-blue-500">Sei (Hub)</h4>
-                            <Badge className="text-xs bg-blue-500/10 text-blue-500">Hub</Badge>
-                          </div>
-                          <div className="space-y-2">
-                            <div className="flex justify-between text-sm">
-                              <span>Total Collateral:</span>
-                              <span className="font-medium">$11,720</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span>Borrow Power:</span>
-                              <span className="font-medium text-green-500">$8,790</span>
-                            </div>
-                            <div className="text-xs text-blue-500 mt-2">Global accounting & liquidations</div>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Quick Actions */}
-                      <div className="border-t pt-4">
-                        <h4 className="font-medium mb-3">Quick Cross-Chain Actions</h4>
-                        <div className="flex gap-2 flex-wrap">
-                          <Button size="sm" asChild>
-                            <Link href="/app/bridge">
-                              <ArrowUpRight className="h-4 w-4 mr-1" />
-                              Bridge Assets
-                            </Link>
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => setActiveTab("markets")}>
-                            <Plus className="h-4 w-4 mr-1" />
-                            Supply Assets
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => setActiveTab("markets")}>
-                            <TrendingDown className="h-4 w-4 mr-1" />
-                            Borrow Assets
-                          </Button>
-                          <Button variant="outline" size="sm">
-                            <Eye className="h-4 w-4 mr-1" />
-                            View Transactions
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedCard>
-
-              {/* Coming Soon Features */}
-              <AnimatedCard>
-                <Card className="border-dashed">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-yellow-500" />
-                      Coming Soon: Advanced Cross-Chain Features
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <h4 className="font-medium mb-2">💱 Cross-Chain Yield Farming</h4>
-                        <p className="text-sm text-muted-foreground">Optimize yields by automatically moving assets to the highest-yielding opportunities across all chains.</p>
-                      </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <h4 className="font-medium mb-2">🔄 Auto-Rebalancing</h4>
-                        <p className="text-sm text-muted-foreground">Automatically maintain optimal collateral ratios across your cross-chain positions.</p>
-                      </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <h4 className="font-medium mb-2">⚡ Flash Cross-Chain Loans</h4>
-                        <p className="text-sm text-muted-foreground">Execute complex arbitrage strategies across multiple chains in a single transaction.</p>
-                      </div>
-                      <div className="p-3 bg-muted/50 rounded-lg">
-                        <h4 className="font-medium mb-2">🏛️ Cross-Chain Governance</h4>
-                        <p className="text-sm text-muted-foreground">Vote on protocol proposals from any connected chain with your cross-chain voting power.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </AnimatedCard>
-            </div>
-
-            {/* Market Insights for deeper analysis */}
-            <div className="mt-6">
-              <AnimatedCard>
-                <MarketInsightsCard
-                  markets={demoMarketData}
-                  isDemoMode={isDemoMode}
-                  selectedMarket={selectedMarketForInsights}
-                  onMarketSelect={setSelectedMarketForInsights}
-                />
-              </AnimatedCard>
-            </div>
-          </TabsContent>
 
           {/* Placeholder Content for other tabs */}
          <TabsContent value="portfolio">

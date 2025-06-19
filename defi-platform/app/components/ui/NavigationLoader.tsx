@@ -82,8 +82,7 @@ export const NavigationLoader: React.FC = () => {
       else if (button) {
         const buttonText = button.textContent?.toLowerCase() || ''
         const isTabButton = buttonText.includes('portfolio') || 
-                           buttonText.includes('markets') || 
-                           buttonText.includes('cross-chain') || 
+                           buttonText.includes('lending') || 
                            buttonText.includes('stake') ||
                            button.dataset.navigate ||
                            // Check if it's within a TabsList (common pattern)
@@ -97,10 +96,8 @@ export const NavigationLoader: React.FC = () => {
           // Set appropriate loading message for tabs
           if (buttonText.includes('portfolio')) {
             setLoadingMessage('Loading Portfolio...')
-          } else if (buttonText.includes('markets')) {
-            setLoadingMessage('Loading Markets...')
-          } else if (buttonText.includes('cross-chain')) {
-            setLoadingMessage('Loading Cross-Chain...')
+          } else if (buttonText.includes('lending')) {
+            setLoadingMessage('Loading Lending...')
           } else if (buttonText.includes('stake')) {
             setLoadingMessage('Loading Staking...')
           } else {

@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { 
   Users, 
   TrendingUp, 
@@ -8,10 +9,14 @@ import {
   AlertTriangle, 
   Zap, 
   Info,
-  ArrowUpDown
+  ArrowUpDown,
+  Plus,
+  Minus,
+  Eye
 } from "lucide-react"
 import { AnimatedCard } from "../ui/ChartComponents"
 import type { UserPosition } from "../markets/UserPositionsCard"
+import { cn } from "@/lib/utils"
 
 interface PositionManagementCardProps {
   userPositions: UserPosition[]
@@ -40,249 +45,258 @@ export function PositionManagementCard({
   const totalSuppliedUSD = supplyPositions.reduce((sum, p) => sum + p.amountUSD, 0)
   const totalBorrowedUSD = borrowPositions.reduce((sum, p) => sum + p.amountUSD, 0)
 
+  // Calculate weighted average APY for supply positions
+  const weightedSupplyAPY = supplyPositions.length > 0 
+    ? supplyPositions.reduce((sum, p) => sum + (p.apy * p.amountUSD), 0) / totalSuppliedUSD 
+    : 0
+
+  // Calculate borrow limit (80% of collateral)
+  const borrowLimit = totalSuppliedUSD * 0.8
+  const borrowUtilization = borrowLimit > 0 ? (totalBorrowedUSD / borrowLimit) * 100 : 0
+
+  const getHealthFactorColor = (factor?: number) => {
+    if (!factor) return "text-emerald-400"
+    if (factor >= 2) return "text-emerald-400"
+    if (factor >= 1.5) return "text-yellow-400"
+    if (factor >= 1.2) return "text-orange-400"
+    return "text-red-400"
+  }
+
+  const getHealthFactorBg = (factor?: number) => {
+    if (!factor) return "bg-emerald-500/10 border-emerald-500/20"
+    if (factor >= 2) return "bg-emerald-500/10 border-emerald-500/20"
+    if (factor >= 1.5) return "bg-yellow-500/10 border-yellow-500/20"
+    if (factor >= 1.2) return "bg-orange-500/10 border-orange-500/20"
+    return "bg-red-500/10 border-red-500/20"
+  }
+
+  const getUtilizationColor = (utilization: number) => {
+    if (utilization < 50) return "from-emerald-500 to-teal-500"
+    if (utilization < 75) return "from-yellow-500 to-orange-500"
+    return "from-orange-500 to-red-500"
+  }
+
   return (
     <AnimatedCard delay={0.6}>
-      <Card className="mb-4 bg-white/10 dark:bg-black/10 backdrop-blur-xl border border-emerald-500/20 shadow-lg shadow-emerald-500/5 hover:shadow-emerald-500/10 transition-all duration-300">
-        <CardHeader className="pb-2">
+      <Card className="mb-4 bg-white/[0.02] dark:bg-black/[0.02] backdrop-blur-2xl border border-white/10 dark:border-white/5 shadow-lg shadow-black/10 hover:shadow-xl hover:shadow-black/15 hover:border-white/20 dark:hover:border-white/10 transition-all duration-700 overflow-hidden">
+        {/* Glassmorphism overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent dark:from-white/[0.02] pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-emerald-500/[0.02] to-transparent pointer-events-none" />
+        
+        <CardHeader className="pb-3 relative z-10">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-emerald-500" />
-              <CardTitle className="text-sm">Position Management</CardTitle>
-              {isDemoMode && (
-                <Badge variant="outline" className="text-xs h-5 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/5">Demo</Badge>
-              )}
+              <div className="p-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 backdrop-blur-sm">
+                <Users className="h-3.5 w-3.5 text-emerald-400" />
+              </div>
+              <div>
+                <CardTitle className="text-sm font-medium text-gray-900 dark:text-white">Portfolio</CardTitle>
+                {isDemoMode && (
+                  <Badge variant="outline" className="text-xs h-4 px-1.5 mt-0.5 border-emerald-500/30 text-emerald-400 bg-emerald-500/5">Demo</Badge>
+                )}
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-3 w-3 text-emerald-400/60 hover:text-emerald-400 cursor-help transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent 
+                  side="top" 
+                  className="max-w-xs bg-black/40 backdrop-blur-xl border border-emerald-500/20 shadow-2xl shadow-emerald-500/10 rounded-xl p-4"
+                  sideOffset={8}
+                >
+                  <div className="space-y-2 text-xs">
+                    <p className="font-medium text-emerald-300">Portfolio Management</p>
+                    <ul className="space-y-1 text-emerald-100/80">
+                      <li>• Supply assets to earn interest</li>
+                      <li>• Borrow against your collateral</li>
+                      <li>• Keep health factor above 1.5</li>
+                    </ul>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
             </div>
             <Button 
               size="sm" 
-              variant="outline"
+              variant="ghost"
               onClick={onNavigateToPortfolio}
-              className="text-xs h-6 px-2 hidden md:flex border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
+              className="text-xs h-6 px-2 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
             >
-              View All
+              <Eye className="h-3 w-3 mr-1" />
+              View
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="pb-3">
-          {/* Mobile: Horizontal scrollable cards */}
-          <div className="md:hidden">
-            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scroll-smooth">
-              {/* Supply Positions Summary */}
-              {supplyPositions.length > 0 && (
-                <div className="flex-none w-32 p-2 border border-border/30 rounded-lg bg-card/50 backdrop-blur-sm hover:border-emerald-500/30 transition-colors">
-                  <div className="flex items-center gap-1 mb-1">
-                    <TrendingUp className="h-3 w-3 text-emerald-500" />
-                    <span className="text-xs font-medium">Supply</span>
+        
+        <CardContent className="space-y-4 relative z-10">
+          {/* Main Portfolio Layout - Liquid Glass Design */}
+          <div className="relative">
+            {/* Mobile Layout */}
+            <div className="block lg:hidden">
+              <div className="flex gap-4 items-center min-h-[160px]">
+                {/* Left Side - APY Circle (Mobile) */}
+                <div className="flex-shrink-0">
+                  <div className="relative">
+                    {/* Outer Glow Ring */}
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-500/30 to-teal-500/30 blur-xl animate-pulse" />
+                    
+                    {/* Main Circle */}
+                    <div className="relative w-24 h-24 rounded-full bg-gradient-to-br from-emerald-500/[0.15] to-teal-500/[0.08] border-2 border-emerald-500/30 backdrop-blur-xl flex items-center justify-center shadow-2xl shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all duration-500 group">
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/[0.12] via-transparent to-transparent dark:from-white/[0.03] pointer-events-none" />
+                      <div className="relative z-10 text-center">
+                        <div className="text-xs font-medium text-emerald-400 mb-1">SUPPLY APY</div>
+                        <div className="text-lg font-bold text-gray-900 dark:text-white">
+                          +{weightedSupplyAPY.toFixed(1)}%
+                        </div>
+                      </div>
+                      
+                      {/* Rotating Border Effect */}
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-500/50 via-transparent to-emerald-500/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-spin-slow" style={{ animationDuration: '3s' }} />
+                    </div>
                   </div>
-                  <p className="text-lg font-bold leading-none mb-1">
-                    {supplyPositions.length}
-                  </p>
-                  <p className="text-xs text-muted-foreground mb-2 leading-none">
-                    ${(totalSuppliedUSD / 1000).toFixed(1)}k
-                  </p>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="w-full text-xs h-5 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
-                    onClick={onNavigateToPortfolio}
-                  >
-                    Manage
-                  </Button>
                 </div>
-              )}
 
-              {/* Borrow Positions Summary */}
-              {borrowPositions.length > 0 && (
-                <div className="flex-none w-32 p-2 border border-border/30 rounded-lg bg-card/30 backdrop-blur-sm hover:border-emerald-500/30 transition-colors">
-                  <div className="flex items-center gap-1 mb-1">
-                    <TrendingDown className="h-3 w-3 text-emerald-500" />
-                    <span className="text-xs font-medium">Borrow</span>
+                {/* Right Side - Stacked Balances (Mobile) */}
+                <div className="flex-1 space-y-4">
+                  {/* Supply Balance */}
+                  <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-500/[0.08] to-teal-500/[0.04] p-4 backdrop-blur-xl">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent dark:from-white/[0.02] pointer-events-none" />
+                    <div className="relative z-10">
+                      <h3 className="text-xs font-medium text-emerald-300 uppercase tracking-wide mb-1">SUPPLY BALANCE</h3>
+                      <p className="text-xl font-bold text-gray-900 dark:text-white">
+                        ${totalSuppliedUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-lg font-bold leading-none mb-1">
-                    {borrowPositions.length}
-                  </p>
-                  <p className="text-xs text-muted-foreground mb-2 leading-none">
-                    ${(totalBorrowedUSD / 1000).toFixed(1)}k
-                  </p>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="w-full text-xs h-5 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
-                    onClick={onNavigateToPortfolio}
-                  >
-                    Manage
-                  </Button>
-                </div>
-              )}
 
-              {/* Health Factor Warning */}
-              {userHealthFactor && userHealthFactor < 1.5 && (
-                <div className="flex-none w-32 p-2 border border-amber-400/30 rounded-lg bg-amber-500/5 backdrop-blur-sm">
-                  <div className="flex items-center gap-1 mb-1">
-                    <AlertTriangle className="h-3 w-3 text-amber-500" />
-                    <span className="text-xs font-medium">Health</span>
+                  {/* Borrow Balance */}
+                  <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-orange-500/[0.08] to-red-500/[0.04] p-4 backdrop-blur-xl">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent dark:from-white/[0.02] pointer-events-none" />
+                    <div className="relative z-10">
+                      <h3 className="text-xs font-medium text-orange-300 uppercase tracking-wide mb-1">BORROW BALANCE</h3>
+                      <p className="text-xl font-bold text-gray-900 dark:text-white">
+                        ${totalBorrowedUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-lg font-bold leading-none mb-1">
-                    {userHealthFactor.toFixed(2)}
-                  </p>
-                  <p className="text-xs text-muted-foreground mb-2 leading-none">
-                    Factor
-                  </p>
-                  <Button 
-                    size="sm" 
-                    variant="default"
-                    className="w-full text-xs h-5 bg-amber-500 hover:bg-amber-600 text-white"
-                    onClick={onNavigateToPortfolio}
-                  >
-                    Fix
-                  </Button>
                 </div>
-              )}
+              </div>
+            </div>
 
-              {/* Quick Actions */}
-              <div className="flex-none w-32 p-2 border border-border/30 rounded-lg bg-card/30 backdrop-blur-sm hover:border-emerald-500/30 transition-colors">
-                <div className="flex items-center gap-1 mb-1">
-                  <Zap className="h-3 w-3 text-emerald-500" />
-                  <span className="text-xs font-medium">Actions</span>
+            {/* Desktop Layout */}
+            <div className="hidden lg:block">
+              <div className="grid grid-cols-3 gap-4 items-center min-h-[140px]">
+                
+                {/* Left Side - Supply */}
+                <div className="col-span-1 flex justify-start">
+                  {supplyPositions.length > 0 ? (
+                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/[0.08] to-teal-500/[0.04] p-4 backdrop-blur-xl hover:from-emerald-500/[0.12] hover:to-teal-500/[0.08] transition-all duration-500 group w-full max-w-xs">
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent dark:from-white/[0.02] pointer-events-none" />
+                      <div className="relative z-10">
+                        <div className="text-left space-y-2">
+                          <h3 className="text-xs font-medium text-emerald-300 uppercase tracking-wide">SUPPLY BALANCE</h3>
+                          <div className="space-y-1">
+                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                              ${totalSuppliedUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                            <p className="text-xs text-emerald-400/80">{totalSuppliedUSD.toFixed(2)} PDOT supplied</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-left text-gray-500 dark:text-gray-400 p-4 w-full max-w-xs">
+                      <div className="space-y-2">
+                        <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wide">SUPPLY BALANCE</h3>
+                        <p className="text-2xl font-bold">$0.00</p>
+                        <p className="text-xs text-gray-500">0.00 PDOT supplied</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-1">
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="w-full text-xs h-5 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
-                    onClick={onOpenSupplyModal}
-                  >
-                    Add
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="w-full text-xs h-5 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
-                    onClick={onOpenBorrowModal}
-                  >
-                    Repay
-                  </Button>
+
+                {/* Center - APY Circle */}
+                <div className="col-span-1 flex justify-center">
+                  <div className="relative">
+                    {/* Outer Glow Ring */}
+                    <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-500/30 to-teal-500/30 blur-xl animate-pulse" />
+                    
+                    {/* Main Circle */}
+                    <div className="relative w-28 h-28 rounded-full bg-gradient-to-br from-emerald-500/[0.15] to-teal-500/[0.08] border-2 border-emerald-500/30 backdrop-blur-xl flex items-center justify-center shadow-2xl shadow-emerald-500/20 hover:shadow-emerald-500/30 transition-all duration-500 group">
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/[0.12] via-transparent to-transparent dark:from-white/[0.03] pointer-events-none" />
+                      <div className="relative z-10 text-center">
+                        <div className="text-xs font-medium text-emerald-400 mb-1">SUPPLY APY</div>
+                        <div className="text-xl font-bold text-gray-900 dark:text-white">
+                          +{weightedSupplyAPY.toFixed(1)}%
+                        </div>
+                      </div>
+                      
+                      {/* Rotating Border Effect */}
+                      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-500/50 via-transparent to-emerald-500/50 opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-spin-slow" style={{ animationDuration: '3s' }} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Side - Borrow */}
+                <div className="col-span-1 flex justify-end">
+                  {borrowPositions.length > 0 ? (
+                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500/[0.08] to-red-500/[0.04] p-4 backdrop-blur-xl hover:from-orange-500/[0.12] hover:to-red-500/[0.08] transition-all duration-500 group w-full max-w-xs">
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.08] via-transparent to-transparent dark:from-white/[0.02] pointer-events-none" />
+                      <div className="relative z-10">
+                        <div className="text-right space-y-2">
+                          <h3 className="text-xs font-medium text-orange-300 uppercase tracking-wide">BORROW BALANCE</h3>
+                          <div className="space-y-1">
+                            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                              ${totalBorrowedUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </p>
+                            <p className="text-xs text-orange-400/80">No active loans</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-right text-gray-500 dark:text-gray-400 p-4 w-full max-w-xs">
+                      <div className="space-y-2">
+                        <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wide">BORROW BALANCE</h3>
+                        <p className="text-2xl font-bold">$0.00</p>
+                        <p className="text-xs text-gray-500">No active loans</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Desktop: Smart Combined Layout */}
-          <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Combined Positions Overview */}
-            <div className="p-4 border border-border/30 rounded-lg bg-card/50 backdrop-blur-sm hover:border-emerald-500/30 hover:bg-card/70 transition-all duration-300">
-              <div className="flex items-center gap-2 mb-3">
-                <ArrowUpDown className="h-4 w-4 text-emerald-500" />
-                <span className="text-sm font-medium">Portfolio Overview</span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <div className="text-center p-2 bg-emerald-500/5 rounded border border-emerald-500/10">
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <TrendingUp className="h-3 w-3 text-emerald-500" />
-                    <span className="text-xs text-emerald-400">Supply</span>
-                  </div>
-                  <p className="text-lg font-bold">{supplyPositions.length}</p>
-                  <p className="text-xs text-muted-foreground">${totalSuppliedUSD.toLocaleString()}</p>
+          {/* Bottom - Borrow Limit Progress Bar */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Borrow Limit (80% of collateral)
+              </span>
+              <div className="text-right">
+                <div className="text-sm font-medium text-emerald-400">
+                  ${borrowLimit > 0 ? (borrowLimit - totalBorrowedUSD).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} available
                 </div>
-                
-                <div className="text-center p-2 bg-red-500/5 rounded border border-red-500/10">
-                  <div className="flex items-center justify-center gap-1 mb-1">
-                    <TrendingDown className="h-3 w-3 text-red-500" />
-                    <span className="text-xs text-red-400">Borrow</span>
-                  </div>
-                  <p className="text-lg font-bold">{borrowPositions.length}</p>
-                  <p className="text-xs text-muted-foreground">${totalBorrowedUSD.toLocaleString()}</p>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  ${totalBorrowedUSD.toFixed(2)} borrowed • ${(borrowLimit || 0).toFixed(2)} max
                 </div>
               </div>
-              
-              <Button 
-                size="sm" 
-                variant="outline"
-                className="w-full text-xs h-6 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
-                onClick={onNavigateToPortfolio}
-              >
-                Manage Portfolio
-              </Button>
             </div>
-
-            {/* AI-Powered Actions */}
-            <div className="p-4 border border-border/30 rounded-lg bg-card/30 backdrop-blur-sm hover:border-emerald-500/30 hover:bg-card/50 transition-all duration-300">
-              <div className="flex items-center gap-2 mb-3">
-                <Zap className="h-4 w-4 text-emerald-500" />
-                <span className="text-sm font-medium">AI Assistant</span>
-              </div>
-              
-              {/* Health Factor with AI Optimization */}
-              {userHealthFactor && userHealthFactor < 1.5 && (
-                <div className="mb-3 p-2 bg-amber-500/10 border border-amber-500/20 rounded flex items-center gap-2">
-                  <AlertTriangle className="h-3 w-3 text-amber-500" />
-                  <div className="flex-1">
-                    <span className="text-xs text-amber-300">Health: {userHealthFactor.toFixed(2)}</span>
-                  </div>
-                </div>
-              )}
-              
-              <div className="space-y-2">
-                {userHealthFactor && userHealthFactor < 1.5 ? (
-                  <Button 
-                    size="sm" 
-                    variant="default"
-                    className="w-full text-xs h-6 bg-emerald-500 hover:bg-emerald-600 text-white"
-                    onClick={onNavigateToPortfolio}
-                  >
-                    🤖 AI Optimize Risk
-                  </Button>
-                ) : (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    className="w-full text-xs h-6 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
-                    onClick={onOpenSupplyModal}
-                  >
-                    🤖 AI Suggest Actions
-                  </Button>
+            
+            {/* Progress Bar */}
+            <div className="relative h-3 bg-gray-200/50 dark:bg-gray-800/50 rounded-full overflow-hidden backdrop-blur-sm border border-white/10">
+              <div className="absolute inset-0 bg-gradient-to-r from-white/[0.05] to-transparent pointer-events-none" />
+              <div
+                className={cn(
+                  "h-full rounded-full transition-all duration-700 ease-out relative overflow-hidden",
+                  `bg-gradient-to-r ${getUtilizationColor(borrowUtilization)}`
                 )}
-                
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  className="w-full text-xs h-6 border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/5"
-                  onClick={onOpenBorrowModal}
-                >
-                  🤖 Smart Rebalance
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Compact educational note for mobile */}
-          <div className="mt-2 p-2 bg-muted/50 border border-border/30 rounded-lg md:hidden backdrop-blur-sm">
-            <div className="flex items-start gap-2">
-              <Info className="h-3 w-3 text-emerald-500 flex-shrink-0 mt-0.5" />
-              <div className="text-xs">
-                <p className="font-medium mb-1">Position Management Tips:</p>
-                <ul className="space-y-0.5 text-muted-foreground">
-                  <li>• Supply assets to earn interest and use them as collateral</li>
-                  <li>• Borrow assets for leverage, arbitrage, or liquidity needs</li>
-                  <li>• Keep your health factor above 1.5 to maintain healthy positions</li>
-                  <li>• Go to Portfolio tab for detailed position management</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          {/* Compact educational note for desktop */}
-          <div className="hidden md:block mt-3 p-2 bg-muted/50 border border-border/30 rounded-lg backdrop-blur-sm">
-            <div className="flex items-start gap-2">
-              <Info className="h-3 w-3 text-emerald-500 flex-shrink-0 mt-0.5" />
-              <div className="text-xs">
-                <p className="font-medium mb-1">Position Management Tips:</p>
-                <ul className="space-y-0.5 text-muted-foreground">
-                  <li>• Supply assets to earn interest and use them as collateral</li>
-                  <li>• Borrow assets for leverage, arbitrage, or liquidity needs</li>
-                  <li>• Keep your health factor above 1.5 to maintain healthy positions</li>
-                  <li>• Go to Portfolio tab for detailed position management</li>
-                </ul>
+                style={{ width: `${Math.min(borrowUtilization, 100)}%` }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-transparent" />
+                {borrowUtilization > 5 && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-pulse" />
+                )}
               </div>
             </div>
           </div>
