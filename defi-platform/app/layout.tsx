@@ -31,14 +31,14 @@ export const metadata: Metadata = {
     url: "https://peridot.finance",
     title: "Peridot | Cross-Chain Lending & Borrowing Platform",
     description:
-      "Earn interest on your crypto and borrow funds without selling—all with smart, fair rates across multiple blockchains.",
+      "Earn interest on your crypto and borrow funds without selling, all with smart, fair rates across multiple blockchains.",
     siteName: "Peridot",
   },
   twitter: {
     card: "summary_large_image",
     title: "Peridot | Cross-Chain Lending & Borrowing Platform",
     description:
-      "Earn interest on your crypto and borrow funds without selling—all with smart, fair rates across multiple blockchains.",
+      "Earn interest on your crypto and borrow funds without selling, all with smart, fair rates across multiple blockchains.",
     creator: "@peridotprotocol",
   },
   icons: {

@@ -42,3 +42,5 @@ yarn-error.log*
 # Exclude specific files with sensitive information
 defi-platform/app/new-cyber-post.py
 
+backend/Chainlink_CCIP.md
+backend/Chainlink_datafeeds.md

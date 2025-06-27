@@ -141,6 +141,9 @@ export function SiteHeader() {
           <Link href="/faq" className="text-text/80 hover:text-primary transition-colors">
             FAQ
           </Link>
+          <Link href="/join" className="text-text/80 hover:text-primary transition-colors">
+            Join Waitlist
+          </Link>
         </>
       )
     }
@@ -204,6 +207,13 @@ export function SiteHeader() {
             onClick={() => setIsMenuOpen(false)}
           >
             FAQ
+          </Link>
+          <Link
+            href="/join"
+            className="text-text/80 hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-background/50"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Join Waitlist
           </Link>
         </>
       )

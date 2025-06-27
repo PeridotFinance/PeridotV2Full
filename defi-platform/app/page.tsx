@@ -1004,7 +1004,6 @@ export default function Home() {
 
   // Parallax effect for hero section - disable on low performance devices
   const heroY = useTransform(scrollYProgress, [0, 0.5], [0, isLowPerfDevice ? 0 : -150])
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.25], [1, 0])
 
   // Check for FPS issues and disable effects if needed
   useEffect(() => {
@@ -1121,10 +1120,9 @@ export default function Home() {
       {/* Hero Section */}
       <motion.section
         ref={heroRef}
-        className="relative pt-16 md:pt-40 pb-20 md:pb-32 overflow-hidden"
+        className="relative pt-16 md:pt-20 pb-12 md:pb-20 overflow-hidden"
         style={{
           y: heroY,
-          opacity: heroOpacity,
         }}
       >
         {/* Dynamic background - simplified for mobile */}
@@ -1177,7 +1175,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.4 }}
               >
-                Earn interest on your crypto and borrow funds without selling—all with smart, fair rates across multiple
+                Earn interest on your crypto and borrow funds without selling, all with smart, fair rates across multiple
                 blockchains.
               </motion.p>
 
@@ -1220,7 +1218,7 @@ export default function Home() {
                     className="border-primary/20 hover:border-primary/40 rounded-xl group"
                   >
                     <Link href="/how-it-works" className="flex items-center">
-                      Learn More
+                      How it works
                       <motion.div
                         animate={{
                           x: [0, 5, 0],
@@ -1241,77 +1239,83 @@ export default function Home() {
               </motion.div>
             </div>
 
-            {/* Only render the animated 3D tile section on desktop */}
-            {!isMobile && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                className="relative"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur-3xl opacity-30"></div>
-                <InteractiveCard className="relative bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-6 shadow-2xl">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Hackathon Win Badges */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="relative w-full max-w-2xl mx-auto"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl blur-2xl opacity-30"></div>
+              <div className="relative bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-4 md:p-6 shadow-lg">
+                <div className="text-center mb-6">
+                  <h3 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
+                    Award-Winning Innovation
+                  </h3>
+                  <p className="text-sm text-text/70">Recognized excellence in DeFi development</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 md:gap-6">
+                  {[
+                    { src: "/hackathonwins/Group 9554.webp", alt: "Wormhole Hackathon Award", title: "Wormhole", subtitle: "Sidetrack" },
+                    { src: "/hackathonwins/Group 9557.webp", alt: "Stellar Kickstarter Award", title: "Stellar", subtitle: "Kickstarter" },
+                    { src: "/hackathonwins/Group 9559.webp", alt: "Moveathon Award", title: "Moveathon", subtitle: "Winner" },
+                    { src: "/hackathonwins/Group 9560.webp", alt: "The Graph side Award", title: "The Graph", subtitle: "Sidetrack" }
+                  ].map((badge, index) => (
                     <motion.div
-                      className="relative overflow-hidden rounded-xl"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                      key={index}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6, delay: 0.1 * index }}
+                      whileHover={{ 
+                        scale: 1.03,
+                        rotateY: 2,
+                        rotateX: 2,
+                      }}
+                      className="relative group"
                     >
-                      <div className="p-4">
-                        <p className="text-sm text-primary font-medium mb-2">Total Value Locked</p>
-                        <AnimatedValueVisualization value="$1.2B*" icon="tvl" description="Across all supported chains" />
+                      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-card to-card/50 p-3 md:p-4 shadow-md hover:shadow-lg transition-all duration-300 border border-border/30 hover:border-primary/30 aspect-square flex flex-col">
+                        {/* Enhanced shadow effect */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
+                        
+                        {/* Badge image */}
+                        <div className="relative z-10 flex-1 flex items-center justify-center">
+                          <Image
+                            src={badge.src}
+                            alt={badge.alt}
+                            width={120}
+                            height={120}
+                            className="w-full h-auto max-h-[80px] md:max-h-[100px] object-contain filter group-hover:brightness-110 transition-all duration-300"
+                            priority={index < 2}
+                          />
+                        </div>
+                        
+                        {/* Badge title */}
+                        <div className="relative z-10 text-center mt-2">
+                          <h4 className="text-xs md:text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300 leading-tight">
+                            {badge.title}
+                          </h4>
+                          <p className="text-xs text-text/60 mt-0.5">
+                            {badge.subtitle}
+                          </p>
+                        </div>
+                        
+                        {/* Glowing effect on hover */}
+                        <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 to-accent/20 opacity-0 group-hover:opacity-30 blur-xl transition-all duration-300" />
                       </div>
                     </motion.div>
-
-                    <motion.div
-                      className="relative overflow-hidden rounded-xl"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <div className="p-4">
-                        <p className="text-sm text-primary font-medium mb-2">Total Users</p>
-                        <AnimatedValueVisualization value="125K*" icon="users" description="Active platform users" />
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      className="relative overflow-hidden rounded-xl"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <div className="p-4">
-                        <p className="text-sm text-primary font-medium mb-2">Supported Chains</p>
-                        <AnimatedValueVisualization value="8*" icon="chains" description="Cross-chain compatibility" />
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      className="relative overflow-hidden rounded-xl"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <div className="p-4">
-                        <p className="text-sm text-primary font-medium mb-2">Interest Earned</p>
-                        <AnimatedValueVisualization value="$45M*" icon="interest" description="Total user earnings" />
-                      </div>
-                    </motion.div>
-                  </div>
-
-                  {/* Animated decorative elements - simplified for mobile */}
-                  {!isLowPerfDevice && (
-                    <>
-                      <div className="absolute -top-6 -right-6 w-12 h-12 bg-primary/20 rounded-full blur-xl animate-pulse" />
-                      <div className="absolute -bottom-8 -left-8 w-16 h-16 bg-accent/20 rounded-full blur-xl animate-pulse" />
-                    </>
-                  )}
-
-                  {/* Disclaimer text */}
-                  <div className="mt-4 text-xs text-text/50 text-center">
-                    * These metrics represent projected values based on our platform's design and market analysis. Actual values will be updated in real-time once the platform is live.
-                  </div>
-                </InteractiveCard>
-              </motion.div>
-            )}
+                  ))}
+                </div>
+                
+                {/* Floating decorative elements */}
+                {!isLowPerfDevice && (
+                  <>
+                    <div className="absolute -top-6 -right-6 w-12 h-12 bg-primary/20 rounded-full blur-xl animate-pulse" />
+                    <div className="absolute -bottom-8 -left-8 w-16 h-16 bg-accent/20 rounded-full blur-xl animate-pulse" />
+                  </>
+                )}
+              </div>
+            </motion.div>
           </div>
 
           {!isLowPerfDevice && !isMobile && <ScrollIndicator />}
