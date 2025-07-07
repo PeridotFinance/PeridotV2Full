@@ -59,70 +59,6 @@ const DynamicCTASection = dynamic(() => import("@/components/landing/CTASection"
   ssr: false
 })
 
-// Interactive 3D card component with performance optimizations
-const InteractiveCard = ({ 
-  children, 
-  className 
-}: { 
-  children: React.ReactNode; 
-  className?: string;
-}) => {
-  const { isLowPerfDevice } = useReducedMotion()
-  const cardRef = useRef<HTMLDivElement>(null)
-  const [rotateX, setRotateX] = useState(0)
-  const [rotateY, setRotateY] = useState(0)
-  const [scale, setScale] = useState(1)
-
-  // Skip 3D effects on low performance devices
-  if (isLowPerfDevice) {
-    return (
-      <div className={cn("relative overflow-hidden transition-all duration-200", className)}>
-        <div className="relative z-10">{children}</div>
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"></div>
-      </div>
-    )
-  }
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return
-    const card = cardRef.current
-    const rect = card.getBoundingClientRect()
-    const centerX = rect.left + rect.width / 2
-    const centerY = rect.top + rect.height / 2
-    const posX = e.clientX - centerX
-    const posY = e.clientY - centerY
-
-    // Calculate rotation based on mouse position
-    const rotateXValue = (posY / (rect.height / 2)) * -5
-    const rotateYValue = (posX / (rect.width / 2)) * 5
-
-    setRotateX(rotateXValue)
-    setRotateY(rotateYValue)
-    setScale(1.02)
-  }
-
-  const handleMouseLeave = () => {
-    setRotateX(0)
-    setRotateY(0)
-    setScale(1)
-  }
-
-  return (
-    <motion.div
-      ref={cardRef}
-      className={cn("relative overflow-hidden transition-all duration-200", className)}
-      style={{
-        transformStyle: "preserve-3d",
-        transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`,
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
-      <div className="relative z-10">{children}</div>
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"></div>
-    </motion.div>
-  )
-}
 
 // Optimized parallax text effect
 const ParallaxText = ({ 
@@ -335,61 +271,6 @@ interface FeatureCardProps {
   delay?: number;
 }
 
-const FeatureCard = ({ icon: Icon, title, description, delay = 0 }: FeatureCardProps) => {
-  const { isLowPerfDevice } = useReducedMotion()
-
-  // Simplified version for low performance devices
-  if (isLowPerfDevice) {
-    return (
-      <div className="bg-card border-border/50 h-full group rounded-xl p-6">
-        <div className="relative mb-4">
-          <div className="relative z-10 h-12 w-12 text-primary flex items-center justify-center">
-            <Icon className="h-8 w-8" />
-          </div>
-        </div>
-        <h3 className="text-xl font-bold mb-2">{title}</h3>
-        <p className="text-text/70">{description}</p>
-      </div>
-    )
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.5, delay }}
-    >
-      <InteractiveCard className="bg-card border-border/50 h-full group">
-        <CardHeader>
-          <div className="relative mb-4">
-            <motion.div
-              className="absolute inset-0 bg-primary/20 rounded-full blur-xl"
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.5, 0.8, 0.5],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Number.POSITIVE_INFINITY,
-                repeatType: "reverse",
-              }}
-            />
-            <motion.div
-              className="relative z-10 h-12 w-12 text-primary flex items-center justify-center"
-              whileHover={{ rotate: 5, scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            >
-              <Icon className="h-8 w-8" />
-            </motion.div>
-          </div>
-          <CardTitle className="text-xl">{title}</CardTitle>
-          <CardDescription className="text-text/70">{description}</CardDescription>
-        </CardHeader>
-      </InteractiveCard>
-    </motion.div>
-  )
-}
 
 // Optimized scroll indicator
 const ScrollIndicator = () => {
@@ -910,31 +791,6 @@ const TokenIcon = ({ name, image }: TokenIconProps) => {
   )
 }
 
-// Simple toggle button to disable parallax effects
-interface ParallaxToggleProps {
-  isEnabled: boolean;
-  onToggle: () => void;
-}
-
-const ParallaxToggle = ({ isEnabled, onToggle }: ParallaxToggleProps) => {
-  return (
-    <button
-      onClick={onToggle}
-      className="fixed top-2 right-2 z-50 p-2 text-xs flex items-center gap-1 bg-card/80 backdrop-blur-sm rounded-full border border-border/50 shadow-sm hover:bg-card transition-colors duration-200"
-      title={isEnabled ? "Disable motion effects" : "Enable motion effects"}
-      aria-label={isEnabled ? "Disable motion effects" : "Enable motion effects"}
-    >
-      {isEnabled ? (
-        <MousePointerClick className="h-3 w-3 text-primary" />
-      ) : (
-        <MousePointer className="h-3 w-3 text-text/50" />
-      )}
-      <span className="sr-only md:not-sr-only md:inline-block">
-        {isEnabled ? "Reduce motion" : "Enable motion"}
-      </span>
-    </button>
-  );
-};
 
 export default function Home() {
   const { resolvedTheme } = useTheme();
@@ -960,18 +816,7 @@ export default function Home() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Adjust this useEffect dependency based on the reverted useReducedMotion
-  useEffect(() => {
-    const handleParallaxToggle = () => {
-      const savedPreference = localStorage.getItem("disableParallax");
-      if (savedPreference !== null) {
-        setDisableParallax(savedPreference === 'true');
-      } else if (prefersReducedMotion) { // Use prefersReducedMotion here
-        setDisableParallax(true);
-      }
-    };
-    handleParallaxToggle();
-  }, [prefersReducedMotion]); // Use prefersReducedMotion in dependency array
+
 
   // Memoize token data to prevent unnecessary re-renders
   const tokenRow1 = useMemo(
@@ -1040,46 +885,7 @@ export default function Home() {
     return () => cancelAnimationFrame(fpsCheckId);
   }, [disableParallax, isLowPerfDevice]);
 
-  // Optimize mouse movement tracking
-  useEffect(() => {
-    // Skip on low performance devices or if parallax is disabled
-    if (isLowPerfDevice || disableParallax) {
-      return () => {}; // Return an empty cleanup function
-    }
 
-    let rafId = null;
-    let lastUpdateTime = 0;
-    const THROTTLE_MS = 200; // Even higher throttle time
-
-    const handleMouseMove = (e) => {
-      const currentTime = performance.now();
-      if (currentTime - lastUpdateTime < THROTTLE_MS) return;
-      
-      lastUpdateTime = currentTime;
-      
-      // Schedule the update on the next frame
-      rafId = requestAnimationFrame(() => {
-        const x = e.clientX / window.innerWidth;
-        const y = e.clientY / window.innerHeight;
-        
-        // Smoother value updates with dampening
-        const currentX = mouseX.get();
-        const currentY = mouseY.get();
-        const newX = currentX + (x - currentX) * 0.2; // Apply dampening factor
-        const newY = currentY + (y - currentY) * 0.2;
-        
-        mouseX.set(newX);
-        mouseY.set(newY);
-      });
-    };
-
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      if (rafId) cancelAnimationFrame(rafId);
-    };
-  }, [mouseX, mouseY, isLowPerfDevice, disableParallax]);
 
   // Optimize background transform - use more subtle movement
   const backgroundX = useTransform(mouseX, [0, 1], ["-0.5%", "0.5%"]); // Even more subtle movement
@@ -1108,8 +914,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Parallax Toggle */}
-      <ParallaxToggle isEnabled={!disableParallax} onToggle={toggleParallax} />
+
       
       {/* Cookie Consent Banner */}
       <CookieConsentBanner />
@@ -1353,26 +1158,6 @@ export default function Home() {
             </ParallaxText>
           )}
 
-          {isLowPerfDevice ? (
-            <div className="overflow-hidden">
-              <div className="flex items-center space-x-12 animate-marquee-reverse">
-                {tokenRow2.map((token) => (
-                  <TokenIcon key={token.name} name={token.name} image={token.image} />
-                ))}
-                {tokenRow2.map((token) => (
-                  <TokenIcon key={`repeat-${token.name}`} name={token.name} image={token.image} />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <ParallaxText baseVelocity={15}>
-              <div className="flex items-center space-x-12">
-                {tokenRow2.map((token) => (
-                  <TokenIcon key={token.name} name={token.name} image={token.image} />
-                ))}
-              </div>
-            </ParallaxText>
-          )}
         </div>
       </motion.section>
 

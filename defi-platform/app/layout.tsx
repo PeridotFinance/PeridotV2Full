@@ -80,11 +80,13 @@ export default async function RootLayout({
                 <SiteFooter />
                 <Toaster />
               </div>
-              <StagewiseToolbar 
-                config={{
-                  plugins: [ReactPlugin]
-                }}
-              />
+              {process.env.NODE_ENV === 'development' && (
+                <StagewiseToolbar 
+                  config={{
+                    plugins: [ReactPlugin]
+                  }}
+                />
+              )}
             </ThemeProvider>
           </ContextProvider>
         </PostHogProvider>

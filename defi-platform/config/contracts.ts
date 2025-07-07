@@ -85,7 +85,160 @@ export const solanaTestnetContracts = {
   usdtNttManagerPda: "8WRCfaAMASji1kWKBe9VuYKJr4wNoVz8NYYRa6Nw5Efq",
 };
 
+export const monadTestnetContracts = {
+  chainNameWormhole: "MonadTestnet",
+  chainNameReadable: "Monad Testnet",
+  chainId: 10143, // Monad Testnet chain ID (official)
+  rpcUrl: "https://testnet-rpc.monad.xyz/",
+  explorer: "https://testnet-explorer.monad.xyz/",
+  
+  // Core contracts
+  peridotToken: "0x28fE679719e740D15FC60325416bB43eAc50cD15",
+  oracle: "0xeAEdaF63CbC1d00cB6C14B5c4DE161d68b7C63A0",
+  
+  // Controller contracts
+  unitrollerProxy: "0xa41D586530BC7BC872095950aE03a780d5114445",
+  peridottrollerG7Impl: "0xf79b3af6954bCbeDfE0F6BE34DD1153A391E8083",
+  peridottrollerG7Proxy: "0xa41D586530BC7BC872095950aE03a780d5114445", // Same as unitroller
+  
+  // Interest rate model
+  jumpRateModelV2: "0x2d271dEb2596d78aaa2551695Ebfa9Cd440713aC",
+  
+  // pToken implementations and proxies
+  pErc20DelegateImpl: "0xECdF5834016e605d9E6Ff36bd2a1e3f7f189A140",
+  
+  // pToken delegator proxies (main contracts to interact with)
+  pUSDCDelegatorProxy: "0x46de2583b5CCC7C8169608f5cA168389f1e4b5b9",
+  pWMONDelegatorProxy: "0x8b5055bff2f35FE6d4C84585901A4FeF9803aabe",
+  pUSDTDelegatorProxy: "0x8547F1e3B77b9585247a1b9a605Fe3297F975a00",
+  pLINKDelegatorProxy: "0x06827a2dB9047219b3989E926e811808233C95AC",
+  
+  // pToken delegate implementations
+  pWMONDelegate: "0x72ca55dF01A84a78c24D07Aea3eEc857FA5fdcc8",
+  pUSDTDelegate: "0xEDdC65ECaF2e67c301a01fDc1da6805084f621D0",
+  pLINKDelegate: "0x58Ca60610Bf8962d01fc275452F5fA9179940CC9",
+  
+  // Underlying token contracts
+  tokens: {
+    LINK: "0x6fE981Dbd557f81ff66836af0932cba535Cbc343",
+    WMON: "0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701",
+    USDC: "0xf817257fed379853cDe0fa4F97AB987181B1E5Ea",
+    USDT: "0x88b8E2161DEDC77EF4ab7585569D2415a1C1055D",
+    WBTC: "0xcf5a6076cfa32686c0Df13aBaDa2b40dec133F1d",
+    WETH: "0xB5a30b0FDc42e3E9760Cb8449Fb37"
+  },
+  
+  // Market mappings for easy access
+  markets: {
+    USDC: {
+      pToken: "0x46de2583b5CCC7C8169608f5cA168389f1e4b5b9",
+      underlying: "0xf817257fed379853cDe0fa4F97AB987181B1E5Ea",
+      symbol: "pUSDC"
+    },
+    WMON: {
+      pToken: "0x8b5055bff2f35FE6d4C84585901A4FeF9803aabe",
+      underlying: "0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701",
+      symbol: "pWMON"
+    },
+    USDT: {
+      pToken: "0x8547F1e3B77b9585247a1b9a605Fe3297F975a00",
+      underlying: "0x88b8E2161DEDC77EF4ab7585569D2415a1C1055D",
+      symbol: "pUSDT"
+    },
+    LINK: {
+      pToken: "0x06827a2dB9047219b3989E926e811808233C95AC",
+      underlying: "0x6fE981Dbd557f81ff66836af0932cba535Cbc343",
+      symbol: "pLINK"
+    }
+  }
+};
+
+export const bscTestnetContracts = {
+  chainNameWormhole: "BSCTestnet",
+  chainNameReadable: "BSC Testnet",
+  chainId: 97, // BSC Testnet chain ID
+  rpcUrl: "https://data-seed-prebsc-1-s1.binance.org:8545/",
+  explorer: "https://testnet.bscscan.com/",
+  
+  // Core contracts
+  peridotToken: "0xB911C192ed1d6428A12F2Cf8F636B00c34e68a2a",
+  
+  // Oracle contracts
+  simplePriceOracle: "0xf79b3af6954bCbeDfE0F6BE34DD1153A391E8083",
+  pythContract: "0x5744Cbf430D99456a0A8771208b674F27f8EF0Fb",
+  mockOracle: "0x82BF1C5516F6A91d4bF1E0aB62aF373dB049Df91",
+  priceStaleThreshold: 60, // seconds
+  
+  // Controller contracts
+  unitrollerProxy: "0xe797A0001A3bC1B2760a24c3D7FDD172906bCCd6",
+  peridottrollerG7Impl: "0x3e1C0dd89FF970a4022C3d5F9189634FB02C064c",
+  peridottrollerG7Proxy: "0xe797A0001A3bC1B2760a24c3D7FDD172906bCCd6", // Same as unitroller
+  comptrollerOwner: "0xF450B38cccFdcfAD2f98f7E4bB533151a2fB00E9",
+  
+  // Interest rate model
+  jumpRateModelV2: "0xf66037a2b7aDA645f22523E0dDb461c9012125d1",
+  
+  // pToken implementations and proxies
+  pErc20DelegateImpl: "0x78B0f1E4ed8a17c7541EF954f046911E3E94566D",
+  
+  // pToken delegator proxies (main contracts to interact with)
+  pPUSDDelegatorProxy: "0xEDdC65ECaF2e67c301a01fDc1da6805084f621D0",
+  
+  // pToken admin
+  pTokenAdmin: "0x1804c8AB1F12E6bbf3894d4083f33e07309d1f38",
+  
+  // Underlying token contracts
+  tokens: {
+    PUSD: "0xa41D586530BC7BC872095950aE03a780d5114445", // PayPal USD
+  },
+  
+  // Market mappings for easy access
+  markets: {
+    PUSD: {
+      pToken: "0xEDdC65ECaF2e67c301a01fDc1da6805084f621D0",
+      underlying: "0xa41D586530BC7BC872095950aE03a780d5114445",
+      symbol: "pPUSD",
+      name: "Peridot PUSD",
+      decimals: 8,
+      initialExchangeRateMantissa: "20000000000000000"
+    }
+  }
+};
+
 // Note: For chains not listed in Wormhole Connect's default mainnet/testnet configurations
 // (e.g., potentially Soneium, IotaEVM depending on the exact name),
 // you might need to provide additional chain configuration details to Wormhole Connect.
 // Refer to Wormhole Connect and SDK documentation for adding custom chains. 
+
+// Chain configuration mapping for easy access
+export const chainConfigs = {
+  arbitrumSepolia: arbitrumSepoliaContracts,
+  baseSepolia: baseSepoliaContracts,
+  iotaEVMTestnet: iotaEVMTestnetContracts,
+  soneiumMainnet: soneiumMainnetContracts,
+  soneiumMinatoTestnet: soneiumMinatoTestnetContracts,
+  solanaTestnet: solanaTestnetContracts,
+  monadTestnet: monadTestnetContracts,
+  bscTestnet: bscTestnetContracts,
+} as const;
+
+// Helper function to get chain config by chain ID
+export function getChainConfig(chainId: number) {
+  return Object.values(chainConfigs).find(config => 'chainId' in config && config.chainId === chainId);
+}
+
+// Helper function to get chain config by name
+export function getChainConfigByName(chainName: keyof typeof chainConfigs) {
+  return chainConfigs[chainName];
+}
+
+// Export all chain IDs for easy reference
+export const CHAIN_IDS = {
+  ARBITRUM_SEPOLIA: 421614,
+  BASE_SEPOLIA: 84532,
+  IOTA_EVM_TESTNET: 1075,
+  SONEIUM_MAINNET: 1868,
+  SONEIUM_MINATO_TESTNET: 1946,
+  MONAD_TESTNET: 10143,
+  BSC_TESTNET: 97,
+} as const; 

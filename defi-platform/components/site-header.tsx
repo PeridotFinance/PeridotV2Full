@@ -99,11 +99,35 @@ export function SiteHeader() {
     if (isAppRoute) {
       return (
         <>
-          <Link href="/" className="text-text/80 hover:text-primary transition-colors">
+          <Link 
+            href="/" 
+            className={`transition-colors ${
+              pathname === "/" 
+                ? "text-primary font-medium" 
+                : "text-text/80 hover:text-primary"
+            }`}
+          >
             Home
           </Link>
-          <Link href="/app/bridge" className="text-text/80 hover:text-primary transition-colors">
+          <Link 
+            href="/app/bridge" 
+            className={`transition-colors ${
+              pathname === "/app/bridge" 
+                ? "text-primary font-medium" 
+                : "text-text/80 hover:text-primary"
+            }`}
+          >
             Bridge
+          </Link>
+          <Link 
+            href="/app/leaderboard" 
+            className={`transition-colors ${
+              pathname === "/app/leaderboard" 
+                ? "text-primary font-medium" 
+                : "text-text/80 hover:text-primary"
+            }`}
+          >
+            Leaderboard
           </Link>
         </>
       )
@@ -116,24 +140,7 @@ export function SiteHeader() {
           <Link href="/how-it-works" className="text-text/80 hover:text-primary transition-colors">
             How It Works
           </Link>
-          <a
-            href="https://peridot-finance.gitbook.io/peridot-protocol"
-            className="text-text/80 hover:text-primary transition-colors inline-flex items-center"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Docs
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="ml-1 w-3 h-3"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M18 13v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2h6m5-5h5m0 0v5m0-5L10 14" />
-            </svg>
-          </a>
+
 
           <Link href="/blog" className="text-text/80 hover:text-primary transition-colors">
             Blog
@@ -156,17 +163,36 @@ export function SiteHeader() {
         <>
           <Link
             href="/app"
-            className="text-text/80 hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-background/50"
+            className={`transition-colors py-2 px-3 rounded-lg hover:bg-background/50 ${
+              pathname === "/app" 
+                ? "text-primary font-medium bg-primary/10" 
+                : "text-text/80 hover:text-primary"
+            }`}
             onClick={() => setIsMenuOpen(false)}
           >
             Home
           </Link>
           <Link
             href="/app/bridge"
-            className="text-text/80 hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-background/50"
+            className={`transition-colors py-2 px-3 rounded-lg hover:bg-background/50 ${
+              pathname === "/app/bridge" 
+                ? "text-primary font-medium bg-primary/10" 
+                : "text-text/80 hover:text-primary"
+            }`}
             onClick={() => setIsMenuOpen(false)}
           >
             Bridge
+          </Link>
+          <Link
+            href="/app/leaderboard"
+            className={`transition-colors py-2 px-3 rounded-lg hover:bg-background/50 ${
+              pathname === "/app/leaderboard" 
+                ? "text-primary font-medium bg-primary/10" 
+                : "text-text/80 hover:text-primary"
+            }`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Leaderboard
           </Link>
         </>
       )
@@ -186,13 +212,6 @@ export function SiteHeader() {
             onClick={() => setIsMenuOpen(false)}
           >
             How It Works
-          </Link>
-          <Link
-            href="https://peridot-finance.gitbook.io/peridot-protocol/introduction/why-cross-chain-defi"
-            className="text-text/80 hover:text-primary transition-colors py-2 px-3 rounded-lg hover:bg-background/50"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Docs
           </Link>
           <Link
             href="/blog"

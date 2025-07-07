@@ -1,0 +1,377 @@
+[
+{
+"type": "function",
+"stateMutability": "view",
+"name": "admin",
+"inputs": [],
+"outputs": [{ "type": "address" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "pendingAdmin",
+"inputs": [],
+"outputs": [{ "type": "address" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "peridottrollerImplementation",
+"inputs": [],
+"outputs": [{ "type": "address" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "getAllMarkets",
+"inputs": [],
+"outputs": [{ "type": "address[]" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "getAccountLiquidity",
+"inputs": [{ "type": "address", "name": "account" }],
+"outputs": [
+{ "type": "uint256" },
+{ "type": "uint256" },
+{ "type": "uint256" }
+]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "markets",
+"inputs": [{ "type": "address", "name": "pToken" }],
+"outputs": [
+{ "type": "bool", "name": "isListed" },
+{ "type": "uint256", "name": "collateralFactorMantissa" },
+{ "type": "bool", "name": "isComped" }
+]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "priceOracle",
+"inputs": [],
+"outputs": [{ "type": "address" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "getUnderlyingPrice",
+"inputs": [{ "type": "address", "name": "pToken" }],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "closeFactorMantissa",
+"inputs": [],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "liquidationIncentiveMantissa",
+"inputs": [],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "mintAllowed",
+"inputs": [
+{ "type": "address", "name": "pToken" },
+{ "type": "address", "name": "minter" },
+{ "type": "uint256", "name": "mintAmount" }
+],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "mintVerify",
+"inputs": [
+{ "type": "address", "name": "pToken" },
+{ "type": "address", "name": "minter" },
+{ "type": "uint256", "name": "actualMintAmount" },
+{ "type": "uint256", "name": "mintTokens" }
+],
+"outputs": []
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "redeemAllowed",
+"inputs": [
+{ "type": "address", "name": "pToken" },
+{ "type": "address", "name": "redeemer" },
+{ "type": "uint256", "name": "redeemTokens" }
+],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "redeemVerify",
+"inputs": [
+{ "type": "address", "name": "pToken" },
+{ "type": "address", "name": "redeemer" },
+{ "type": "uint256", "name": "redeemAmount" },
+{ "type": "uint256", "name": "redeemTokens" }
+],
+"outputs": []
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "borrowAllowed",
+"inputs": [
+{ "type": "address", "name": "pToken" },
+{ "type": "address", "name": "borrower" },
+{ "type": "uint256", "name": "borrowAmount" }
+],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "borrowVerify",
+"inputs": [
+{ "type": "address", "name": "pToken" },
+{ "type": "address", "name": "borrower" },
+{ "type": "uint256", "name": "borrowAmount" }
+],
+"outputs": []
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "repayBorrowAllowed",
+"inputs": [
+{ "type": "address", "name": "pToken" },
+{ "type": "address", "name": "payer" },
+{ "type": "address", "name": "borrower" },
+{ "type": "uint256", "name": "repayAmount" }
+],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "repayBorrowVerify",
+"inputs": [
+{ "type": "address", "name": "pToken" },
+{ "type": "address", "name": "payer" },
+{ "type": "address", "name": "borrower" },
+{ "type": "uint256", "name": "actualRepayAmount" },
+{ "type": "uint256", "name": "borrowerIndex" }
+],
+"outputs": []
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "mint",
+"inputs": [{ "type": "uint256", "name": "mintAmount" }],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "redeem",
+"inputs": [{ "type": "uint256", "name": "redeemTokens" }],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "redeemUnderlying",
+"inputs": [{ "type": "uint256", "name": "redeemAmount" }],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "borrow",
+"inputs": [{ "type": "uint256", "name": "borrowAmount" }],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "repayBorrow",
+"inputs": [{ "type": "uint256", "name": "repayAmount" }],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "repayBorrowBehalf",
+"inputs": [
+{ "type": "address", "name": "borrower" },
+{ "type": "uint256", "name": "repayAmount" }
+],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "underlying",
+"inputs": [],
+"outputs": [{ "type": "address" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "balanceOfUnderlying",
+"inputs": [{ "type": "address", "name": "owner" }],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "balanceOf",
+"inputs": [{ "type": "address", "name": "owner" }],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "decimals",
+"inputs": [],
+"outputs": [{ "type": "uint8" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "exchangeRateStored",
+"inputs": [],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "exchangeRateCurrent",
+"inputs": [],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "getCash",
+"inputs": [],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "totalBorrows",
+"inputs": [],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "totalReserves",
+"inputs": [],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "getBorrowRate",
+"inputs": [
+{ "type": "uint256", "name": "cash" },
+{ "type": "uint256", "name": "borrows" },
+{ "type": "uint256", "name": "reserves" }
+],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "getSupplyRate",
+"inputs": [
+{ "type": "uint256", "name": "cash" },
+{ "type": "uint256", "name": "borrows" },
+{ "type": "uint256", "name": "reserves" },
+{ "type": "uint256", "name": "reserveFactorMantissa" }
+],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "borrowBalanceOf",
+"inputs": [{ "type": "address", "name": "account" }],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "borrowRatePerBlock",
+"inputs": [],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "supplyRatePerBlock",
+"inputs": [],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "enterMarkets",
+"inputs": [{ "type": "address[]", "name": "pTokens" }],
+"outputs": [{ "type": "uint256[]" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "exitMarket",
+"inputs": [{ "type": "address", "name": "pToken" }],
+"outputs": [{ "type": "uint256" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "getAssetsIn",
+"inputs": [{ "type": "address", "name": "account" }],
+"outputs": [{ "type": "address[]" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "checkMembership",
+"inputs": [
+{ "type": "address", "name": "account" },
+{ "type": "address", "name": "pToken" }
+],
+"outputs": [{ "type": "bool" }]
+},
+{
+"type": "function",
+"stateMutability": "nonpayable",
+"name": "approve",
+"inputs": [
+{ "type": "address", "name": "spender" },
+{ "type": "uint256", "name": "amount" }
+],
+"outputs": [{ "type": "bool" }]
+},
+{
+"type": "function",
+"stateMutability": "view",
+"name": "allowance",
+"inputs": [
+{ "type": "address", "name": "owner" },
+{ "type": "address", "name": "spender" }
+],
+"outputs": [{ "type": "uint256" }]
+}
+]
+

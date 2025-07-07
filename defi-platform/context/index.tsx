@@ -1,6 +1,6 @@
 'use client'
 
-import { wagmiAdapter, wagmiConfig, projectId } from '@/config'
+import { wagmiAdapter, wagmiConfig, projectId, networks } from '@/config'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createAppKit } from '@reown/appkit/react'
 import { SolanaAdapter } from '@reown/appkit-adapter-solana'
@@ -10,6 +10,8 @@ import {
   solana,
   solanaTestnet,
   solanaDevnet,
+  monadTestnet,
+  bscTestnet,
 } from "@reown/appkit/networks"
 import React, { type ReactNode } from 'react'
 import { cookieToInitialState, WagmiProvider, type Config } from 'wagmi'
@@ -38,7 +40,7 @@ const solanaWeb3JsAdapter = new SolanaAdapter()
 createAppKit({
   adapters: [wagmiAdapter, solanaWeb3JsAdapter],
   projectId,
-  networks: [mainnet, arbitrum, solana, solanaTestnet, solanaDevnet] as any,
+  networks: networks as any,
   metadata: metadata,
   features: {
     analytics: true // Optional - defaults to your Cloud configuration
