@@ -4,8 +4,12 @@ import { useState, useEffect } from "react"
 
 export const useMobile = () => {
   const [isMobile, setIsMobile] = useState(false)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    // Set client flag to prevent hydration mismatch
+    setIsClient(true)
+
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768) // Adjust breakpoint as needed
     }
@@ -20,5 +24,6 @@ export const useMobile = () => {
     return () => window.removeEventListener("resize", handleResize)
   }, [])
 
-  return isMobile
+  // Return false during SSR to prevent hydration mismatch
+  return isClient ? isMobile : false
 }

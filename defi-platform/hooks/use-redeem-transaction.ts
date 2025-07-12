@@ -1,9 +1,10 @@
-import { useState, useCallback, useEffect } from 'react'
-import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
-import { parseUnits, Address } from 'viem'
+import { useState, useCallback, useEffect, useRef } from 'react'
+import { useAccount, useWriteContract, useWaitForTransactionReceipt, useReadContract } from 'wagmi'
+import { parseUnits, Address, erc20Abi } from 'viem'
 import { getAssetContractAddresses } from '@/data/market-data'
 import combinedAbi from '@/app/abis/combinedAbi.json'
 import { autoVerifyTransaction } from '@/lib/auto-leaderboard-verifier'
+import { parseAndDecodeError } from '@/lib/compound-errors'
 
 interface UseRedeemTransactionProps {
   assetId: string
@@ -28,14 +29,49 @@ export function useRedeemTransaction({
   const [redeemHash, setRedeemHash] = useState<string | null>(null)
   const [statusMessage, setStatusMessage] = useState<string>('')
 
+  const onErrorRef = useRef(onError);
+  useEffect(() => {
+      onErrorRef.current = onError;
+  });
+
   // Get contract addresses for the asset
   const contractAddresses = chainId ? getAssetContractAddresses(assetId, chainId) : null
+
+  // Read pToken decimals (might be 8 instead of 18)
+  const { data: pTokenDecimals } = useReadContract({
+    address: contractAddresses?.pTokenAddress as `0x${string}`,
+    abi: erc20Abi,
+    functionName: 'decimals',
+    args: [],
+    query: {
+      enabled: !!contractAddresses?.pTokenAddress,
+    }
+  })
+
+  // Read underlying token decimals (usually 18)
+  const { data: underlyingDecimals } = useReadContract({
+    address: contractAddresses?.underlyingAddress as `0x${string}`,
+    abi: erc20Abi,
+    functionName: 'decimals',
+    args: [],
+    query: {
+      enabled: !!contractAddresses?.underlyingAddress,
+    }
+  })
 
   // Check if we have valid contract addresses
   const canRedeem = contractAddresses && contractAddresses.pTokenAddress
 
-  // Parse amount to proper units (18 decimals for underlying tokens, may be different for pTokens)
-  const parsedAmount = amount ? parseUnits(amount, 18) : BigInt(0)
+  // Use correct decimals based on redeem type
+  const getDecimals = (): number => {
+    if (redeemType === 'pTokens') {
+      return pTokenDecimals || 8 // Default to 8 for pTokens if not available
+    } else {
+      return underlyingDecimals || 18 // Default to 18 for underlying tokens
+    }
+  }
+  
+  const parsedAmount = amount ? parseUnits(amount, getDecimals()) : BigInt(0)
 
   // Write contract hook for redeem transaction
   const { writeContract, isPending, error: writeError, data: redeemData } = useWriteContract()
@@ -79,65 +115,82 @@ export function useRedeemTransaction({
   }, [isTransactionSuccess, redeemHash, onSuccess, address, chainId])
 
   useEffect(() => {
-    if (transactionError) {
-      setStep('error')
-      setError(`Transaction failed: ${transactionError.message}`)
-      onError?.(transactionError)
+    const combinedError = transactionError || writeError;
+    if (combinedError) {
+      const errorObject = combinedError instanceof Error ? combinedError : new Error(String(combinedError))
+      const decodedError = parseAndDecodeError(errorObject.message);
+      (errorObject as any).shortMessage = decodedError;
+      
+      console.error("A redeem error occurred:", errorObject)
+      
+      if (errorObject.message.includes('User rejected')) {
+        setError('Redeem transaction rejected. Please try again.')
+        reset() // Reset state if user rejects
+      } else {
+        setError(`Transaction failed: ${decodedError}`)
+        onErrorRef.current?.(errorObject)
+        setStep('error')
+      }
     }
-  }, [transactionError, onError])
-
-  useEffect(() => {
-    if (writeError) {
-      setStep('error')
-      setError(`Transaction failed: ${writeError.message}`)
-      onError?.(writeError)
-    }
-  }, [writeError, onError])
+  }, [transactionError, writeError])
 
   const executeRedeem = useCallback(async () => {
+    console.log('--- Initiating Redeem Transaction ---');
     if (!address || !contractAddresses || !amount || parsedAmount <= 0) {
-      setError('Invalid parameters for redeem')
-      return
+      const errorMsg = 'Invalid parameters for redeem. Aborting.';
+      console.error(errorMsg, {
+        address,
+        contractAddresses,
+        amount,
+        parsedAmount: parsedAmount.toString(),
+      });
+      setError(errorMsg);
+      return;
     }
 
     try {
       setError(null)
       setStep('redeeming')
       
-      if (redeemType === 'pTokens') {
-        // Redeem specific amount of pTokens
-        setStatusMessage('Redeeming pTokens for underlying tokens...')
+      const decimals = getDecimals()
+      const functionToCall = redeemType === 'pTokens' ? 'redeem' : 'redeemUnderlying';
+      
+      // Debug logging
+      console.log('🔍 REDEEM DEBUG CHECKPOINT');
+      console.log('================================');
+      console.log(`  Asset ID: ${assetId}`);
+      console.log(`  Redeem Type: ${redeemType}`);
+      console.log(`  Function to Call: ${functionToCall}`);
+      console.log('--------------------------------');
+      console.log(`  Input Amount (string): "${amount}"`);
+      console.log(`  pToken Decimals: ${pTokenDecimals || 'N/A'}`);
+      console.log(`  Underlying Decimals: ${underlyingDecimals || 'N/A'}`);
+      console.log(`  Decimals Used for Parsing: ${decimals}`);
+      console.log(`  Parsed Amount (BigInt): ${parsedAmount.toString()}`);
+      console.log('--------------------------------');
+      console.log(`  Target Contract: ${contractAddresses.pTokenAddress}`);
+      console.log(`  User Address: ${address}`);
+      console.log('================================');
+
+      setStatusMessage(`Submitting transaction to ${functionToCall}...`);
+      
+      writeContract({
+        address: contractAddresses.pTokenAddress as Address,
+        abi: combinedAbi,
+        functionName: functionToCall,
+        args: [parsedAmount], 
+      } as any)
         
-        writeContract({
-          address: contractAddresses.pTokenAddress as Address,
-          abi: combinedAbi,
-          functionName: 'redeem',
-          args: [parsedAmount], // Amount of pTokens to redeem
-        } as any)
-        
-        setStatusMessage('Transaction submitted. Waiting for confirmation...')
-        
-      } else {
-        // Redeem pTokens to get specific amount of underlying tokens
-        setStatusMessage('Redeeming for specific underlying amount...')
-        
-        writeContract({
-          address: contractAddresses.pTokenAddress as Address,
-          abi: combinedAbi,
-          functionName: 'redeemUnderlying',
-          args: [parsedAmount], // Amount of underlying tokens to receive
-        } as any)
-        
-        setStatusMessage('Transaction submitted. Waiting for confirmation...')
-      }
+      setStatusMessage('Transaction submitted. Waiting for confirmation...')
 
     } catch (err: any) {
-      console.error('Redeem transaction failed:', err)
+      console.error('💥 Redeem transaction failed during preparation:', err)
       setStep('error')
-      setError(err.message || 'Redeem transaction failed')
-      onError?.(err)
+      const errorMsg = err.message || 'An unexpected error occurred during redeem preparation.';
+      setError(errorMsg);
+      onError?.(new Error(errorMsg));
     }
-  }, [address, contractAddresses, amount, parsedAmount, redeemType, writeContract, onSuccess, onError])
+  }, [address, contractAddresses, assetId, amount, parsedAmount, redeemType, writeContract, pTokenDecimals, underlyingDecimals, getDecimals, onError])
 
   const reset = useCallback(() => {
     setStep('idle')

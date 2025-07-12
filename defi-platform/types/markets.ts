@@ -18,6 +18,7 @@ export type Asset = {
   maxLTV?: number
   oraclePrice?: number
   hasSmartContract?: boolean
+  decimals?: number
 }
 
 // Easy Mode types

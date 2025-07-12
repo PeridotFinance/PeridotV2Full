@@ -9,8 +9,7 @@ import { headers } from 'next/headers'
 import ContextProvider from '@/context'
 import { Toaster } from "@/components/ui/toaster"
 import { PostHogProvider } from './providers'
-import { StagewiseToolbar } from '@stagewise/toolbar-next'
-import { ReactPlugin } from '@stagewise-plugins/react'
+import { DevelopmentTools } from "@/components/development-tools"
 
 // Load Poppins font with multiple weights
 const poppins = Poppins({
@@ -57,6 +56,7 @@ export const generateViewport = (): Viewport => {
   }
 }
 
+
 export default async function RootLayout({
   children
 }: Readonly<{
@@ -80,13 +80,7 @@ export default async function RootLayout({
                 <SiteFooter />
                 <Toaster />
               </div>
-              {process.env.NODE_ENV === 'development' && (
-                <StagewiseToolbar 
-                  config={{
-                    plugins: [ReactPlugin]
-                  }}
-                />
-              )}
+              <DevelopmentTools />
             </ThemeProvider>
           </ContextProvider>
         </PostHogProvider>

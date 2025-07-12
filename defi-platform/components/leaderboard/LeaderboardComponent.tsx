@@ -7,6 +7,10 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { getChainConfig } from '@/config/contracts'
+import { useDailyLogin } from '@/hooks/use-daily-login'
+import { DailyLoginPopup } from '@/components/ui/daily-login-popup'
+import { useAccount } from 'wagmi'
 
 interface LeaderboardUser {
   wallet_address: string
@@ -26,6 +30,7 @@ interface VerifiedTransaction {
   usd_value: number
   points_awarded: number
   verified_at: string
+  chain_id: number
 }
 
 interface LeaderboardStats {
@@ -39,6 +44,7 @@ interface LeaderboardStats {
 }
 
 export default function LeaderboardComponent() {
+  const { address } = useAccount()
   const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([])
   const [userStats, setUserStats] = useState<LeaderboardUser | null>(null)
   const [userTransactions, setUserTransactions] = useState<VerifiedTransaction[]>([])
@@ -46,6 +52,14 @@ export default function LeaderboardComponent() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+  
+  // Daily login system
+  const {
+    showPopup,
+    lastClaimResult,
+    closePopup,
+    loginStreak
+  } = useDailyLogin()
   
   // Transaction verification form
   const [txHash, setTxHash] = useState('')
@@ -144,6 +158,12 @@ export default function LeaderboardComponent() {
   useEffect(() => {
     loadLeaderboard()
   }, [])
+
+  // Helper function to get chain name from chain ID
+  const getChainName = (chainId: number): string => {
+    const config = getChainConfig(chainId)
+    return config?.chainNameReadable || `Chain ${chainId}`
+  }
 
   const chainNames: { [key: string]: string } = {
     '421614': 'Arbitrum Sepolia',
@@ -384,6 +404,10 @@ export default function LeaderboardComponent() {
                               <div className="text-sm text-muted-foreground">
                                 {parseFloat(tx.amount).toFixed(4)} {tx.token_symbol}
                                 {tx.usd_value && ` ($${tx.usd_value.toFixed(2)})`}
+                                <br />
+                                <span className="text-blue-600 font-medium">
+                                  {getChainName(tx.chain_id)}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -405,6 +429,16 @@ export default function LeaderboardComponent() {
           </Card>
         </TabsContent>
       </Tabs>
+      
+      {/* Daily Login Popup */}
+      <DailyLoginPopup
+        isOpen={showPopup}
+        onClose={closePopup}
+        points={lastClaimResult?.points || 20}
+        loginStreak={lastClaimResult?.loginStreak || loginStreak}
+        isNewUser={lastClaimResult?.isNewUser || false}
+        userName={address}
+      />
     </div>
   )
 } 

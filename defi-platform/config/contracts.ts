@@ -108,15 +108,18 @@ export const monadTestnetContracts = {
   pErc20DelegateImpl: "0xECdF5834016e605d9E6Ff36bd2a1e3f7f189A140",
   
   // pToken delegator proxies (main contracts to interact with)
-  pUSDCDelegatorProxy: "0x46de2583b5CCC7C8169608f5cA168389f1e4b5b9",
+  pUSDCDelegatorProxy: "0xA72b43Bd60E5a9a13B99d0bDbEd36a9041269246",
   pWMONDelegatorProxy: "0x8b5055bff2f35FE6d4C84585901A4FeF9803aabe",
-  pUSDTDelegatorProxy: "0x8547F1e3B77b9585247a1b9a605Fe3297F975a00",
+  pUSDTDelegatorProxy: "0xa568bD70068A940910d04117c36Ab1A0225FD140",
   pLINKDelegatorProxy: "0x06827a2dB9047219b3989E926e811808233C95AC",
+  pPDTDelegatorProxy: "0xF73e2d1B5C7fe43351212f6559DabB32da71F237",
   
   // pToken delegate implementations
+  pUSDCDelegate: "0xAb39F3822a1e71505c23334e9C8933e061806385", // Placeholder
   pWMONDelegate: "0x72ca55dF01A84a78c24D07Aea3eEc857FA5fdcc8",
   pUSDTDelegate: "0xEDdC65ECaF2e67c301a01fDc1da6805084f621D0",
   pLINKDelegate: "0x58Ca60610Bf8962d01fc275452F5fA9179940CC9",
+  pPDTDelegate: "0xaCD0736723BE61f223Ffa37077f2dec0Fb8ceDBC",
   
   // Underlying token contracts
   tokens: {
@@ -131,24 +134,53 @@ export const monadTestnetContracts = {
   // Market mappings for easy access
   markets: {
     USDC: {
-      pToken: "0x46de2583b5CCC7C8169608f5cA168389f1e4b5b9",
+      pToken: "0xA72b43Bd60E5a9a13B99d0bDbEd36a9041269246",
       underlying: "0xf817257fed379853cDe0fa4F97AB987181B1E5Ea",
-      symbol: "pUSDC"
+      symbol: "pUSDC",
+      name: "Peridot USDC",
+      decimals: 6,
     },
     WMON: {
       pToken: "0x8b5055bff2f35FE6d4C84585901A4FeF9803aabe",
       underlying: "0x760AfE86e5de5fa0Ee542fc7B7B713e1c5425701",
-      symbol: "pWMON"
+      symbol: "pWMON",
+      name: "Peridot WMON",
+      decimals: 18,
     },
     USDT: {
-      pToken: "0x8547F1e3B77b9585247a1b9a605Fe3297F975a00",
+      pToken: "0xa568bD70068A940910d04117c36Ab1A0225FD140",
       underlying: "0x88b8E2161DEDC77EF4ab7585569D2415a1C1055D",
-      symbol: "pUSDT"
+      symbol: "pUSDT",
+      name: "Peridot USDT",
+      decimals: 6,
     },
     LINK: {
       pToken: "0x06827a2dB9047219b3989E926e811808233C95AC",
       underlying: "0x6fE981Dbd557f81ff66836af0932cba535Cbc343",
-      symbol: "pLINK"
+      symbol: "pLINK",
+      name: "Peridot LINK",
+      decimals: 18,
+    },
+    PDT: {
+      pToken: "0xF73e2d1B5C7fe43351212f6559DabB32da71F237", // Using peridotToken address as placeholder
+      underlying: "0xaCD0736723BE61f223Ffa37077f2dec0Fb8ceDBC",
+      symbol: "pPDT",
+      name: "Peridot PDT",
+      decimals: 18,
+    },
+    WETH: {
+      pToken: "0xd3167fBADd8Eac1b1b60A5adfCF504d15dC56005",
+      underlying: "0xB5a30b0FDc5EA94A52fDc42e3E9760Cb8449Fb37",
+      symbol: "pWETH",
+      name: "Peridot WETH",
+      decimals: 18,
+    },
+    WBTC: {
+      pToken: "0x8f11d42EeaA6B454A040c2390501AFE16D150eB4",
+      underlying: "0xcf5a6076cfa32686c0Df13aBaDa2b40dec133F1d",
+      symbol: "pWBTC",
+      name: "Peridot WBTC",
+      decimals: 8,
     }
   }
 };
@@ -199,6 +231,14 @@ export const bscTestnetContracts = {
       underlying: "0xa41D586530BC7BC872095950aE03a780d5114445",
       symbol: "pPUSD",
       name: "Peridot PUSD",
+      decimals: 8,
+      initialExchangeRateMantissa: "20000000000000000"
+    },
+    PDT: {
+      pToken: "0xB911C192ed1d6428A12F2Cf8F636B00c34e68a2a", // Using peridotToken address as placeholder
+      underlying: "0xB911C192ed1d6428A12F2Cf8F636B00c34e68a2a",
+      symbol: "pPDT",
+      name: "Peridot PDT",
       decimals: 8,
       initialExchangeRateMantissa: "20000000000000000"
     }

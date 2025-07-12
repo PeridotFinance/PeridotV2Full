@@ -10,7 +10,11 @@ import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import { AssetDropdown } from "./AssetDropdown"
 import { usePTokenBalance } from "@/hooks/use-ptoken-balance"
-import { useAccount } from "wagmi"
+import { useApy } from "@/hooks/use-apy"
+import { useAccount, useReadContract } from "wagmi"
+import { formatUnits } from "viem"
+import { getAssetContractAddresses } from "@/data/market-data"
+import combinedAbi from "@/app/abis/combinedAbi.json"
 
 interface CombinedAssetRowProps {
   asset: Asset
@@ -32,7 +36,7 @@ export const CombinedAssetRow = ({
   const [isMounted, setIsMounted] = useState(false)
   const isDark = isMounted && theme === "dark"
   const hasSmartContract = asset.hasSmartContract !== false
-  const { isConnected } = useAccount()
+  const { isConnected, chainId } = useAccount()
 
   // Get pToken balance for assets with smart contracts
   const {
@@ -42,6 +46,49 @@ export const CombinedAssetRow = ({
   } = usePTokenBalance({
     assetId: asset.id,
   })
+
+  // Get live APY data for assets with smart contracts
+  const { 
+    supplyApy: liveSupplyApy, 
+    borrowApy: liveBorrowApy, 
+    isLoading: isApyLoading, 
+    error: apyError 
+  } = useApy({ 
+    assetId: asset.id
+  })
+
+  // Get contract addresses for oracle price fetching
+  const contractAddresses = chainId && hasSmartContract ? getAssetContractAddresses(asset.id, chainId) : null
+
+  // Fetch live oracle price for assets with smart contracts
+  const knownOracleAddress = '0xeAEdaF63CbC1d00cB6C14B5c4DE161d68b7C63A0' // Monad testnet oracle
+  const { data: oraclePrice, isLoading: isOraclePriceLoading } = useReadContract({
+    address: knownOracleAddress as `0x${string}`,
+    abi: combinedAbi,
+    functionName: 'getUnderlyingPrice',
+    args: [contractAddresses?.pTokenAddress!],
+    query: {
+      enabled: !!contractAddresses?.pTokenAddress && chainId === 10143 && hasSmartContract, // Only for Monad testnet with smart contracts
+    }
+  })
+
+  // Calculate live oracle price in USD
+  const liveOraclePrice = oraclePrice 
+    ? parseFloat(formatUnits(BigInt(oraclePrice.toString()), 18))
+    : null
+
+  // Always use live data from smart contracts
+  const displaySupplyApy = hasSmartContract 
+    ? liveSupplyApy 
+    : asset.supplyApy
+  
+  const displayBorrowApy = hasSmartContract 
+    ? liveBorrowApy 
+    : asset.borrowApy
+
+  const displayPrice = hasSmartContract && liveOraclePrice 
+    ? liveOraclePrice 
+    : asset.price
 
   useEffect(() => {
     setIsMounted(true)
@@ -71,10 +118,10 @@ export const CombinedAssetRow = ({
         onClick={handleClick}
         layout
       >
-        <TableCell className="relative whitespace-nowrap pl-4">
-          <div className="flex items-center space-x-3">
+        <TableCell className="relative pl-2 sm:pl-4 pr-2">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <motion.div
-              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center relative overflow-hidden"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center relative overflow-hidden flex-shrink-0"
               whileHover={hasSmartContract ? { scale: 1.05 } : {}}
               transition={{ type: "spring", stiffness: 400, damping: 10 }}
             >
@@ -88,11 +135,11 @@ export const CombinedAssetRow = ({
                 className="relative z-10 sm:w-8 sm:h-8"
               />
             </motion.div>
-            <div>
-              <div className="font-medium text-sm sm:text-base flex items-center gap-2">
-                {asset.name}
+            <div className="min-w-0 flex-1">
+              <div className="font-medium text-sm sm:text-base flex items-center gap-1 sm:gap-2 flex-wrap">
+                <span className="truncate">{asset.name}</span>
                 {!hasSmartContract && (
-                  <Badge variant="secondary" className="text-xs px-1 py-0">
+                  <Badge variant="secondary" className="text-xs px-1 py-0 flex-shrink-0">
                     Coming Soon
                   </Badge>
                 )}
@@ -115,33 +162,58 @@ export const CombinedAssetRow = ({
         {/* Desktop: Separate columns for Supply and Borrow APY */}
         <TableCell className="whitespace-nowrap text-center hidden sm:table-cell">
           <div className="flex flex-col items-center">
-            <div className="font-medium text-green-500">{asset.supplyApy}%</div>
+            <div className={`font-medium ${hasSmartContract && isApyLoading ? 'text-gray-400' : 'text-green-500'}`}>
+              {hasSmartContract && isApyLoading ? (
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-xs">Loading...</span>
+                </div>
+              ) : (
+                `${displaySupplyApy.toFixed(2)}%`
+              )}
+            </div>
             <div className="text-xs text-text/60">Supply APY</div>
           </div>
         </TableCell>
 
         <TableCell className="whitespace-nowrap text-center hidden sm:table-cell">
           <div className="flex flex-col items-center">
-            <div className="font-medium text-orange-500">{asset.borrowApy}%</div>
+            <div className={`font-medium ${hasSmartContract && isApyLoading ? 'text-gray-400' : 'text-orange-500'}`}>
+              {hasSmartContract && isApyLoading ? (
+                <div className="flex items-center gap-1">
+                  <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                  <span className="text-xs">Loading...</span>
+                </div>
+              ) : (
+                `${displayBorrowApy.toFixed(2)}%`
+              )}
+            </div>
             <div className="text-xs text-text/60">Borrow APY</div>
           </div>
         </TableCell>
 
         {/* Mobile: Combined APY column */}
-        <TableCell className="whitespace-nowrap text-center sm:hidden">
+        <TableCell className="text-center sm:hidden px-1">
           <div className="flex flex-col items-center space-y-1">
-            <div className="flex items-center space-x-2">
-              <div className="text-xs text-green-500 font-medium">{asset.supplyApy}%</div>
-              <div className="text-xs text-text/60">|</div>
-              <div className="text-xs text-orange-500 font-medium">{asset.borrowApy}%</div>
-            </div>
+            {hasSmartContract && isApyLoading ? (
+              <div className="flex items-center gap-1">
+                <div className="w-3 h-3 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-xs text-gray-400">Loading APY...</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-1">
+                <div className="text-xs text-green-500 font-medium">{displaySupplyApy.toFixed(2)}%</div>
+                <div className="text-xs text-text/60">|</div>
+                <div className="text-xs text-orange-500 font-medium">{displayBorrowApy.toFixed(2)}%</div>
+              </div>
+            )}
             <div className="text-xs text-text/60">Supply | Borrow</div>
           </div>
         </TableCell>
 
-        <TableCell className="whitespace-nowrap text-right">
+        <TableCell className="text-right px-1 sm:px-4">
           <div className="flex flex-col items-end">
-            <div className="font-medium text-sm">
+            <div className="font-medium text-sm truncate max-w-[120px] sm:max-w-none">
               {hasSmartContract && isConnected ? (
                 isBalanceLoading ? (
                   <div className="flex items-center gap-1">
@@ -149,16 +221,16 @@ export const CombinedAssetRow = ({
                     <span className="text-xs text-text/60">Loading...</span>
                   </div>
                 ) : (
-                  `${pTokenBalance} p${asset.symbol}`
+                  `${pTokenBalance} ${asset.symbol}`
                 )
               ) : (
                 asset.wallet
               )}
             </div>
-            <div className="text-xs text-text/60">
+            <div className="text-xs text-text/60 truncate max-w-[120px] sm:max-w-none">
               {hasSmartContract && isConnected ? (
                 hasBalance ? (
-                  `$${((parseFloat(pTokenBalance.replace(/[<,]/g, '')) || 0) * (asset.price || 0)).toLocaleString(undefined, {
+                  `$${((parseFloat(pTokenBalance.replace(/[<,]/g, '')) || 0) * displayPrice).toLocaleString(undefined, {
                     minimumFractionDigits: 2,
                     maximumFractionDigits: 2,
                   })}`
@@ -166,7 +238,7 @@ export const CombinedAssetRow = ({
                   "$0.00"
                 )
               ) : (
-                `$${((parseFloat(asset.wallet.split(" ")[0]) || 0) * (asset.price || 0)).toLocaleString(undefined, {
+                `$${((parseFloat(asset.wallet.split(" ")[0]) || 0) * displayPrice).toLocaleString(undefined, {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}`

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAccount, useWriteContract, useWaitForTransactionReceipt } from 'wagmi'
 import { Address } from 'viem'
 import { getAssetContractAddresses } from '@/data/market-data'
@@ -22,6 +22,11 @@ export function useEnterMarket({
   const [step, setStep] = useState<TransactionStep>('idle')
   const [error, setError] = useState<string | null>(null)
   const [enterMarketHash, setEnterMarketHash] = useState<`0x${string}` | undefined>()
+
+  const onErrorRef = useRef(onError);
+  useEffect(() => {
+      onErrorRef.current = onError;
+  });
 
   // Get contract addresses for the asset
   const contractAddresses = chainId ? getAssetContractAddresses(assetId, chainId) : null
@@ -68,20 +73,21 @@ export function useEnterMarket({
 
   // Handle errors
   useEffect(() => {
-    if (enterMarketError) {
-      setError(`Failed to enable collateral: ${enterMarketError.message}`)
-      setStep('error')
-      onError?.(enterMarketError)
+    const combinedError = enterMarketError || enterMarketReceiptError
+    if (combinedError) {
+      const errorObject = combinedError instanceof Error ? combinedError : new Error(String(combinedError))
+      console.error("An enter market error occurred:", errorObject)
+      
+      if (errorObject.message.includes('User rejected')) {
+        setError('Transaction rejected. Please try again.')
+        reset() // Reset state if user rejects
+      } else {
+        onErrorRef.current?.(errorObject)
+        setError(errorObject.message)
+        setStep('error')
+      }
     }
-  }, [enterMarketError, onError])
-
-  useEffect(() => {
-    if (enterMarketReceiptError) {
-      setError(`Collateral transaction failed: ${enterMarketReceiptError.message}`)
-      setStep('error')
-      onError?.(new Error(enterMarketReceiptError.message))
-    }
-  }, [enterMarketReceiptError, onError])
+  }, [enterMarketError, enterMarketReceiptError])
 
   // Execute enter market transaction
   const executeEnterMarket = async () => {

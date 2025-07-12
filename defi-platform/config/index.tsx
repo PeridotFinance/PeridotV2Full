@@ -3,9 +3,6 @@ import { WagmiAdapter } from '@reown/appkit-adapter-wagmi'
 import {
   mainnet,
   arbitrum,
-  solana,
-  solanaTestnet,
-  solanaDevnet,
   monadTestnet,
   bscTestnet,
 } from "@reown/appkit/networks"
@@ -32,18 +29,15 @@ if (!projectId) {
   throw new Error('Project ID is not defined in .env.local')
 }
 
-// Reorder networks to prioritize EVM networks, which helps with network detection
+// Reorder networks to prioritize Monad Testnet first, which helps with network detection
 export const networks = [
-  // EVM networks first (most common for DeFi)
+  // Monad testnet first (primary network for this platform)
+  monadTestnet,
+  // Other EVM networks
   mainnet, 
   arbitrum, 
-  monadTestnet,
   bscTestnet,
   xdcTestnet,
-  // Solana networks after EVM
-  solana, 
-  solanaTestnet, 
-  solanaDevnet,
 ]
 
 // Set up the Wagmi Adapter (Config)

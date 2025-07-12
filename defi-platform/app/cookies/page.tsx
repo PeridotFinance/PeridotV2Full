@@ -26,7 +26,7 @@ export default function CookiesPolicyPage() {
           <p>
             Welcome to Peridot! This Cookie Policy explains how we use cookies
             and similar technologies to recognize you when you visit our
-            website at [Your Website URL] ("Website"). It explains what these
+            website at peridot.finance ("Website"). It explains what these
             technologies are and why we use them, as well as your rights to
             control our use of them.
           </p>
@@ -104,7 +104,7 @@ export default function CookiesPolicyPage() {
           </p>
           <ul>
             <li>
-              <strong>Google Analytics:</strong> We may use Google Analytics
+              <strong>Google Analytics & Posthog:</strong> We may use Google Analytics and Posthog
               to collect information about your use of the Website. This
               information is used to compile reports and to help us improve
               the Website. The cookies collect information in an anonymous
@@ -191,7 +191,7 @@ export default function CookiesPolicyPage() {
           </h2>
           <p>
             If you have any questions about our use of cookies or other
-            technologies, please email us at [Your Contact Email Address].
+            technologies, please email us at hello@peridot.finance.
           </p>
 
           <p className="mt-12">

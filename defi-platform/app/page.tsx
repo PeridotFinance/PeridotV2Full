@@ -26,38 +26,12 @@ import {
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { SubscribePopup } from "@/components/SubscribePopup"
-import dynamic from "next/dynamic" // Added import for dynamic
 import { CookieConsentBanner } from "@/components/CookieConsentBanner"
 
-// Dynamically import SubscribePopup
-const DynamicSubscribePopup = dynamic(() => import("@/components/SubscribePopup").then(mod => mod.SubscribePopup), {
-  loading: () => <p>Loading...</p>, // Optional loading component
-  ssr: false // Disable server-side rendering for this component if it's client-side only
-})
-
-// Dynamically import FeaturesSection
-const DynamicFeaturesSection = dynamic(() => import("@/components/landing/FeaturesSection").then(mod => mod.FeaturesSection), {
-  loading: () => <p>Loading section...</p>,
-  ssr: false
-})
-
-// Dynamically import HowItWorksSection
-const DynamicHowItWorksSection = dynamic(() => import("@/components/landing/HowItWorksSection").then(mod => mod.HowItWorksSection), {
-  loading: () => <p>Loading section...</p>,
-  ssr: false
-})
-
-// Dynamically import FAQSection
-const DynamicFAQSection = dynamic(() => import("@/components/landing/FAQSection").then(mod => mod.FAQSection), {
-  loading: () => <p>Loading section...</p>,
-  ssr: false
-})
-
-// Dynamically import CTASection
-const DynamicCTASection = dynamic(() => import("@/components/landing/CTASection").then(mod => mod.CTASection), {
-  loading: () => <p>Loading section...</p>,
-  ssr: false
-})
+import { FeaturesSection } from "@/components/landing/FeaturesSection"
+import { HowItWorksSection } from "@/components/landing/HowItWorksSection"
+import { FAQSection } from "@/components/landing/FAQSection"
+import { CTASection } from "@/components/landing/CTASection"
 
 
 // Optimized parallax text effect
@@ -185,12 +159,13 @@ const IsomorphicText = ({
 }) => {
   const { isLowPerfDevice } = useReducedMotion()
   const isMobile = useMobile()
-  const letters = text.split("")
 
   // For low performance devices, render static text
   if (isLowPerfDevice) {
     return <div className={cn("relative", className)}>{text}</div>
   }
+
+  const letters = text.split("")
 
   return (
     <div className={cn("relative", className)}>
@@ -222,6 +197,183 @@ const IsomorphicText = ({
   )
 }
 
+// Sinus Wave Background Component - Modern Peridot Edition
+const SinusWave = () => {
+  const { isLowPerfDevice } = useReducedMotion()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  // Generate a single wave path
+  const generateWavePath = (amplitude: number, frequency: number, phase: number) => {
+    const points = []
+    const steps = 100
+    
+    for (let i = 0; i <= steps; i++) {
+      const y = (i / steps) * 100
+      const x = 50 + amplitude * Math.sin((y / 50) * frequency * Math.PI + phase)
+      points.push(`${x.toFixed(2)},${y.toFixed(2)}`)
+    }
+    
+    return `M ${points.join(' L ')}`
+  }
+
+  // Pre-generate animation frames for waves
+  const waveAnimationFrames = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return {
+        wave1: [generateWavePath(20, 2, 0)],
+        wave2: [generateWavePath(15, 2.5, 0)],
+        wave3: [generateWavePath(12, 3, 0)],
+        wave4: [generateWavePath(5, 4, 0)],
+      };
+    }
+    
+    const frames: { wave1: string[], wave2: string[], wave3: string[], wave4: string[] } = { wave1: [], wave2: [], wave3: [], wave4: [] }
+    const numFrames = 120
+    
+    for(let i = 0; i < numFrames; i++) {
+      const phase = (i / numFrames) * 2 * Math.PI
+      frames.wave1.push(generateWavePath(22, 2.0, phase))
+      frames.wave2.push(generateWavePath(18, 2.5, phase + Math.PI / 2))
+      frames.wave3.push(generateWavePath(15, 3.0, phase + Math.PI))
+      frames.wave4.push(generateWavePath(10, 4, phase + Math.PI * 1.5))
+    }
+    return frames
+  }, [])
+
+  // Generate random particles for the "3D Orbs" effect
+  const particles = useMemo(() => 
+    Array.from({ length: 25 }).map(() => ({ // Fewer, more prominent orbs
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 2.5 + 1, // Larger orbs
+      duration: Math.random() * 15 + 15, // Slower, more ambient
+      delay: Math.random() * -25, // Start at random points in the animation
+    }))
+  , [])
+
+  // Skip on low performance devices or before mounting
+  if (isLowPerfDevice || !mounted) return null
+
+  return (
+    <div className="fixed top-0 right-0 h-full w-24 md:w-48 pointer-events-none z-0 overflow-hidden">
+      {/* Darker glass background */}
+      <div className="absolute inset-0 bg-gradient-to-l from-gray-900/20 via-gray-900/10 to-transparent backdrop-blur-xl" />
+      
+      {/* Cyber grid with Peridot Green */}
+      <div className="absolute inset-0 opacity-[0.07]" style={{
+        backgroundImage: 'linear-gradient(rgba(127, 183, 113, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(127, 183, 113, 0.15) 1px, transparent 1px)',
+        backgroundSize: '40px 40px',
+        maskImage: 'radial-gradient(ellipse at center, white 10%, transparent 70%)'
+      }} />
+
+      {/* Animated sinus waves */}
+      <svg 
+        className="absolute inset-0 w-full h-full"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient id="liquidMetalGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.5" />
+            <stop offset="50%" stopColor="#A0A0A0" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.5" />
+          </linearGradient>
+          <filter id="greenGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
+            <feFlood floodColor="rgba(127, 183, 113, 0.4)" result="color" />
+            <feComposite in="color" in2="blur" operator="in" result="glow" />
+            <feMerge>
+              <feMergeNode in="glow" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <radialGradient id="orbGradient" cx="30%" cy="30%" r="70%">
+            <stop offset="0%" stopColor="rgba(255,255,255,0.6)" />
+            <stop offset="50%" stopColor="rgba(127, 183, 113, 0.5)" />
+            <stop offset="100%" stopColor="rgba(80, 130, 70, 0.3)" />
+          </radialGradient>
+          <filter id="orbBlur">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="0.4" />
+          </filter>
+        </defs>
+
+        {/* Main liquid metal wave with green glow */}
+        <motion.path
+          d={waveAnimationFrames.wave1[0]}
+          stroke="url(#liquidMetalGradient)"
+          strokeWidth="1.5"
+          fill="none"
+          filter="url(#greenGlow)"
+          animate={{ d: waveAnimationFrames.wave1 }}
+          transition={{ 
+            duration: 12, 
+            repeat: Infinity, 
+            ease: "linear"
+          }}
+        />
+        
+        {/* Secondary Peridot Green wave */}
+        <motion.path
+          d={waveAnimationFrames.wave2[0]}
+          stroke="rgba(127, 183, 113, 0.2)"
+          strokeWidth="1"
+          fill="none"
+          animate={{ d: waveAnimationFrames.wave2 }}
+          transition={{ 
+            duration: 18, 
+            repeat: Infinity, 
+            ease: "linear"
+          }}
+        />
+        
+        {/* Fast Peridot noise wave */}
+        <motion.path
+          d={waveAnimationFrames.wave4[0]}
+          stroke="rgba(127, 183, 113, 0.15)"
+          strokeWidth="0.5"
+          fill="none"
+          strokeDasharray="1 5" // More subtle dash
+          animate={{ d: waveAnimationFrames.wave4 }}
+          transition={{ 
+            duration: 8, 
+            repeat: Infinity, 
+            ease: "linear"
+          }}
+        />
+
+        {/* Shiny 3D Orbs */}
+        {particles.map((p, i) => (
+          <motion.circle
+            key={i}
+            cx={p.x}
+            r={p.size}
+            fill="url(#orbGradient)"
+            filter="url(#orbBlur)"
+            initial={{ cy: p.y, opacity: 0 }}
+            animate={{ 
+              cy: [p.y, -10],
+              opacity: [0, 0.6, 0] // Fade in and out to be transparent
+            }}
+            transition={{
+              duration: p.duration,
+              repeat: Infinity,
+              ease: "linear",
+              delay: p.delay
+            }}
+          />
+        ))}
+      </svg>
+      
+      {/* Final overlay for a modern, high-energy effect */}
+      <div className="absolute inset-0 bg-gradient-to-l from-black/5 to-transparent mix-blend-color-dodge" />
+    </div>
+  )
+}
+
 // Simplified magnetic button effect
 interface MagneticButtonProps {
   children: React.ReactNode;
@@ -232,7 +384,7 @@ interface MagneticButtonProps {
 const MagneticButton = ({ children, className = "", ...props }: MagneticButtonProps) => {
   const { isLowPerfDevice } = useReducedMotion()
 
-  // Skip animation on low performance devices
+  // Skip animation on low performance devices only
   if (isLowPerfDevice) {
     return (
       <div className={cn("relative", className)} {...props}>
@@ -810,6 +962,7 @@ export default function Home() {
       localStorage.setItem('disableParallax', (!disableParallax).toString());
     }
   }, [disableParallax]);
+
   // Existing useEffect for popup
   useEffect(() => {
     const timer = setTimeout(() => setShowPopup(true), 15000);
@@ -912,15 +1065,18 @@ export default function Home() {
     );
   }, [backgroundX, backgroundY, isLowPerfDevice, disableParallax]);
 
+
+
   return (
     <div className="flex flex-col min-h-screen">
-
-      
       {/* Cookie Consent Banner */}
       <CookieConsentBanner />
 
       {/* Subscribe Popup */}
-      <DynamicSubscribePopup />
+      <SubscribePopup />
+      
+      {/* Sinus Wave Background */}
+      <SinusWave />
       
       {/* Hero Section */}
       <motion.section
@@ -1049,18 +1205,28 @@ export default function Home() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
-              className="relative w-full max-w-2xl mx-auto"
+              className="relative w-full max-w-5xl mx-auto"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl blur-2xl opacity-30"></div>
-              <div className="relative bg-card/80 backdrop-blur-sm border border-border/50 rounded-xl p-4 md:p-6 shadow-lg">
-                <div className="text-center mb-6">
-                  <h3 className="text-lg md:text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">
-                    Award-Winning Innovation
-                  </h3>
-                  <p className="text-sm text-text/70">Recognized excellence in DeFi development</p>
+              {/* Glass container with subtle background */}
+              <div className="relative backdrop-blur-sm bg-white/5 dark:bg-black/5 rounded-2xl p-6 md:p-8">
+                {/* Subtle gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 rounded-2xl" />
+                
+                {/* Header */}
+                <div className="relative z-10 text-center mb-8">
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <div className="w-1 h-1 bg-primary rounded-full animate-pulse" />
+                    <div className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+                    <div className="w-1 h-1 bg-primary rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                  </div>
+                  {/*<h3 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent mb-2">*/}
+                  {/*🏆 Award-Winning Innovation*/}
+                  {/*</h3>*/}
+                  <p className="text-sm text-text/70">Some of our winnings:</p>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 md:gap-6">
+                {/* Badges grid with glass effect */}
+                <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
                   {[
                     { src: "/hackathonwins/Group 9554.webp", alt: "Wormhole Hackathon Award", title: "Wormhole", subtitle: "Sidetrack" },
                     { src: "/hackathonwins/Group 9557.webp", alt: "Stellar Kickstarter Award", title: "Stellar", subtitle: "Kickstarter" },
@@ -1073,50 +1239,48 @@ export default function Home() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.6, delay: 0.1 * index }}
                       whileHover={{ 
-                        scale: 1.03,
-                        rotateY: 2,
-                        rotateX: 2,
+                        scale: 1.05,
+                        y: -5,
                       }}
                       className="relative group"
                     >
-                      <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-card to-card/50 p-3 md:p-4 shadow-md hover:shadow-lg transition-all duration-300 border border-border/30 hover:border-primary/30 aspect-square flex flex-col">
-                        {/* Enhanced shadow effect */}
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-lg" />
-                        
+                      {/* Clean container without borders */}
+                      <div className="relative p-2 md:p-3 transition-all duration-500">
                         {/* Badge image */}
-                        <div className="relative z-10 flex-1 flex items-center justify-center">
-                          <Image
-                            src={badge.src}
-                            alt={badge.alt}
-                            width={120}
-                            height={120}
-                            className="w-full h-auto max-h-[80px] md:max-h-[100px] object-contain filter group-hover:brightness-110 transition-all duration-300"
-                            priority={index < 2}
-                          />
+                        <div className="relative z-10 flex items-center justify-center mb-3">
+                          <div className="relative">
+                            <Image
+                              src={badge.src}
+                              alt={badge.alt}
+                              width={200}
+                              height={200}
+                              className="w-full h-auto max-h-[160px] md:max-h-[200px] object-contain filter group-hover:brightness-110 group-hover:saturate-110 transition-all duration-500 drop-shadow-lg"
+                              priority={index < 2}
+                            />
+                            {/* Achievement glow behind image */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 to-orange-400/20 blur-xl opacity-0 group-hover:opacity-60 transition-all duration-500 rounded-full" />
+                          </div>
                         </div>
                         
                         {/* Badge title */}
-                        <div className="relative z-10 text-center mt-2">
-                          <h4 className="text-xs md:text-sm font-semibold text-foreground group-hover:text-primary transition-colors duration-300 leading-tight">
+                        <div className="relative z-10 text-center">
+                          <h4 className="text-sm md:text-base font-bold text-foreground group-hover:text-primary transition-colors duration-300 leading-tight">
                             {badge.title}
                           </h4>
-                          <p className="text-xs text-text/60 mt-0.5">
+                          <p className="text-xs text-text/60 mt-1 group-hover:text-text/80 transition-colors duration-300 font-medium">
                             {badge.subtitle}
                           </p>
                         </div>
-                        
-                        {/* Glowing effect on hover */}
-                        <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-primary/20 to-accent/20 opacity-0 group-hover:opacity-30 blur-xl transition-all duration-300" />
                       </div>
                     </motion.div>
                   ))}
                 </div>
                 
-                {/* Floating decorative elements */}
+                {/* Floating ambient elements */}
                 {!isLowPerfDevice && (
                   <>
-                    <div className="absolute -top-6 -right-6 w-12 h-12 bg-primary/20 rounded-full blur-xl animate-pulse" />
-                    <div className="absolute -bottom-8 -left-8 w-16 h-16 bg-accent/20 rounded-full blur-xl animate-pulse" />
+                    <div className="absolute -top-8 -right-8 w-16 h-16 bg-primary/10 rounded-full blur-2xl animate-pulse" />
+                    <div className="absolute -bottom-8 -left-8 w-20 h-20 bg-accent/10 rounded-full blur-2xl animate-pulse" />
                   </>
                 )}
               </div>
@@ -1163,16 +1327,16 @@ export default function Home() {
 
       {/* Rest of the page content - optimized for performance */}
       {/* Features Section */}
-      <DynamicFeaturesSection />
+      <FeaturesSection />
 
       {/* How It Works Section */}
-      <DynamicHowItWorksSection />
+      <HowItWorksSection />
 
       {/* FAQ Section */}
-      <DynamicFAQSection />
+      <FAQSection />
 
       {/* CTA Section */}
-      <DynamicCTASection />
+      <CTASection />
 
     </div>
   )

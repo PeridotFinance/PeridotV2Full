@@ -86,21 +86,51 @@ const FeatureCard = ({ icon: Icon, title, description, delay = 0 }: FeatureCardP
             "relative flex-shrink-0",
             isMobile ? "mb-0" : "mb-4"
           )}>
-            <motion.div
-              className={cn(
-                "absolute inset-0 bg-primary/20 rounded-lg blur-sm",
-                isMobile ? "opacity-50" : ""
-              )}
-              animate={{
-                scale: [1, 1.1, 1],
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Number.POSITIVE_INFINITY,
-                repeatType: "reverse",
-              }}
-            />
+            {/* Animated sine wave background */}
+            <div className={cn(
+              "absolute inset-0 rounded-lg overflow-hidden",
+              isMobile ? "opacity-50" : ""
+            )}>
+              <svg 
+                className="absolute inset-0 w-full h-full" 
+                viewBox="0 0 100 100" 
+                preserveAspectRatio="none"
+              >
+                <motion.path
+                  d="M0,50 Q25,20 50,50 T100,50 L100,100 L0,100 Z"
+                  fill="rgba(98, 163, 82, 0.15)"
+                  animate={{
+                    d: [
+                      "M0,50 Q25,20 50,50 T100,50 L100,100 L0,100 Z",
+                      "M0,50 Q25,80 50,50 T100,50 L100,100 L0,100 Z",
+                      "M0,50 Q25,20 50,50 T100,50 L100,100 L0,100 Z"
+                    ]
+                  }}
+                  transition={{
+                    duration: 2.5 + (delay || 0) * 0.5,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "easeInOut"
+                  }}
+                />
+                <motion.path
+                  d="M0,60 Q25,30 50,60 T100,60 L100,100 L0,100 Z"
+                  fill="rgba(98, 163, 82, 0.1)"
+                  animate={{
+                    d: [
+                      "M0,60 Q25,30 50,60 T100,60 L100,100 L0,100 Z",
+                      "M0,60 Q25,90 50,60 T100,60 L100,100 L0,100 Z", 
+                      "M0,60 Q25,30 50,60 T100,60 L100,100 L0,100 Z"
+                    ]
+                  }}
+                  transition={{
+                    duration: 3.2 + (delay || 0) * 0.7,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "easeInOut",
+                    delay: 0.5
+                  }}
+                />
+              </svg>
+            </div>
             <motion.div
               className={cn(
                 "relative z-10 text-primary flex items-center justify-center bg-primary/10 rounded-lg",

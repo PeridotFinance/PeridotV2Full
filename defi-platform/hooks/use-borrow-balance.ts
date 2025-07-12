@@ -2,6 +2,7 @@ import { useAccount, useReadContract } from 'wagmi'
 import { formatUnits } from 'viem'
 import { getAssetContractAddresses } from '@/data/market-data'
 import combinedAbi from '@/app/abis/combinedAbi.json'
+import { useCallback, useMemo } from 'react'
 
 interface UseBorrowBalanceProps {
   assetId: string
@@ -51,7 +52,9 @@ export function useBorrowBalance({ assetId }: UseBorrowBalanceProps) {
     const numericBalance = parseFloat(formattedBalance)
     
     if (numericBalance === 0) return '0.00'
-    if (numericBalance < 0.01) return '< 0.01'
+    if (numericBalance < 0.01) {
+      return parseFloat(numericBalance.toPrecision(4)).toString()
+    }
     
     return numericBalance.toLocaleString(undefined, {
       minimumFractionDigits: 2,
@@ -59,10 +62,14 @@ export function useBorrowBalance({ assetId }: UseBorrowBalanceProps) {
     })
   }
 
+  const formattedBalance = useMemo(() => {
+    return formatBalance(borrowBalance as bigint, 18)
+  }, [borrowBalance, formatBalance])
+
   return {
     borrowBalance,
     borrowRate,
-    formattedBalance: formatBalance(borrowBalance as bigint),
+    formattedBalance,
     isLoading,
     error,
     refetch,

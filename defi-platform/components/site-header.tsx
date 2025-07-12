@@ -7,10 +7,12 @@ import { usePathname } from "next/navigation"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { useReducedMotion } from "@/lib/use-reduced-motion"
-import { Menu, X } from "lucide-react"
+import { Menu, X, RefreshCw } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useTheme } from "next-themes"
 import { CSSProperties } from "react"
+import { ConnectWalletButton } from "./wallet/connect-wallet-button"
+import { NetworkSwitcher } from "./ui/network-switcher"
 
 export function SiteHeader() {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -34,6 +36,10 @@ export function SiteHeader() {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
   }
+
+  const handleRefresh = () => {
+    window.dispatchEvent(new CustomEvent('custom:refresh'));
+  };
 
   // Remove animation initially for better iOS compatibility
   const headerVariants = {
@@ -100,16 +106,6 @@ export function SiteHeader() {
       return (
         <>
           <Link 
-            href="/" 
-            className={`transition-colors ${
-              pathname === "/" 
-                ? "text-primary font-medium" 
-                : "text-text/80 hover:text-primary"
-            }`}
-          >
-            Home
-          </Link>
-          <Link 
             href="/app/bridge" 
             className={`transition-colors ${
               pathname === "/app/bridge" 
@@ -118,6 +114,16 @@ export function SiteHeader() {
             }`}
           >
             Bridge
+          </Link>
+          <Link 
+            href="/app" 
+            className={`transition-colors ${
+              pathname === "/app" 
+                ? "text-primary font-medium" 
+                : "text-text/80 hover:text-primary"
+            }`}
+          >
+            App
           </Link>
           <Link 
             href="/app/leaderboard" 
@@ -270,27 +276,42 @@ export function SiteHeader() {
           </motion.div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-6 text-sm">
             {renderNavLinks()}
           </nav>
 
+          {/* Desktop Controls */}
           <div className="hidden md:flex items-center space-x-4">
+            {isAppRoute && (
+              <>
+                <Button variant="outline" size="sm" onClick={handleRefresh} className="h-9 px-3">
+                  <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> 
+                  <span className="text-xs">Refresh</span>
+                </Button>
+                <NetworkSwitcher onNetworkChange={() => {}} />
+                <ConnectWalletButton />
+              </>
+            )}
+            {!isAppRoute && (
+              <Link href="/app">
+                <Button>Launch App</Button>
+              </Link>
+            )}
             <ThemeToggle />
-
-            <Button asChild size="sm" className="bg-primary text-background hover:bg-primary/90 rounded-xl">
-              <Link href="/app">Launch App</Link>
-            </Button>
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="flex md:hidden">
-            <button
+          <div className="flex md:hidden items-center">
+            <ThemeToggle />
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={toggleMenu}
-              className="text-text/80 hover:text-primary transition-colors p-2 rounded-lg hover:bg-background/50"
-              aria-label={isMenuOpen ? "Close menu" : "Open menu"}
+              aria-label="Toggle Menu"
+              className="ml-2"
             >
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+              {isMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </Button>
           </div>
         </div>
       </div>
@@ -309,21 +330,26 @@ export function SiteHeader() {
           transition={{ duration: 0.3 }}
           style={mobileMenuStyle}
         >
-          <div className="container mx-auto px-4 py-4">
-            <nav className="flex flex-col space-y-4">
-              {renderMobileNavLinks()}
-              <div className="flex flex-col space-y-2 pt-2">
-                <div className="flex justify-start py-2">
-                  <ThemeToggle />
+          <div className="flex flex-col space-y-4 pt-4">
+            {renderMobileNavLinks()}
+          </div>
+          <div className="border-t border-white/10 mt-6 pt-6">
+            {isAppRoute ? (
+              <div className="space-y-4">
+                <ConnectWalletButton className="w-full" />
+                <div className="flex items-center gap-4">
+                  <Button variant="outline" size="sm" onClick={handleRefresh} className="h-9 px-3 flex-1">
+                    <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> 
+                    <span className="text-xs">Refresh</span>
+                  </Button>
+                  <NetworkSwitcher onNetworkChange={() => {}} />
                 </div>
-
-                <Button asChild size="sm" className="bg-primary text-background hover:bg-primary/90 rounded-xl w-full">
-                  <Link href="/app" onClick={() => setIsMenuOpen(false)}>
-                    Launch App
-                  </Link>
-                </Button>
               </div>
-            </nav>
+            ) : (
+              <Link href="/app" className="w-full">
+                <Button className="w-full">Launch App</Button>
+              </Link>
+            )}
           </div>
         </motion.div>
       )}

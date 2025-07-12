@@ -37,6 +37,20 @@ export interface VerifiedTransaction {
   contract_address: string
 }
 
+export interface DailyLogin {
+  id?: number
+  wallet_address: string
+  login_date: Date
+  points_awarded: number
+  created_at?: Date
+}
+
+export interface DailyLoginResult {
+  awarded: boolean
+  points: number
+  message: string
+}
+
 // Database operations for leaderboard
 export class LeaderboardDB {
   // Get user by wallet address
@@ -46,7 +60,7 @@ export class LeaderboardDB {
         SELECT * FROM leaderboard_users 
         WHERE wallet_address = ${walletAddress.toLowerCase()}
       `
-      return users[0] || null
+      return (users as unknown as LeaderboardUser[])[0] || null
     } catch (error) {
       console.error('Error fetching user:', error)
       throw error
@@ -64,7 +78,7 @@ export class LeaderboardDB {
         ORDER BY total_points DESC, created_at ASC
         LIMIT ${limit} OFFSET ${offset}
       `
-      return users as LeaderboardUser[]
+      return users as unknown as LeaderboardUser[]
     } catch (error) {
       console.error('Error fetching leaderboard:', error)
       throw error
@@ -147,7 +161,7 @@ export class LeaderboardDB {
         ORDER BY verified_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `
-      return transactions as VerifiedTransaction[]
+      return transactions as unknown as VerifiedTransaction[]
     } catch (error) {
       console.error('Error fetching user transactions:', error)
       throw error
@@ -183,7 +197,7 @@ export class LeaderboardDB {
         ORDER BY verified_at ASC
         LIMIT ${limit}
       `
-      return transactions as VerifiedTransaction[]
+      return transactions as unknown as VerifiedTransaction[]
     } catch (error) {
       console.error('Error fetching transactions to re-verify:', error)
       throw error
@@ -208,6 +222,88 @@ export class LeaderboardDB {
       return stats[0]
     } catch (error) {
       console.error('Error fetching leaderboard stats:', error)
+      throw error
+    }
+  }
+
+  // Daily Login System Methods
+  
+  // Check if user is eligible for daily login bonus
+  static async isEligibleForDailyLogin(walletAddress: string): Promise<boolean> {
+    try {
+      const result = await sql`
+        SELECT is_eligible_for_daily_login(${walletAddress.toLowerCase()}) as eligible
+      `
+      return result[0]?.eligible || false
+    } catch (error) {
+      console.error('Error checking daily login eligibility:', error)
+      throw error
+    }
+  }
+
+  // Award daily login bonus
+  static async awardDailyLoginBonus(walletAddress: string): Promise<DailyLoginResult> {
+    try {
+      const result = await sql`
+        SELECT * FROM award_daily_login_bonus(${walletAddress.toLowerCase()})
+      `
+      return result[0] as DailyLoginResult
+    } catch (error) {
+      console.error('Error awarding daily login bonus:', error)
+      throw error
+    }
+  }
+
+  // Get user's daily login history
+  static async getUserDailyLogins(
+    walletAddress: string, 
+    limit: number = 30
+  ): Promise<DailyLogin[]> {
+    try {
+      const logins = await sql`
+        SELECT * FROM daily_logins 
+        WHERE wallet_address = ${walletAddress.toLowerCase()}
+        ORDER BY login_date DESC
+        LIMIT ${limit}
+      `
+      return logins as unknown as DailyLogin[]
+    } catch (error) {
+      console.error('Error fetching user daily logins:', error)
+      throw error
+    }
+  }
+
+  // Get user's current login streak
+  static async getUserLoginStreak(walletAddress: string): Promise<number> {
+    try {
+      const result = await sql`
+        SELECT COALESCE(active_streak, 0) as streak
+        FROM user_login_streaks 
+        WHERE wallet_address = ${walletAddress.toLowerCase()}
+      `
+      return result[0]?.streak || 0
+    } catch (error) {
+      console.error('Error fetching user login streak:', error)
+      throw error
+    }
+  }
+
+  // Get daily login stats
+  static async getDailyLoginStats() {
+    try {
+      const stats = await sql`
+        SELECT 
+          COUNT(DISTINCT wallet_address) as total_users_with_logins,
+          COUNT(*) as total_login_days,
+          SUM(points_awarded) as total_login_points,
+          COUNT(CASE WHEN login_date = CURRENT_DATE THEN 1 END) as todays_logins,
+          AVG(COALESCE(active_streak, 0)) as avg_streak
+        FROM daily_logins
+        LEFT JOIN user_login_streaks USING (wallet_address)
+      `
+      return stats[0]
+    } catch (error) {
+      console.error('Error fetching daily login stats:', error)
       throw error
     }
   }

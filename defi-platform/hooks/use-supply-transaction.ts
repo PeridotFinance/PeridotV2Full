@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAccount, useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseUnits, Address, erc20Abi } from 'viem'
-import { getAssetContractAddresses } from '@/data/market-data'
+import { getAssetContractAddresses, getMarketsForChain } from '@/data/market-data'
 import { getChainConfig } from '@/config/contracts'
 import combinedAbi from '@/app/abis/combinedAbi.json'
 import { autoVerifyTransaction } from '@/lib/auto-leaderboard-verifier'
@@ -30,6 +30,15 @@ export function useSupplyTransaction({
   const hasExecutedSupply = useRef(false)
   const hasExecutedEnterMarket = useRef(false)
 
+  const onErrorRef = useRef(onError);
+  useEffect(() => {
+      onErrorRef.current = onError;
+  });
+
+  const allAssets = chainId ? getMarketsForChain(chainId) : [];
+  const asset = allAssets.find(a => a.id === assetId);
+  const underlyingDecimals = asset?.decimals ?? 18;
+
   // Get contract addresses for the asset
   const contractAddresses = chainId ? getAssetContractAddresses(assetId, chainId) : null
   
@@ -40,8 +49,14 @@ export function useSupplyTransaction({
   // Check if we have valid contract addresses
   const canSupply = contractAddresses && contractAddresses.pTokenAddress && contractAddresses.underlyingAddress && controllerAddress
 
-  // Parse amount to proper units (PUSD has 18 decimals like most ERC20s)
-  const parsedAmount = amount ? parseUnits(amount, 18) : BigInt(0)
+  // Clean and parse amount to proper units (always 18 for supply)
+  const cleanAmount = (rawAmount: string): string => {
+    if (!rawAmount) return '0'
+    // Remove commas and any other formatting characters, keep only numbers and decimal point
+    return rawAmount.replace(/[^0-9.]/g, '')
+  }
+  
+  const parsedAmount = amount ? parseUnits(cleanAmount(amount), underlyingDecimals) : BigInt(0)
 
   // Read current allowance of underlying token
   const { data: allowance, refetch: refetchAllowance } = useReadContract({
@@ -209,18 +224,9 @@ export function useSupplyTransaction({
     }
   }, [isApprovalSuccess, step, contractAddresses, executeSupplyMint, refetchAllowance, address])
 
-  // Handle supply success - automatically enter market
+  // Handle supply success - complete without automatic enter market
   useEffect(() => {
-    if (isSupplySuccess && !hasExecutedEnterMarket.current) {
-      hasExecutedEnterMarket.current = true
-      setStep('entering-market')
-      executeEnterMarket()
-    }
-  }, [isSupplySuccess, executeEnterMarket])
-
-  // Handle enter market success - final completion
-  useEffect(() => {
-    if (isEnterMarketSuccess) {
+    if (isSupplySuccess) {
       setStep('success')
       onSuccess?.()
 
@@ -241,63 +247,45 @@ export function useSupplyTransaction({
         })
       }
     }
-  }, [isEnterMarketSuccess, onSuccess, supplyHash, address, chainId])
+  }, [isSupplySuccess, onSuccess, supplyHash, address, chainId])
 
-  // Handle errors
-  useEffect(() => {
-    if (approveError) {
-      setError(`Approval failed: ${approveError.message}`)
-      setStep('error')
-      onError?.(approveError)
-    }
-  }, [approveError, onError])
+  // Note: Enter market is now handled separately via manual user action
 
+  // Handle approval errors
   useEffect(() => {
-    if (supplyError) {
-      const errorMessage = supplyError.message
-      if (errorMessage.includes('not been authorized by the user')) {
-        setError('Wallet authorization required. Please try the manual supply button above or reconnect your wallet.')
-        setStep('approved') // Reset to approved state so user can try manual supply
-        hasExecutedSupply.current = false // Reset flag to allow manual retry
+    const combinedError = approveError || approvalReceiptError
+    if (combinedError) {
+      const errorObject = combinedError instanceof Error ? combinedError : new Error(String(combinedError))
+      console.error("An approval error occurred:", errorObject)
+      
+      if (errorObject.message.includes('User rejected')) {
+        setError('Approval rejected. Please try again.')
+        reset() // Reset state if user rejects
       } else {
-        setError(`Supply failed: ${errorMessage}`)
+        onErrorRef.current?.(errorObject)
+        setError(errorObject.message)
         setStep('error')
       }
-      onError?.(supplyError)
     }
-  }, [supplyError, onError])
+  }, [approveError, approvalReceiptError])
 
+  // Handle supply errors
   useEffect(() => {
-    if (approvalReceiptError) {
-      setError(`Approval transaction failed: ${approvalReceiptError.message}`)
-      setStep('error')
-      onError?.(new Error(approvalReceiptError.message))
+    const combinedError = supplyError || supplyReceiptError
+    if (combinedError) {
+      const errorObject = combinedError instanceof Error ? combinedError : new Error(String(combinedError))
+      console.error("A supply error occurred:", errorObject)
+      
+      if (errorObject.message.includes('User rejected')) {
+        setError('Supply transaction rejected. Please try again.')
+        reset() // Reset state if user rejects
+      } else {
+        onErrorRef.current?.(errorObject)
+        setError(errorObject.message)
+        setStep('error')
+      }
     }
-  }, [approvalReceiptError, onError])
-
-  useEffect(() => {
-    if (supplyReceiptError) {
-      setError(`Supply transaction failed: ${supplyReceiptError.message}`)
-      setStep('error')
-      onError?.(new Error(supplyReceiptError.message))
-    }
-  }, [supplyReceiptError, onError])
-
-  useEffect(() => {
-    if (enterMarketError) {
-      setError(`Failed to enable collateral: ${enterMarketError.message}`)
-      setStep('error')
-      onError?.(enterMarketError)
-    }
-  }, [enterMarketError, onError])
-
-  useEffect(() => {
-    if (enterMarketReceiptError) {
-      setError(`Collateral transaction failed: ${enterMarketReceiptError.message}`)
-      setStep('error')
-      onError?.(new Error(enterMarketReceiptError.message))
-    }
-  }, [enterMarketReceiptError, onError])
+  }, [supplyError, supplyReceiptError])
 
   // Execute approval
   const executeApproval = () => {
@@ -394,7 +382,7 @@ export function useSupplyTransaction({
       case 'entering-market':
         return isEnterMarketPending ? 'Please confirm collateral setup in wallet...' : 'Enabling as collateral...'
       case 'success':
-        return 'Supply successful! Asset enabled as collateral.'
+        return 'Supply successful! You can enable this asset as collateral if needed.'
       case 'error':
         return 'Transaction failed'
       default:

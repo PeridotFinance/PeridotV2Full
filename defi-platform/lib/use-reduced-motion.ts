@@ -7,8 +7,12 @@ import { useEffect, useState } from "react"
 export function useReducedMotion() {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
   const [isLowPerfDevice, setIsLowPerfDevice] = useState(false)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    // Set client flag to prevent hydration mismatch
+    setIsClient(true)
+
     // Check for reduced motion preference
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)")
     setPrefersReducedMotion(mediaQuery.matches)
@@ -31,5 +35,9 @@ export function useReducedMotion() {
     }
   }, [])
 
-  return { prefersReducedMotion, isLowPerfDevice }
+  // Return safe defaults during SSR
+  return { 
+    prefersReducedMotion: isClient ? prefersReducedMotion : false, 
+    isLowPerfDevice: isClient ? isLowPerfDevice : false 
+  }
 }

@@ -99,9 +99,9 @@ export const FAQSection = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3 }}
                 >
-                  To start using Peridot, you need to connect your wallet (such as MetaMask, Phantom, or other
-                  supported wallets) to our platform. Once connected, you can supply assets to earn interest or borrow
-                  against your collateral. Visit our "Launch App" page and click on "Connect Wallet" to get started.
+                  To start using Peridot, hit the launch app button on the top right of the page and connect your wallet.
+                  You can then supply assets to earn interest or borrow against your collateral.
+                  Earn points by interacting with the protocol and climb the leaderboard. (You earn for future rewards)
                 </motion.div>
               </AccordionContent>
             </AccordionItem>
@@ -117,7 +117,7 @@ export const FAQSection = () => {
                   transition={{ duration: 0.3 }}
                 >
                   Peridot currently supports Ethereum, Polygon, Avalanche, Binance Smart Chain, Arbitrum, Optimism,
-                  Solana, and more. We're continuously working to add support for additional blockchains to enhance
+                  Solana (for the bridge) and Monad, XDC and Binance Smart Chain (for the lending and borrowing testnet) . We're continuously working to add support for additional blockchains to enhance
                   cross-chain functionality and provide users with more options.
                 </motion.div>
               </AccordionContent>

@@ -88,7 +88,7 @@ export const combinedMarkets: Asset[] = [
   {
     id: "peridot",
     name: "Peridot",
-    symbol: "PDT",
+    symbol: "$P",
     icon: "/logo.svg",
     supplyApy: 8.64,
     borrowApy: 9.21,
@@ -103,7 +103,7 @@ export const combinedMarkets: Asset[] = [
     liquidationPenalty: 10.0,
     maxLTV: 75.0,
     oraclePrice: 14.86,
-    hasSmartContract: false,
+    hasSmartContract: true,
   },
   {
     id: "stellar",
@@ -163,7 +163,7 @@ export const combinedMarkets: Asset[] = [
     liquidationPenalty: 4.0,
     maxLTV: 85.0,
     oraclePrice: 1.0,
-    hasSmartContract: false,
+    hasSmartContract: true,
   },
   {
     id: "usdt",
@@ -183,7 +183,7 @@ export const combinedMarkets: Asset[] = [
     liquidationPenalty: 4.0,
     maxLTV: 85.0,
     oraclePrice: 1.0,
-    hasSmartContract: false,
+    hasSmartContract: true,
   },
   {
     id: "eth",
@@ -204,6 +204,26 @@ export const combinedMarkets: Asset[] = [
     maxLTV: 80.0,
     oraclePrice: 3521.48,
     hasSmartContract: false,
+  },
+  {
+    id: "link",
+    name: "Chainlink",
+    symbol: "LINK",
+    icon: "/tokenimages/link.png",
+    supplyApy: 4.25,
+    borrowApy: 5.50,
+    wallet: "0 LINK",
+    change24h: 3.45,
+    price: 15.42,
+    marketCap: "$9.8B",
+    volume24h: "$584M",
+    liquidity: "$425K",
+    utilizationRate: 58.2,
+    liquidationThreshold: 80.0,
+    liquidationPenalty: 8.0,
+    maxLTV: 75.0,
+    oraclePrice: 15.42,
+    hasSmartContract: true,
   },
 ]
 
@@ -229,53 +249,52 @@ export const bscTestnetMarkets: Asset[] = [
     oraclePrice: 1.0,
     hasSmartContract: true,
   },
+  {
+    id: "peridot",
+    name: "Peridot (BSC)",
+    symbol: "PDT",
+    icon: "/logo.svg",
+    supplyApy: 8.64,
+    borrowApy: 9.21,
+    wallet: "0 PDT",
+    change24h: 7.21,
+    price: 14.86,
+    marketCap: "$742M",
+    volume24h: "$56.3M",
+    liquidity: "$562K",
+    utilizationRate: 72.3,
+    liquidationThreshold: 80.0,
+    liquidationPenalty: 10.0,
+    maxLTV: 75.0,
+    oraclePrice: 14.86,
+    hasSmartContract: true,
+  },
 ]
 
 // Monad Testnet specific markets
 export const monadTestnetMarkets: Asset[] = [
   {
     id: "usdc",
-    name: "USDC (Monad)",
+    name: "USDC",
     symbol: "USDC",
     icon: "/tokenimages/app/usd-coin-usdc-logo.svg",
-    supplyApy: 2.45,
-    borrowApy: 3.25,
+    supplyApy: 3.5,
+    borrowApy: 4.5,
     wallet: "0 USDC",
-    change24h: 0.01,
+    change24h: 0.0,
     price: 1.0,
-    marketCap: "$28.4B",
-    volume24h: "$2.1B",
-    liquidity: "$2.5M",
-    utilizationRate: 75.3,
-    liquidationThreshold: 90.0,
-    liquidationPenalty: 4.0,
-    maxLTV: 85.0,
+    marketCap: "$25B",
+    volume24h: "$5B",
+    liquidationThreshold: 85.0,
+    liquidationPenalty: 5.0,
+    maxLTV: 80.0,
     oraclePrice: 1.0,
     hasSmartContract: true,
-  },
-  {
-    id: "wmon",
-    name: "Wrapped Monad",
-    symbol: "WMON",
-    icon: "/tokenimages/app/Monad-Logo.svg",
-    supplyApy: 6.85,
-    borrowApy: 8.12,
-    wallet: "0 WMON",
-    change24h: 12.45,
-    price: 2.85,
-    marketCap: "$285M",
-    volume24h: "$45.7M",
-    liquidity: "$187K",
-    utilizationRate: 41.8,
-    liquidationThreshold: 75.0,
-    liquidationPenalty: 12.0,
-    maxLTV: 70.0,
-    oraclePrice: 2.85,
-    hasSmartContract: true,
+    decimals: 6,
   },
   {
     id: "usdt",
-    name: "USDT (Monad)",
+    name: "Tether",
     symbol: "USDT",
     icon: "/tokenimages/app/tether-usdt-logo.svg",
     supplyApy: 2.18,
@@ -285,47 +304,117 @@ export const monadTestnetMarkets: Asset[] = [
     price: 1.0,
     marketCap: "$83.2B",
     volume24h: "$42.5B",
-    liquidity: "$1.2M",
-    utilizationRate: 68.9,
     liquidationThreshold: 90.0,
     liquidationPenalty: 4.0,
     maxLTV: 85.0,
     oraclePrice: 1.0,
     hasSmartContract: true,
+    decimals: 6,
+  },
+  {
+    id: "weth",
+    name: "Wrapped Ether",
+    symbol: "WETH",
+    icon: "/tokenimages/eth.png",
+    supplyApy: 0,
+    borrowApy: 0,
+    wallet: "0 WETH",
+    change24h: 0,
+    price: 0,
+    marketCap: "0",
+    volume24h: "0",
+    liquidity: "0",
+    utilizationRate: 0,
+    liquidationThreshold: 85.0,
+    liquidationPenalty: 5.0,
+    maxLTV: 80.0,
+    oraclePrice: 0,
+    hasSmartContract: true,
+    decimals: 18,
+  },
+  {
+    id: "wbtc",
+    name: "Wrapped BTC",
+    symbol: "WBTC",
+    icon: "/tokenimages/app/bitcoin-btc-logo.svg",
+    supplyApy: 0,
+    borrowApy: 0,
+    wallet: "0 WBTC",
+    change24h: 0,
+    price: 0,
+    marketCap: "0",
+    volume24h: "0",
+    liquidity: "0",
+    utilizationRate: 0,
+    liquidationThreshold: 85.0,
+    liquidationPenalty: 5.0,
+    maxLTV: 80.0,
+    oraclePrice: 0,
+    hasSmartContract: true,
+    decimals: 8,
   },
   {
     id: "link",
-    name: "Chainlink (Monad)",
+    name: "Chainlink",
     symbol: "LINK",
     icon: "/tokenimages/link.png",
-    supplyApy: 4.25,
-    borrowApy: 5.50,
+    supplyApy: 0,
+    borrowApy: 0,
     wallet: "0 LINK",
-    change24h: 3.45,
-    price: 15.42,
-    marketCap: "$9.8B",
-    volume24h: "$584M",
-    liquidity: "$425K",
-    utilizationRate: 58.2,
+    change24h: 0,
+    price: 0,
+    marketCap: "0",
+    volume24h: "0",
+    liquidity: "0",
+    utilizationRate: 0,
     liquidationThreshold: 80.0,
     liquidationPenalty: 8.0,
     maxLTV: 75.0,
-    oraclePrice: 15.42,
+    oraclePrice: 0,
     hasSmartContract: true,
+    decimals: 18,
+  },
+  {
+    id: "peridot",
+    name: "Peridot",
+    symbol: "$P",
+    icon: "/logo.svg",
+    supplyApy: 0,
+    borrowApy: 0,
+    wallet: "0 PDT",
+    change24h: 0,
+    price: 0,
+    marketCap: "0",
+    volume24h: "0",
+    liquidity: "0",
+    utilizationRate: 0,
+    liquidationThreshold: 80.0,
+    liquidationPenalty: 10.0,
+    maxLTV: 75.0,
+    oraclePrice: 0,
+    hasSmartContract: true,
+    decimals: 18,
   },
 ]
 
 // Function to get markets based on chain ID
 export function getMarketsForChain(chainId?: number): Asset[] {
   if (!chainId) {
-    return combinedMarkets.filter(asset => !asset.hasSmartContract); // Show only coming soon markets
+    // When no wallet is connected, show active tokens first, then coming soon tokens
+    const activeTokens = combinedMarkets.filter(asset => 
+      ['usdt', 'usdc', 'link', 'peridot'].includes(asset.id)
+    );
+    const comingSoonTokens = combinedMarkets.filter(asset => 
+      ['sol', 'stellar', 'iota', 'eth'].includes(asset.id)
+    );
+    return [...activeTokens, ...comingSoonTokens];
   }
 
   switch (chainId) {
     case CHAIN_IDS.BSC_TESTNET:
       return bscTestnetMarkets;
     case CHAIN_IDS.MONAD_TESTNET:
-      // For Monad testnet, show only the 4 supported tokens at the top
+      // For Monad testnet, show only the 5 supported tokens at the top
       return monadTestnetMarkets;
     default:
       return combinedMarkets.filter(asset => !asset.hasSmartContract); // Show only coming soon markets
@@ -335,7 +424,14 @@ export function getMarketsForChain(chainId?: number): Asset[] {
 // Function to get all markets with network-specific prioritization
 export function getMarketsWithPrioritization(chainId?: number): Asset[] {
   if (!chainId) {
-    return combinedMarkets.filter(asset => !asset.hasSmartContract);
+    // When no wallet is connected, show active tokens first, then coming soon tokens
+    const activeTokens = combinedMarkets.filter(asset => 
+      ['usdt', 'usdc', 'link', 'peridot'].includes(asset.id)
+    );
+    const comingSoonTokens = combinedMarkets.filter(asset => 
+      ['sol', 'stellar', 'iota', 'eth'].includes(asset.id)
+    );
+    return [...activeTokens, ...comingSoonTokens];
   }
 
   const networkSpecificMarkets = getMarketsForChain(chainId);
@@ -362,30 +458,32 @@ export function getMarketsWithPrioritization(chainId?: number): Asset[] {
 
 // Function to get contract addresses for an asset on a specific chain
 export function getAssetContractAddresses(assetId: string, chainId: number) {
-  const chainConfig = getChainConfig(chainId);
-  if (!chainConfig || !('markets' in chainConfig)) {
-    return null;
+  const chainConfig = getChainConfig(chainId)
+  if (!chainConfig || !("markets" in chainConfig)) {
+    return null
   }
 
-  const markets = chainConfig.markets as any;
-  
+  const markets = chainConfig.markets as any
+
   // Map asset IDs to market keys
   const assetToMarketKey: { [key: string]: string } = {
-    'pusd': 'PUSD',
-    'usdc': 'USDC', 
-    'wmon': 'WMON',
-    'usdt': 'USDT',
-    'link': 'LINK',
-  };
+    pusd: "PUSD",
+    usdc: "USDC",
+    usdt: "USDT",
+    link: "LINK",
+    peridot: "PDT",
+    monad: "WMON",
+    weth: "WETH",
+    wbtc: "WBTC",
+  }
 
-  const marketKey = assetToMarketKey[assetId];
+  const marketKey = assetToMarketKey[assetId]
   if (marketKey && markets[marketKey]) {
     return {
       pTokenAddress: markets[marketKey].pToken,
       underlyingAddress: markets[marketKey].underlying,
-      symbol: markets[marketKey].symbol,
-    };
+    }
   }
 
-  return null;
+  return null
 } 

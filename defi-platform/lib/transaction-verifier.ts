@@ -215,7 +215,7 @@ async function getTokenSymbol(
     // Fallback: look up in our contract config
     if ('markets' in chainConfig) {
       for (const [symbol, market] of Object.entries(chainConfig.markets as any)) {
-        if (market.pToken?.toLowerCase() === contractAddress.toLowerCase()) {
+        if ((market as any).pToken?.toLowerCase() === contractAddress.toLowerCase()) {
           return symbol
         }
       }

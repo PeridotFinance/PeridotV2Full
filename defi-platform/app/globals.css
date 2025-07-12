@@ -222,3 +222,63 @@
   width: 100% !important;
 }
 
+/* Custom Input Field Styles */
+.inputbox {
+  position: relative;
+  width: 100%;
+}
+
+.inputbox input {
+  position: relative;
+  width: 100%;
+  padding: 20px 10px 10px;
+  background: transparent;
+  outline: none;
+  box-shadow: none;
+  border: none;
+  color: hsl(var(--foreground));
+  font-size: 1.5em;
+  font-weight: 600;
+  text-align: center;
+  letter-spacing: 0.05em;
+  transition: 0.5s;
+  z-index: 10;
+}
+
+.inputbox span {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 20px 10px 10px;
+  font-size: 1em;
+  color: hsl(var(--muted-foreground));
+  letter-spacing: 0.05em;
+  transition: 0.5s;
+  pointer-events: none;
+}
+
+.inputbox input:valid ~ span,
+.inputbox input:focus ~ span {
+  color: hsl(var(--primary));
+  transform: translateX(-50%) translateY(-34px);
+  font-size: 0.75em;
+}
+
+.inputbox i {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 2px;
+  background: hsl(var(--primary));
+  border-radius: 4px;
+  transition: 0.5s;
+  pointer-events: none;
+  z-index: 9;
+}
+
+.inputbox input:valid ~ i,
+.inputbox input:focus ~ i {
+  height: 44px;
+}
+

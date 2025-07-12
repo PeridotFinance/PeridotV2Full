@@ -3,13 +3,9 @@
 import { wagmiAdapter, wagmiConfig, projectId, networks } from '@/config'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createAppKit } from '@reown/appkit/react'
-import { SolanaAdapter } from '@reown/appkit-adapter-solana'
 import {
   mainnet,
   arbitrum,
-  solana,
-  solanaTestnet,
-  solanaDevnet,
   monadTestnet,
   bscTestnet,
 } from "@reown/appkit/networks"
@@ -33,22 +29,20 @@ const metadata = {
   icons: typeof window !== 'undefined' ? [`${window.location.origin}/logo.png`] : []
 }
 
-// Create Solana adapter instance
-const solanaWeb3JsAdapter = new SolanaAdapter()
-
 // Create the AppKit modal instance
 createAppKit({
-  adapters: [wagmiAdapter, solanaWeb3JsAdapter],
+  adapters: [wagmiAdapter],
   projectId,
   networks: networks as any,
+  defaultNetwork: monadTestnet,
   metadata: metadata,
   features: {
     analytics: true // Optional - defaults to your Cloud configuration
   },
   themeVariables: {
-    '--w3m-accent': '#5E7945', // Bright green
-    '--w3m-color-mix': '#5E7945',
-    '--w3m-color-mix-strength': 50,
+    '--w3m-accent': '#62a352', // Bright vibrant green
+    '--w3m-color-mix': '#22c55e',
+    '--w3m-color-mix-strength': 40,
   }
 })
 

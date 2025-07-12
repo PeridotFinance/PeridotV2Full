@@ -1,24 +1,31 @@
 "use client"
 
-import { useState } from "react"
-import { motion } from "framer-motion"
+import { useState, useEffect, useMemo } from "react"
+import { motion, AnimatePresence } from "framer-motion"
+import { useTheme } from "next-themes"
+import { cn } from "@/lib/utils"
 import { Asset } from "@/types/markets"
 import { Button } from "@/components/ui/button"
-import { Check, Loader2 } from "lucide-react"
+import { Check, Loader2, TrendingUp, TrendingDown, Wallet, RefreshCw, Info, Shield, ExternalLink } from "lucide-react"
 import Image from "next/image"
 import { useAccount, useReadContract } from "wagmi"
 import { formatUnits } from "viem"
-import { getAssetContractAddresses } from "@/data/market-data"
+import { getAssetContractAddresses, getMarketsForChain } from "@/data/market-data"
 import { getChainConfig } from "@/config/contracts"
 import { useSupplyTransaction } from "@/hooks/use-supply-transaction"
 import { useBorrowTransaction } from "@/hooks/use-borrow-transaction"
 import { useBorrowBalance } from "@/hooks/use-borrow-balance"
 import { useRedeemTransaction } from "@/hooks/use-redeem-transaction"
 import { usePTokenBalance } from "@/hooks/use-ptoken-balance"
+import { useRepayTransaction } from "@/hooks/use-repay-transaction"
 import { useBorrowingPower } from "@/hooks/use-borrowing-power"
 import { useMarketMembership } from "@/hooks/use-market-membership"
 import { useEnterMarket } from "@/hooks/use-enter-market"
-import { BalanceDebugInfo } from "./BalanceDebugInfo"
+import { useWalletBalance } from "@/hooks/use-wallet-balance"
+import { useApy } from "@/hooks/use-apy"
+import { ErrorModal } from "@/components/ui/error-modal"
+import { TokenTooltip } from "@/components/ui/token-tooltip"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import combinedAbi from "@/app/abis/combinedAbi.json"
 
 interface AssetDropdownProps {
@@ -29,6 +36,8 @@ interface AssetDropdownProps {
   isDemoMode: boolean
 }
 
+type ActionTab = 'supply' | 'borrow' | 'manage'
+
 export const AssetDropdown = ({
   asset,
   isOpen,
@@ -36,14 +45,57 @@ export const AssetDropdown = ({
   onTransaction,
   isDemoMode,
 }: AssetDropdownProps) => {
-  const [supplyAmount, setSupplyAmount] = useState("")
-  const [borrowAmount, setBorrowAmount] = useState("")
-  const [redeemAmount, setRedeemAmount] = useState("")
+  const [activeTab, setActiveTab] = useState<ActionTab>('supply')
+  const [amount, setAmount] = useState("")
   const [redeemType, setRedeemType] = useState<'pTokens' | 'underlying'>('underlying')
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [confirmationMessage, setConfirmationMessage] = useState("Transaction Successful!")
+  const [showValuePopup, setShowValuePopup] = useState(false)
+  const [showCollateralTooltip, setShowCollateralTooltip] = useState(false)
+  const [errorModal, setErrorModal] = useState<{isOpen: boolean, message: string, details?: string}>({
+    isOpen: false,
+    message: '',
+    details: undefined,
+  })
+  
+  // Debounce error modal to prevent rapid multiple openings
+  const showErrorModal = (error: Error) => {
+    // Close any existing modal first
+    setErrorModal({ isOpen: false, message: '', details: undefined })
+    
+    // Open new modal after a brief delay to prevent conflicts
+    setTimeout(() => {
+      setErrorModal({
+        isOpen: true,
+        message: error.message || 'An unexpected error occurred',
+        details: error.message || 'No details available',
+      })
+    }, 100)
+  }
   const hasSmartContract = asset.hasSmartContract !== false
+  const { theme } = useTheme()
   
   const { isConnected, chainId } = useAccount()
+
+  // Handle scroll to hide popup
+  useEffect(() => {
+    const handleScroll = () => setShowValuePopup(false)
+    window.addEventListener('scroll', handleScroll)
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Handle clicks outside to hide collateral tooltip
+  useEffect(() => {
+    const handleClickOutside = () => setShowCollateralTooltip(false)
+    if (showCollateralTooltip) {
+      document.addEventListener('click', handleClickOutside)
+      document.addEventListener('touchstart', handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener('click', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
+  }, [showCollateralTooltip])
   
   // Get contract addresses and chain config
   const contractAddresses = chainId ? getAssetContractAddresses(asset.id, chainId) : null
@@ -66,7 +118,12 @@ export const AssetDropdown = ({
   const realOraclePrice = oraclePrice 
     ? parseFloat(formatUnits(BigInt(oraclePrice.toString()), 18))
     : null
-  
+
+  // Calculate dollar value for popup
+  const dollarValue = amount && !isNaN(parseFloat(amount)) 
+    ? parseFloat(amount) * (realOraclePrice || asset.price)
+    : 0
+
   // Use smart contract hook for supply transactions
   const {
     executeSupply,
@@ -82,20 +139,20 @@ export const AssetDropdown = ({
     supplyHash,
   } = useSupplyTransaction({
     assetId: asset.id,
-    amount: supplyAmount,
+    amount: amount,
     onSuccess: () => {
-      const amount = parseFloat(supplyAmount);
-      if (!isNaN(amount) && amount > 0) {
-        onTransaction(asset, amount, "supply");
+      const amountNum = parseFloat(amount);
+      if (!isNaN(amountNum) && amountNum > 0) {
+        onTransaction(asset, amountNum, "supply");
       }
-      setSupplyAmount("");
+      setAmount("");
       setShowConfirmation(true);
       setTimeout(() => setShowConfirmation(false), 3000);
       resetSupply();
     },
     onError: (error) => {
       console.error('Supply transaction failed:', error);
-      // The error is already shown in the UI via the error state
+      showErrorModal(error);
     },
   })
 
@@ -111,20 +168,20 @@ export const AssetDropdown = ({
     borrowHash,
   } = useBorrowTransaction({
     assetId: asset.id,
-    amount: borrowAmount,
+    amount: amount,
     onSuccess: () => {
-      const amount = parseFloat(borrowAmount);
-      if (!isNaN(amount) && amount > 0) {
-        onTransaction(asset, amount, "borrow");
+      const amountNum = parseFloat(amount);
+      if (!isNaN(amountNum) && amountNum > 0) {
+        onTransaction(asset, amountNum, "borrow");
       }
-      setBorrowAmount("");
+      setAmount("");
       setShowConfirmation(true);
       setTimeout(() => setShowConfirmation(false), 3000);
       resetBorrow();
     },
     onError: (error) => {
       console.error('Borrow transaction failed:', error);
-      // The error is already shown in the UI via the error state
+      showErrorModal(error);
     },
   })
 
@@ -142,9 +199,13 @@ export const AssetDropdown = ({
 
   // Get user's pToken balance for redeeming
   const {
-    formattedBalance: pTokenBalance,
-    hasBalance: hasPTokenBalance,
+    pTokenBalance,
+    underlyingBalance,
+    formattedBalance: formattedUnderlyingBalance,
+    decimals: underlyingDecimals,
+    pTokenDecimals,
     isLoading: isPTokenBalanceLoading,
+    hasBalance: hasSuppliedBalance,
   } = usePTokenBalance({
     assetId: asset.id,
   })
@@ -152,8 +213,7 @@ export const AssetDropdown = ({
   // Get market membership (collateral status)
   const {
     isCollateralEnabled,
-    isLoading: isCollateralStatusLoading,
-    refetch: refetchCollateralStatus,
+    isLoading: isMembershipLoading,
   } = useMarketMembership({
     assetId: asset.id,
   })
@@ -162,21 +222,94 @@ export const AssetDropdown = ({
   const {
     executeEnterMarket,
     isLoading: isEnteringMarket,
-    error: enterMarketError,
     step: enterMarketStep,
     statusMessage: enterMarketStatusMessage,
-    reset: resetEnterMarket,
+    error: enterMarketError,
   } = useEnterMarket({
     assetId: asset.id,
     onSuccess: () => {
-      console.log('Successfully entered market manually for', asset.symbol)
-      // Refresh collateral status
-      refetchCollateralStatus()
-      // Reset the enter market state
-      setTimeout(() => resetEnterMarket(), 2000)
+      console.log('Successfully entered market for', asset.symbol)
     },
     onError: (error) => {
-      console.error('Manual enter market failed:', error)
+      console.error('Enter market failed:', error)
+      showErrorModal(error);
+    },
+  })
+
+  // Get user's wallet balance for this asset
+  const {
+    formattedBalance: walletBalance,
+    numericBalance: walletBalanceNumeric,
+    isLoading: isWalletBalanceLoading,
+    hasBalance: hasWalletBalance,
+  } = useWalletBalance({
+    assetId: asset.id,
+  })
+
+  // Get real-time APY rates from smart contracts
+  const {
+    supplyApy: realSupplyApy,
+    borrowApy: realBorrowApy,
+    isLoading: isApyLoading,
+  } = useApy({
+    assetId: asset.id,
+  })
+
+  // Fetch market liquidity and utilization
+  const { data: totalBorrows } = useReadContract({
+    address: contractAddresses?.pTokenAddress as `0x${string}`,
+    abi: combinedAbi,
+    functionName: 'totalBorrows',
+    query: {
+      enabled: !!contractAddresses?.pTokenAddress && isConnected,
+    },
+  });
+
+  const { data: cash } = useReadContract({
+    address: contractAddresses?.pTokenAddress as `0x${string}`,
+    abi: combinedAbi,
+    functionName: 'getCash',
+    query: {
+      enabled: !!contractAddresses?.pTokenAddress && isConnected,
+    },
+  });
+
+  const { data: totalReserves } = useReadContract({
+    address: contractAddresses?.pTokenAddress as `0x${string}`,
+    abi: combinedAbi,
+    functionName: 'totalReserves',
+    query: {
+      enabled: !!contractAddresses?.pTokenAddress && isConnected,
+    },
+  });
+
+  // Use smart contract hook for repay transactions
+  const {
+    executeRepay,
+    isLoading: isRepayLoading,
+    error: repayError,
+    canRepay,
+    reset: resetRepay,
+    step: repayStep,
+    statusMessage: repayStatusMessage,
+    approveHash: repayApproveHash,
+    repayHash,
+  } = useRepayTransaction({
+    assetId: asset.id,
+    amount: amount,
+    onSuccess: () => {
+      const amountNum = parseFloat(amount);
+      if (!isNaN(amountNum) && amountNum > 0) {
+        onTransaction(asset, amountNum, "borrow");
+      }
+      setAmount("");
+      setShowConfirmation(true);
+      setTimeout(() => setShowConfirmation(false), 3000);
+      resetRepay();
+    },
+    onError: (error) => {
+      console.error('Repay transaction failed:', error);
+      showErrorModal(error);
     },
   })
 
@@ -192,209 +325,764 @@ export const AssetDropdown = ({
     redeemHash,
   } = useRedeemTransaction({
     assetId: asset.id,
-    amount: redeemAmount,
+    amount: amount,
     redeemType: redeemType,
     onSuccess: () => {
-      const amount = parseFloat(redeemAmount);
-      if (!isNaN(amount) && amount > 0) {
-        onTransaction(asset, amount, "supply"); // Using "supply" for demo purposes - you might want to add "redeem" type
+      const amountNum = parseFloat(amount);
+      if (!isNaN(amountNum) && amountNum > 0) {
+        onTransaction(asset, amountNum, "supply");
       }
-      setRedeemAmount("");
+      setAmount("");
+      setConfirmationMessage(`Successfully withdrew ${amount} ${asset.symbol}!`);
       setShowConfirmation(true);
       setTimeout(() => setShowConfirmation(false), 3000);
       resetRedeem();
     },
     onError: (error) => {
       console.error('Redeem transaction failed:', error);
-      // The error is already shown in the UI via the error state
+      showErrorModal(error);
     },
   })
 
-  const handleSupply = () => {
+  // Calculate maximum safe withdrawal amount for this asset
+  const calculateMaxSafeWithdrawal = (): number => {
+    if (!borrowingPower || !asset.oraclePrice) return 0
+    
+    const availableLiquidityUSD = borrowingPower.availableBorrowingPowerUSD
+    const collateralFactor = asset.maxLTV / 100
+
+    if (collateralFactor <= 0) {
+      const suppliedAmount = parseFloat(formattedUnderlyingBalance?.replace(/[<,]/g, '') || '0')
+      return suppliedAmount
+    }
+    
+    const maxWithdrawValueUSD = availableLiquidityUSD / collateralFactor
+    const maxWithdrawAmount = maxWithdrawValueUSD / asset.oraclePrice
+    const suppliedAmount = parseFloat(formattedUnderlyingBalance?.replace(/[<,]/g, '') || '0')
+    
+    return Math.min(maxWithdrawAmount, suppliedAmount)
+  }
+
+  const maxSafeWithdrawal = calculateMaxSafeWithdrawal()
+
+  // Smart tab determination based on user position
+  const getRecommendedTab = (): ActionTab => {
+    if (hasBorrow) return 'manage' // If user has borrowed, they need to manage debt
+    if (hasSuppliedBalance) return 'manage' // If user has supplied, show management options
+    return 'supply' // Default to supply for new users
+  }
+
+  // Quick amount suggestions with real wallet balance and borrowing power
+  const getQuickAmounts = () => {
+    if (activeTab === 'supply') {
+      const balance = walletBalanceNumeric || 0;
+      return [
+        { label: "25%", value: balance * 0.25 },
+        { label: "50%", value: balance * 0.5 },
+        { label: "75%", value: balance * 0.75 },
+        { label: "MAX", value: balance },
+      ];
+    } else if (activeTab === 'borrow') {
+      const maxBorrow = getMaxBorrowAmount(asset.id);
+      return [
+        { label: "25%", value: maxBorrow * 0.25 },
+        { label: "50%", value: maxBorrow * 0.5 },
+        { label: "75%", value: maxBorrow * 0.75 },
+        { label: "MAX", value: maxBorrow },
+      ];
+    } else if (activeTab === 'manage' && hasSuppliedBalance) {
+      const maxRedeem = underlyingBalance && underlyingDecimals ? parseFloat(formatUnits(underlyingBalance as bigint, underlyingDecimals)) : 0;
+      return [
+        { label: "25%", value: maxRedeem * 0.25 },
+        { label: "50%", value: maxRedeem * 0.5 },
+        { label: "75%", value: maxRedeem * 0.75 },
+        { label: "MAX", value: maxRedeem, isMax: true },
+      ];
+    } else if (activeTab === 'manage' && hasBorrow) {
+      const maxRepay = parseFloat(borrowBalance) || 0;
+      return [
+        { label: '25%', value: (maxRepay * 0.25).toFixed(8) },
+        { label: '50%', value: (maxRepay * 0.5).toFixed(8) },
+        { label: '75%', value: (maxRepay * 0.75).toFixed(8) },
+        { label: 'Max', value: maxRepay.toFixed(4) }
+      ]
+    }
+    return []
+  }
+
+  const handleAction = () => {
     if (!isConnected) {
       alert('Please connect your wallet first');
       return;
     }
     
-    if (!hasSmartContract) {
-      // Fallback to demo mode for assets without smart contracts
-      if (!isDemoMode) return;
-      const amount = parseFloat(supplyAmount);
-      if (isNaN(amount) || amount <= 0) return;
-      onTransaction(asset, amount, "supply");
-      setSupplyAmount("");
+    if (!hasSmartContract && !isDemoMode) {
+      alert('Smart contracts for this asset are not available');
+      return;
+    }
+
+    const amountNum = parseFloat(amount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      alert('Please enter a valid amount');
+      return;
+    }
+
+    // Demo mode fallback for assets without smart contracts
+    if (!hasSmartContract && isDemoMode) {
+      const type = activeTab === 'supply' ? 'supply' : activeTab === 'borrow' ? 'borrow' : 'supply';
+      onTransaction(asset, amountNum, type);
+      setAmount("");
       setShowConfirmation(true);
-      setTimeout(() => setShowConfirmation(false), 2000);
+      setTimeout(() => setShowConfirmation(false), 3000);
       return;
     }
 
-    // Use real smart contract interaction
-    const amount = parseFloat(supplyAmount);
-    if (isNaN(amount) || amount <= 0) {
-      alert('Please enter a valid amount');
-      return;
+    switch (activeTab) {
+      case 'supply':
+        executeSupply();
+        break;
+      case 'borrow':
+        executeBorrow();
+        break;
+      case 'manage':
+        // Determine if withdraw or repay based on context
+        if (hasBorrow && parseFloat(borrowBalance?.replace(/[<,]/g, '') || '0') > 0) {
+          executeRepay();
+        } else {
+          executeRedeem();
+        }
+        break;
     }
-    
-    executeSupply();
   }
 
-  const handleBorrow = () => {
-    if (!isConnected) {
-      alert('Please connect your wallet first');
-      return;
-    }
-    
-    if (!hasSmartContract) {
-      // Fallback to demo mode for assets without smart contracts
-      if (!isDemoMode) return;
-    const amount = parseFloat(borrowAmount);
-    if (isNaN(amount) || amount <= 0) return;
-    onTransaction(asset, amount, "borrow");
-    setBorrowAmount("");
-    setShowConfirmation(true);
-    setTimeout(() => setShowConfirmation(false), 2000);
-      return;
-    }
-
-    // Use real smart contract interaction
-    const amount = parseFloat(borrowAmount);
-    if (isNaN(amount) || amount <= 0) {
-      alert('Please enter a valid amount');
-      return;
-    }
-    
-    executeBorrow();
-  }
-
-  const handleRedeem = () => {
-    if (!isConnected) {
-      alert('Please connect your wallet first');
-      return;
-    }
-    
-    if (!hasSmartContract) {
-      alert('This asset does not support smart contract operations');
-      return;
-    }
-
-    // Use real smart contract interaction
-    const amount = parseFloat(redeemAmount);
-    if (isNaN(amount) || amount <= 0) {
-      alert('Please enter a valid amount');
-      return;
-    }
-    
-    executeRedeem();
-  }
+  const handleMaxRepay = () => {
+    setAmount(borrowBalance.toString());
+  };
 
   const handleMaxRedeem = () => {
-    if (redeemType === 'underlying' && pTokenBalance) {
-      // Set the amount to the available underlying balance
-      setRedeemAmount(pTokenBalance.replace(' < 0.01', '0.01')); // Handle small amounts
-    } else if (redeemType === 'pTokens') {
-      // For pTokens, we'd need the raw pToken balance - for now, use the formatted one
-      setRedeemAmount(pTokenBalance.replace(' < 0.01', '0.01'));
+    if (underlyingBalance && underlyingDecimals) {
+      const fullUnderlyingAmount = formatUnits(
+        underlyingBalance,
+        underlyingDecimals
+      );
+      setAmount(fullUnderlyingAmount);
+      setRedeemType("underlying");
+    } else if (pTokenBalance && pTokenDecimals) {
+      // Fallback for safety, though should ideally not be hit if underlyingBalance is available.
+      // This ensures that the MAX button still allows a full withdrawal.
+      const fullPTokenAmount = formatUnits(
+        pTokenBalance,
+        pTokenDecimals
+      );
+      setAmount(fullPTokenAmount);
+      setRedeemType("pTokens");
+    }
+  };
+
+  const getCurrentActionLoading = () => {
+    switch (activeTab) {
+      case 'supply': return isSupplyLoading;
+      case 'borrow': return isBorrowLoading;
+      case 'manage': return hasBorrow ? isRepayLoading : isRedeemLoading;
+      default: return false;
     }
   }
+
+  const getCurrentActionError = () => {
+    switch (activeTab) {
+      case 'supply': return supplyError;
+      case 'borrow': return borrowError;
+      case 'manage': return hasBorrow ? repayError : redeemError;
+      default: return null;
+    }
+  }
+
+  const getCurrentStatusMessage = () => {
+    switch (activeTab) {
+      case 'supply': return statusMessage;
+      case 'borrow': return borrowStatusMessage;
+      case 'manage': return hasBorrow ? repayStatusMessage : redeemStatusMessage;
+      default: return null;
+    }
+  }
+
+  const getCurrentStep = () => {
+    switch (activeTab) {
+      case 'supply': return step;
+      case 'borrow': return borrowStep;
+      case 'manage': return hasBorrow ? repayStep : redeemStep;
+      default: return null;
+    }
+  }
+
+  const getCurrentTransactionHash = () => {
+    switch (activeTab) {
+      case 'supply': return supplyHash || approveHash;
+      case 'borrow': return borrowHash;
+      case 'manage': return hasBorrow ? (repayHash || repayApproveHash) : redeemHash;
+      default: return null;
+    }
+  }
+
+  // Check if amount is safe for borrowing
+  const isAmountSafe = () => {
+    if (activeTab === 'borrow' && amount) {
+      const amountNum = parseFloat(amount);
+      return isBorrowAmountSafe(asset.id, amountNum);
+    }
+    return true;
+  }
+
+  const marketLiquidity = useMemo(() => {
+    if (!cash || underlyingDecimals === undefined) return asset.liquidity; // Fallback to hardcoded
+    const numericLiquidity = parseFloat(formatUnits(cash as bigint, underlyingDecimals));
+    
+    if (numericLiquidity >= 1_000_000) {
+      return `${(numericLiquidity / 1_000_000).toFixed(1)}M`;
+    }
+    if (numericLiquidity >= 1_000) {
+      return `${(numericLiquidity / 1_000).toFixed(1)}K`;
+    }
+    return numericLiquidity.toFixed(2);
+  }, [cash, underlyingDecimals, asset.liquidity]);
+
+  const utilizationRate = useMemo(() => {
+    if (!totalBorrows || !cash || !totalReserves) {
+      return asset.utilizationRate === undefined ? null : asset.utilizationRate;
+    }
+
+    const totalBorrowsBI = BigInt(totalBorrows.toString());
+    const cashBI = BigInt(cash.toString());
+    const totalReservesBI = BigInt(totalReserves.toString());
+
+    const denominator = cashBI + totalBorrowsBI - totalReservesBI;
+
+    if (denominator === BigInt(0)) {
+      return 0;
+    }
+
+    const rate = (totalBorrowsBI * BigInt(10000)) / denominator;
+    return Number(rate) / 100;
+  }, [totalBorrows, cash, totalReserves, asset.utilizationRate]);
 
   if (!isOpen) return null;
 
   return (
-    <motion.div
+    <TooltipProvider>
+      <motion.div
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="bg-muted/30 border-t border-border/50 p-4 overflow-hidden"
+      transition={{ duration: 0.4, ease: [0.4, 0.0, 0.2, 1] }}
+      className="relative overflow-hidden"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Asset Info */}
-        <div className="space-y-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-              <Image src={asset.icon} alt={asset.name} width={36} height={36} />
-            </div>
-            <div>
-              <div className="font-medium flex items-center gap-2">
-                {asset.name}
-                {hasSmartContract && isConnected && hasPTokenBalance && (
-                  <span className={`text-xs px-2 py-1 rounded-full ${
-                    isCollateralEnabled 
-                      ? 'bg-green-100 text-green-700 border border-green-200' 
-                      : 'bg-orange-100 text-orange-700 border border-orange-200'
-                  }`}>
-                    {isCollateralEnabled ? '✓ Collateral' : '⚠ Not Collateral'}
-                  </span>
+      {/* Glassmorphism container */}
+      <div className="relative backdrop-blur-xl bg-gradient-to-br from-white/5 via-white/2 to-transparent border-t border-white/10 shadow-2xl">
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-50" />
+        
+        {/* Content */}
+        <div className="relative p-6 space-y-6">
+          {/* Asset Header with enhanced styling */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <TokenTooltip
+                  asset={asset}
+                  supplyApy={realSupplyApy}
+                  borrowApy={realBorrowApy}
+                  price={realOraclePrice || asset.oraclePrice}
+                  balance={formattedUnderlyingBalance}
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 backdrop-blur-sm border border-white/10 shadow-lg flex items-center justify-center">
+                    <Image src={asset.icon} alt={asset.name} width={40} height={40} className="rounded-xl" />
+                  </div>
+                </TokenTooltip>
+                {hasSmartContract && isConnected && hasSuppliedBalance && (
+                  <div className="relative">
+                    <Tooltip delayDuration={200} open={showCollateralTooltip}>
+                      <TooltipTrigger asChild>
+                        <div 
+                          className={`absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-lg cursor-help ${
+                            isCollateralEnabled 
+                              ? 'bg-green-500 text-white' 
+                              : 'bg-orange-500 text-white'
+                          }`}
+                          onMouseEnter={() => setShowCollateralTooltip(true)}
+                          onMouseLeave={() => setShowCollateralTooltip(false)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowCollateralTooltip(!showCollateralTooltip);
+                          }}
+                          onTouchStart={(e) => {
+                            e.stopPropagation();
+                            setShowCollateralTooltip(!showCollateralTooltip);
+                          }}
+                        >
+                          {isCollateralEnabled ? '✓' : '!'}
+                        </div>
+                      </TooltipTrigger>
+                      <TooltipContent 
+                        side="left" 
+                        align="center"
+                        className="z-[9999] max-w-xs"
+                        sideOffset={8}
+                        onPointerDownOutside={() => setShowCollateralTooltip(false)}
+                      >
+                        <p className="text-sm">
+                          {isCollateralEnabled 
+                            ? 'This asset is enabled as collateral and can be used to borrow other assets'
+                            : 'This asset is not enabled as collateral. Enable it to use for borrowing other assets'
+                          }
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                 )}
               </div>
-              <div className="text-sm text-text/60">{asset.symbol}</div>
+              <div>
+                <div className="font-semibold text-lg">{asset.name}</div>
+                <div className="text-sm text-muted-foreground">{asset.symbol}</div>
+                {realOraclePrice && (
+                  <div className="text-xs text-green-600 font-medium">
+                    ${realOraclePrice.toFixed(2)}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 text-sm">
-            <div className="flex justify-between">
-              <span>Oracle Price:</span>
-              <span className="font-medium">${realOraclePrice?.toLocaleString() || asset.oraclePrice?.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Market Cap:</span>
-              <span className="font-medium">{asset.marketCap}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>24h Volume:</span>
-              <span className="font-medium">{asset.volume24h}</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Market Data */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium">Market Details</h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2 text-sm">
-            <div className="flex justify-between">
-              <span>Available Liquidity:</span>
-              <span className="font-medium">{asset.liquidity}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Utilization Rate:</span>
-              <span className="font-medium">{asset.utilizationRate}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Liq. Threshold:</span>
-              <span className="font-medium">{asset.liquidationThreshold}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Liquidation Penalty:</span>
-              <span className="font-medium">{asset.liquidationPenalty}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Max LTV:</span>
-              <span className="font-medium">{asset.maxLTV}%</span>
-            </div>
-          </div>
-        </div>
+            {/* Quick stats with rates */}
+                          <div className="text-right space-y-1">
 
-        {/* Actions */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium">Actions</h4>
-          
-          {/* Collateral Status Info */}
-          {hasSmartContract && isConnected && hasPTokenBalance && (
-            <div className={`p-3 rounded-lg text-sm ${
-              isCollateralEnabled 
-                ? 'bg-green-50 border border-green-200' 
-                : 'bg-orange-50 border border-orange-200'
-            }`}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-medium">
-                  {isCollateralEnabled ? '✓ Enabled as Collateral' : '⚠ Not Enabled as Collateral'}
-                </span>
+                <div className="text-xs text-muted-foreground">
+                  Liquidity: {marketLiquidity}
+                </div>
+                <div className="text-muted-foreground">Utilization: {utilizationRate !== null ? `${utilizationRate.toFixed(2)}%` : '...'}</div>
+              </div>
+          </div>
+
+          {/* Enhanced Professional Tab Navigation */}
+          <div className={cn(
+            "flex rounded-2xl backdrop-blur-sm border p-1 transition-all duration-300",
+            "shadow-lg shadow-black/5",
+            theme === "light" 
+              ? "bg-slate-100/80 border-slate-200/60" 
+              : "bg-black/20 border-white/10"
+          )}>
+            {[
+              { id: 'supply', label: 'Supply', icon: TrendingUp, color: 'text-green-500' },
+              { id: 'borrow', label: 'Borrow', icon: TrendingDown, color: 'text-orange-500' },
+              { id: 'manage', label: 'Manage', icon: Wallet, color: 'text-purple-500' }
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <motion.button
+                  key={tab.id}
+                  onClick={() => {
+                    setActiveTab(tab.id as ActionTab);
+                    setAmount("");
+                  }}
+                  className={cn(
+                    "group flex-1 flex items-center justify-center gap-1.5 sm:gap-2",
+                    "py-2.5 sm:py-3 px-2 sm:px-4 rounded-xl",
+                    "text-xs sm:text-sm font-medium transition-all duration-300",
+                    "touch-none select-none", // Better mobile interaction
+                    isActive ? (
+                      theme === "light"
+                        ? "bg-white/90 backdrop-blur-md border border-white/60 shadow-lg shadow-slate-200/50 text-slate-800"
+                        : "bg-white/15 backdrop-blur-md border border-white/20 shadow-lg shadow-black/20 text-white"
+                    ) : (
+                      theme === "light"
+                        ? "text-slate-600 hover:text-slate-800 hover:bg-white/50 active:bg-white/70"
+                        : "text-muted-foreground hover:text-white hover:bg-white/8 active:bg-white/12"
+                    )
+                  )}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  <Icon className={cn(
+                    "h-3.5 w-3.5 sm:h-4 sm:w-4 transition-colors duration-300",
+                    isActive ? tab.color : ""
+                  )} />
+                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span className="sm:hidden">{tab.label.slice(0, 3)}</span>
+                  
+                  {/* Elegant notification indicator */}
+                  {tab.id === 'manage' && (hasSuppliedBalance || hasBorrow) && (
+                    <motion.div 
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className={cn(
+                        "w-1.5 h-1.5 rounded-full",
+                        theme === "light" 
+                          ? "bg-blue-500 shadow-sm shadow-blue-500/30" 
+                          : "bg-blue-400 shadow-sm shadow-blue-400/50"
+                      )}
+                    />
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Action content with smooth transitions */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="space-y-4"
+            >
+              {/* Action-specific content */}
+              {activeTab === 'supply' && (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold mb-1">Supply {asset.symbol}</h3>
+                    <p className="text-sm text-muted-foreground">Earn {isApyLoading ? 'Loading...' : realSupplyApy.toFixed(2)}% APY on your {asset.symbol}</p>
+
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'borrow' && (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold mb-1">Borrow {asset.symbol}</h3>
+                    <p className="text-sm text-muted-foreground">Borrow rate: {isApyLoading ? 'Loading...' : realBorrowApy.toFixed(2)}% APY</p>
+                    {hasSmartContract && isConnected && borrowingPower?.availableBorrowingPowerUSD > 0 && (
+                      <div className="mt-2 space-y-1">
+                        <p className="text-xs text-blue-600">
+                          Max available: {getMaxBorrowAmount(asset.id).toFixed(4)} {asset.symbol}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Available borrowing power: ${borrowingPower.availableBorrowingPowerUSD.toFixed(2)}
+                        </p>
+                      </div>
+                    )}
+                    {hasSmartContract && isConnected && !isCollateralEnabled && hasSuppliedBalance && (
+                      <div className="mt-2 text-xs text-orange-600 bg-orange-500/10 border border-orange-500/20 rounded-lg p-2">
+                        ⚠️ Enable {asset.symbol} as collateral first to increase borrowing power
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'manage' && (
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-lg font-semibold mb-1">Manage Position</h3>
+                    <div className="grid grid-cols-1 gap-3 mt-3">
+                      {hasSuppliedBalance && (
+                        <div className="bg-green-500/10 border border-green-500/20 rounded-xl p-3">
+                          <div className="text-xs text-green-600 mb-1">Supplied</div>
+                          <div className="font-semibold">{formattedUnderlyingBalance} {asset.symbol}</div>
+
+                        </div>
+                      )}
+                      {hasBorrow && (
+                        <div className="bg-orange-500/10 border border-orange-500/20 rounded-xl p-3">
+                          <div className="text-xs text-orange-600 mb-1">Borrowed</div>
+                          <div className="font-semibold">{borrowBalance} {asset.symbol}</div>
+                        </div>
+                      )}
+                      {!hasSuppliedBalance && !hasBorrow && (
+                        <div className="bg-muted/10 border border-white/10 rounded-xl p-3 text-center">
+                          <div className="text-sm text-muted-foreground">No position in {asset.symbol}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Amount input with custom styling */}
+              <div className="space-y-3">
+                <div className="relative">
+                  <div className={`inputbox ${!isAmountSafe() ? 'opacity-50' : ''}`}>
+                    <input
+                      type="text"
+                      value={amount}
+                      onChange={(e) => {
+                        setAmount(e.target.value)
+                        setShowValuePopup(e.target.value !== "" && !isNaN(parseFloat(e.target.value)))
+                      }}
+                      onFocus={() => amount && !isNaN(parseFloat(amount)) && setShowValuePopup(true)}
+                      onBlur={() => setTimeout(() => setShowValuePopup(false), 150)}
+                      disabled={getCurrentActionLoading()}
+                      required
+                    />
+                    <span>Amount</span>
+                    <i></i>
+                  </div>
+                  <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-sm text-muted-foreground">
+                    {asset.symbol}
+                  </div>
+
+                  {/* Professional Liquid Glass Popup */}
+                  <AnimatePresence>
+                    {showValuePopup && dollarValue > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: 8 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9, y: 8 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                        className="absolute -top-14 left-1/2 transform -translate-x-1/2 z-50"
+                      >
+                        <div className="relative">
+                          {/* Professional liquid glass backdrop */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-green-500/15 via-green-400/10 to-emerald-500/15 rounded-xl blur-lg"></div>
+                          
+                          {/* Main popup content */}
+                          <div className="relative backdrop-blur-xl bg-background/90 border border-green-500/30 rounded-xl px-4 py-2.5 shadow-xl">
+                            <div className="flex items-center justify-center gap-2">
+                              {/* Peridot accent indicator */}
+                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full shadow-sm shadow-green-500/50"></div>
+                              
+                              {/* Dollar value - more visible */}
+                              <div className="text-base font-semibold text-foreground">
+                                ${dollarValue.toLocaleString(undefined, { 
+                                  minimumFractionDigits: 2, 
+                                  maximumFractionDigits: 2 
+                                })}
+                              </div>
+                              
+                              {/* Matching accent */}
+                              <div className="w-1.5 h-1.5 bg-green-500 rounded-full shadow-sm shadow-green-500/50"></div>
+                            </div>
+                            
+                            {/* Professional arrow */}
+                            <div className="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-background/90 border-r border-b border-green-500/30 rotate-45 backdrop-blur-xl"></div>
+                          </div>
+                          
+                          {/* Subtle glow effect */}
+                          <div className="absolute inset-0 rounded-xl bg-green-500/20 opacity-60 blur-sm animate-pulse"></div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
+                {/* Wallet Balance Display */}
+                {activeTab === 'supply' && isConnected && hasSmartContract && (
+                  <div className="flex justify-between items-center text-xs text-muted-foreground">
+                    <span>Wallet Balance:</span>
+                    <span className={`font-medium ${isWalletBalanceLoading ? 'opacity-50' : ''}`}>
+                      {isWalletBalanceLoading ? 'Loading...' : `${walletBalance} ${asset.symbol}`}
+                    </span>
+                  </div>
+                )}
+
+                {/* Amount validation warning */}
+                {!isAmountSafe() && amount && (
+                  <div className="text-xs text-red-600 bg-red-500/10 border border-red-500/20 rounded-lg p-2 text-center">
+                    ⚠️ This borrow amount may put your position at risk of liquidation
+                  </div>
+                )}
+
+                {/* Quick amount buttons */}
+                <div className="flex gap-2">
+                  {getQuickAmounts().map((quickAmount) => (
+                    <motion.button
+                      key={quickAmount.label}
+                      onClick={() => {
+                        if ((quickAmount as any).isMax) {
+                          console.log('MAX button clicked, calling handleMaxRedeem()');
+                          handleMaxRedeem();
+                        } else {
+                          setAmount(quickAmount.value.toString());
+                        }
+                      }}
+                      className="flex-1 py-2 text-xs font-medium bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg hover:bg-white/10 transition-all duration-200"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      disabled={getCurrentActionLoading()}
+                    >
+                      {quickAmount.label}
+                    </motion.button>
+                  ))}
+                </div>
+
+                {/* Action button with enhanced styling */}
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <Button
+                    onClick={handleAction}
+                    disabled={
+                      getCurrentActionLoading() || 
+                      !amount || 
+                      (hasSmartContract && activeTab === 'supply' && !canSupply) ||
+                      (hasSmartContract && activeTab === 'borrow' && !canBorrow) ||
+                      (hasSmartContract && activeTab === 'manage' && !hasBorrow && !canRedeem) ||
+                      (!hasSmartContract && !isDemoMode)
+                    }
+                    className={`w-full py-4 text-lg font-semibold rounded-2xl shadow-lg transition-all duration-200 ${
+                      activeTab === 'supply' 
+                        ? 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700' 
+                        : activeTab === 'borrow'
+                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700'
+                        : 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
+                    } text-white border-0 disabled:opacity-50`}
+                  >
+                    {getCurrentActionLoading() ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        {hasSmartContract ? (
+                          getCurrentStep() === 'approving' ? 'Approving...' :
+                          getCurrentStep() === 'approved' ? 'Approved!' :
+                          getCurrentStep() === 'supplying' ? 'Supplying...' :
+                          getCurrentStep() === 'borrowing' ? 'Borrowing...' :
+                          getCurrentStep() === 'repaying' ? 'Repaying...' :
+                          getCurrentStep() === 'redeeming' ? 'Withdrawing...' :
+                          getCurrentStep() === 'entering-market' ? 'Enabling Collateral...' :
+                          'Processing...'
+                        ) : 'Processing...'}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        {activeTab === 'supply' && <TrendingUp className="h-5 w-5" />}
+                        {activeTab === 'borrow' && <TrendingDown className="h-5 w-5" />}
+                        {activeTab === 'manage' && <RefreshCw className="h-5 w-5" />}
+                        {activeTab === 'supply' ? (
+                          hasSmartContract && needsApproval && !getCurrentActionLoading() ? 'Approve & Supply' : 'Supply'
+                        ) : activeTab === 'borrow' ? 'Borrow' : hasBorrow ? 'Repay' : 'Withdraw'}
+                      </div>
+                    )}
+                  </Button>
+                </motion.div>
+
+                {/* Transaction Status */}
+                {getCurrentStatusMessage() && getCurrentActionLoading() && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`rounded-xl p-3 text-sm backdrop-blur-sm border ${
+                      activeTab === 'supply' ? 'bg-green-500/10 border-green-500/20 text-green-600' :
+                      activeTab === 'borrow' ? 'bg-orange-500/10 border-orange-500/20 text-orange-600' :
+                      'bg-purple-500/10 border-purple-500/20 text-purple-600'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                      {getCurrentStatusMessage()}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Transaction Hash */}
+                {getCurrentTransactionHash() && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="text-xs text-muted-foreground bg-white/5 border border-white/10 rounded-lg p-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span>Transaction:</span>
+                      <div className="flex items-center gap-1">
+                        <span className="font-mono">{getCurrentTransactionHash()!.slice(0, 6)}...{getCurrentTransactionHash()!.slice(-4)}</span>
+                        <ExternalLink className="h-3 w-3" />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Manual Supply Button (when approval is done but automatic transition fails) */}
+                {step === 'approved' && !isSupplyLoading && activeTab === 'supply' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-blue-600">
+                        <Check className="h-4 w-4" />
+                        <span className="text-sm">Approval successful! Ready to supply.</span>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={manualSupplyTrigger}
+                        className="bg-blue-500 hover:bg-blue-600 text-white"
+                      >
+                        Supply Now
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Success Messages */}
+                {getCurrentStep() === 'success' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className={`rounded-xl p-3 text-sm backdrop-blur-sm border ${
+                      activeTab === 'supply' ? 'bg-green-500/10 border-green-500/20 text-green-600' :
+                      activeTab === 'borrow' ? 'bg-orange-500/10 border-orange-500/20 text-orange-600' :
+                      'bg-purple-500/10 border-purple-500/20 text-purple-600'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Check className="h-4 w-4" />
+                      <span className="font-medium">
+                        {activeTab === 'supply' ? `Successfully supplied ${amount} ${asset.symbol}!` :
+                         activeTab === 'borrow' ? `Successfully borrowed ${amount} ${asset.symbol}!` :
+                         hasBorrow ? `Successfully repaid ${amount} ${asset.symbol}!` :
+                         `Successfully withdrew ${amount} ${asset.symbol}!`}
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+
+
+
+
+
+                {/* Success confirmation */}
+                {showConfirmation && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-center"
+                  >
+                    <div className="flex items-center justify-center gap-2 text-green-600">
+                      <Check className="h-5 w-5" />
+                      <span className="font-medium">{confirmationMessage}</span>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Collateral status for users with positions */}
+          {hasSmartContract && isConnected && hasSuppliedBalance && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className={`rounded-xl p-4 border backdrop-blur-sm ${
+                isCollateralEnabled 
+                  ? 'bg-green-500/10 border-green-500/20' 
+                  : 'bg-orange-500/10 border-orange-500/20'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield className={`h-4 w-4 ${isCollateralEnabled ? 'text-green-600' : 'text-orange-600'}`} />
+                  <span className={`text-sm font-medium ${isCollateralEnabled ? 'text-green-600' : 'text-orange-600'}`}>
+                    {isCollateralEnabled ? 'Collateral Enabled' : 'Collateral Disabled'}
+                  </span>
+                </div>
                 {!isCollateralEnabled && (
                   <Button
                     size="sm"
                     onClick={executeEnterMarket}
                     disabled={isEnteringMarket}
-                    className="bg-orange-500 hover:bg-orange-600 text-white text-xs py-1 px-2 h-auto"
+                    className="bg-orange-500 hover:bg-orange-600 text-white"
                   >
                     {isEnteringMarket ? (
                       <>
@@ -407,509 +1095,42 @@ export const AssetDropdown = ({
                   </Button>
                 )}
               </div>
-              <p className={`text-xs ${
-                isCollateralEnabled ? 'text-green-700' : 'text-orange-700'
-              }`}>
-                {isCollateralEnabled 
-                  ? 'This asset is counting towards your borrowing power. You can borrow against it.'
-                  : 'You have supplied this asset but it\'s not enabled as collateral. Click "Enable" to fix this.'
-                }
-              </p>
               
               {/* Enter Market Status */}
               {enterMarketStatusMessage && isEnteringMarket && (
-                <div className="mt-2 p-2 bg-orange-100 border border-orange-300 text-orange-800 rounded text-xs">
+                <div className="mt-3 p-2 bg-orange-100/10 border border-orange-200/20 text-orange-600 rounded text-xs">
                   <div className="flex items-center gap-2">
                     <div className="w-3 h-3 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
                     {enterMarketStatusMessage}
                   </div>
                 </div>
               )}
-              
+
               {/* Enter Market Success */}
               {enterMarketStep === 'success' && (
-                <div className="mt-2 p-2 bg-green-100 border border-green-300 text-green-800 rounded text-xs">
+                <div className="mt-3 p-2 bg-green-100/10 border border-green-200/20 text-green-600 rounded text-xs">
                   <div className="flex items-center gap-2">
                     <Check className="h-3 w-3" />
                     Successfully enabled {asset.symbol} as collateral!
                   </div>
                 </div>
               )}
-              
-              {/* Enter Market Error */}
-              {enterMarketError && (
-                <div className="mt-2 p-2 bg-red-100 border border-red-300 text-red-800 rounded text-xs">
-                  <p>{enterMarketError}</p>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* Manual Enable Collateral Button - Always show if user has balance but no collateral */}
-          {hasSmartContract && isConnected && (
-            <div className="space-y-2">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium text-blue-800">Collateral Status</span>
-                  <div className="flex items-center gap-2">
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      isCollateralEnabled 
-                        ? 'bg-green-100 text-green-700 border border-green-200' 
-                        : 'bg-orange-100 text-orange-700 border border-orange-200'
-                    }`}>
-                      {isCollateralEnabled ? '✓ Enabled' : '⚠ Disabled'}
-                    </span>
-                    <Button
-                      size="sm"
-                      onClick={executeEnterMarket}
-                      disabled={isEnteringMarket || isCollateralEnabled}
-                      className="bg-blue-500 hover:bg-blue-600 text-white text-xs py-1 px-3 h-auto"
-                    >
-                      {isEnteringMarket ? (
-                        <>
-                          <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                          Enabling...
-                        </>
-                      ) : isCollateralEnabled ? (
-                        'Enabled'
-                      ) : (
-                        'Enable Collateral'
-                      )}
-                    </Button>
-                  </div>
-                </div>
-                <p className="text-xs text-blue-700">
-                  {isCollateralEnabled 
-                    ? 'This asset is enabled as collateral and counts towards your borrowing power.'
-                    : 'Enable this asset as collateral to use it for borrowing. This is required to borrow other tokens.'
-                  }
-                </p>
-                
-                {/* Enter Market Status */}
-                {enterMarketStatusMessage && isEnteringMarket && (
-                  <div className="mt-2 p-2 bg-blue-100 border border-blue-300 text-blue-800 rounded text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                      {enterMarketStatusMessage}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Enter Market Success */}
-                {enterMarketStep === 'success' && (
-                  <div className="mt-2 p-2 bg-green-100 border border-green-300 text-green-800 rounded text-xs">
-                    <div className="flex items-center gap-2">
-                      <Check className="h-3 w-3" />
-                      Successfully enabled {asset.symbol} as collateral!
-                    </div>
-                  </div>
-                )}
-                
-                {/* Enter Market Error */}
-                {enterMarketError && (
-                  <div className="mt-2 p-2 bg-red-100 border border-red-300 text-red-800 rounded text-xs">
-                    <p>Error: {enterMarketError}</p>
-                  </div>
-                )}
-              </div>
-              
-              {/* Debug Info - Temporarily enabled for debugging */}
-            <BalanceDebugInfo assetId={asset.id} assetSymbol={asset.symbol} />
-            </div>
-          )}
-          
-          {!hasSmartContract && (
-            <div className="bg-muted/50 rounded-lg p-3 text-center">
-              <p className="text-sm text-muted-foreground">
-                Smart contracts for this asset are coming soon!
-              </p>
-            </div>
-          )}
-          
-          {hasSmartContract && !isConnected && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-center">
-              <p className="text-sm text-orange-700">
-                Please connect your wallet to supply assets
-              </p>
-            </div>
-          )}
-          
-          {hasSmartContract && isConnected && !canSupply && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-              <p className="text-sm text-red-700">
-                This asset is not supported on the current network
-              </p>
-            </div>
-          )}
-          
-          {hasSmartContract && isConnected && !canBorrow && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
-              <p className="text-sm text-red-700">
-                Borrowing for this asset is not supported on the current network
-              </p>
-            </div>
-          )}
-          
-          {supplyError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-sm text-red-700">{supplyError}</p>
-            </div>
-          )}
-          
-          {/* Supply Section */}
-          <div className="space-y-2">
-            <div className="flex items-center">
-              <span className="text-sm font-medium">Supply</span>
-            </div>
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                placeholder="0.00"
-                value={supplyAmount}
-                onChange={(e) => setSupplyAmount(e.target.value)}
-                className="flex-1 px-3 py-2 text-sm rounded-md border bg-background disabled:opacity-50"
-                disabled={
-                  isSupplyLoading ||
-                  (hasSmartContract && !canSupply) ||
-                  (!hasSmartContract && !isDemoMode)
-                }
-              />
-              <Button
-                size="sm"
-                onClick={handleSupply}
-                disabled={
-                  isSupplyLoading || 
-                  !supplyAmount || 
-                  (hasSmartContract && !canSupply) ||
-                  (!hasSmartContract && !isDemoMode)
-                }
-                className="bg-green-500 hover:bg-green-600 text-white disabled:opacity-50"
-              >
-                {isSupplyLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {hasSmartContract ? (
-                      step === 'approving' ? 'Approving...' :
-                      step === 'approved' ? 'Approved!' :
-                      step === 'supplying' ? 'Supplying...' :
-                      step === 'entering-market' ? 'Enabling Collateral...' :
-                      'Processing...'
-                    ) : 'Supply'}
-                  </>
-                ) : (
-                  hasSmartContract && needsApproval && !isSupplyLoading ? 'Approve & Supply' : 'Supply'
-                )}
-              </Button>
-            </div>
-            
-            {/* Transaction Status */}
-            {statusMessage && isSupplyLoading && (
-              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 text-blue-800 rounded text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                  {statusMessage}
-                </div>
-              </div>
-            )}
-            
-            {/* Transaction Hashes */}
-            {(approveHash || supplyHash) && (
-              <div className="mt-2 text-xs text-gray-600">
-                {approveHash && (
-                  <div>
-                    Approval: <span className="font-mono">{approveHash.slice(0, 10)}...{approveHash.slice(-8)}</span>
-                  </div>
-                )}
-                {supplyHash && (
-                  <div>
-                    Supply: <span className="font-mono">{supplyHash.slice(0, 10)}...{supplyHash.slice(-8)}</span>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* Manual Supply Button (when approval is done but automatic transition fails) */}
-            {step === 'approved' && !isSupplyLoading && (
-              <div className="mt-2 p-2 bg-blue-50 border border-blue-200 text-blue-800 rounded text-sm">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Check className="h-4 w-4" />
-                    <span>Approval successful! Ready to supply.</span>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={manualSupplyTrigger}
-                    className="bg-blue-500 hover:bg-blue-600 text-white ml-2"
-                  >
-                    Supply Now
-                  </Button>
-                </div>
-              </div>
-            )}
 
-            {/* Success Message */}
-            {step === 'success' && (
-              <div className="mt-2 p-2 bg-green-50 border border-green-200 text-green-800 rounded text-sm">
-                <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4" />
-                  Successfully supplied {supplyAmount} {asset.symbol}. You can now earn interest!
-                </div>
-              </div>
-            )}
-          </div>
 
-          {/* Borrow Section */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Borrow</span>
-              <div className="text-right">
-                {hasSmartContract && isConnected && hasBorrow && (
-                  <div className="text-xs text-orange-600">
-                    Current: {borrowBalance} {asset.symbol}
-                  </div>
-                )}
-                {hasSmartContract && isConnected && borrowingPower.availableBorrowingPowerUSD > 0 && (
-                  <div className="text-xs text-blue-600">
-                    Max: {getMaxBorrowAmount(asset.id).toFixed(4)} {asset.symbol}
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <div className="flex-1 relative">
-              <input
-                type="text"
-                placeholder="0.00"
-                value={borrowAmount}
-                onChange={(e) => setBorrowAmount(e.target.value)}
-                  className="w-full px-3 py-2 pr-12 text-sm rounded-md border bg-background disabled:opacity-50"
-                  disabled={
-                    isBorrowLoading ||
-                    (hasSmartContract && !canBorrow) ||
-                    (!hasSmartContract && !isDemoMode)
-                  }
-                />
-                {hasSmartContract && isConnected && borrowingPower.availableBorrowingPowerUSD > 0 && (
-                  <button
-                    onClick={() => setBorrowAmount(getMaxBorrowAmount(asset.id).toFixed(4))}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-blue-600 hover:text-blue-800"
-                    disabled={
-                      isBorrowLoading ||
-                      (hasSmartContract && !canBorrow) ||
-                      (!hasSmartContract && !isDemoMode)
-                    }
-                  >
-                    Max
-                  </button>
-                )}
-              </div>
-              <Button
-                size="sm"
-                onClick={handleBorrow}
-                disabled={
-                  isBorrowLoading || 
-                  !borrowAmount || 
-                  (hasSmartContract && !canBorrow) ||
-                  (!hasSmartContract && !isDemoMode)
-                }
-                className="bg-orange-500 hover:bg-orange-600 text-white disabled:opacity-50"
-              >
-                {isBorrowLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {hasSmartContract ? (
-                      borrowStep === 'checking-liquidity' ? 'Checking...' :
-                      borrowStep === 'borrowing' ? 'Borrowing...' :
-                      'Processing...'
-                    ) : 'Borrow'}
-                  </>
-                ) : (
-                  'Borrow'
-                )}
-              </Button>
-            </div>
-            
-            {/* Borrow Transaction Status */}
-            {borrowStatusMessage && isBorrowLoading && (
-              <div className="mt-2 p-2 bg-orange-50 border border-orange-200 text-orange-800 rounded text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 border-2 border-orange-600 border-t-transparent rounded-full animate-spin"></div>
-                  {borrowStatusMessage}
-                </div>
-              </div>
-            )}
-            
-            {/* Borrow Transaction Hash */}
-            {borrowHash && (
-              <div className="mt-2 text-xs text-gray-600">
-                Borrow: <span className="font-mono">{borrowHash.slice(0, 10)}...{borrowHash.slice(-8)}</span>
-              </div>
-            )}
-            
-            {/* Borrow Success Message */}
-            {borrowStep === 'success' && (
-              <div className="mt-2 p-2 bg-orange-50 border border-orange-200 text-orange-800 rounded text-sm">
-                <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4" />
-                  Successfully borrowed {borrowAmount} {asset.symbol}. Remember to repay on time!
-                </div>
-              </div>
-            )}
-            
-            {/* Borrow Error */}
-            {borrowError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-sm text-red-700">{borrowError}</p>
-              </div>
-            )}
-          </div>
-
-          {/* Redeem/Withdraw Section */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Withdraw</span>
-              {hasSmartContract && isConnected && hasPTokenBalance && (
-                <span className="text-xs text-purple-600">
-                  Available: {pTokenBalance} {asset.symbol}
-                </span>
-              )}
-            </div>
-            
-            {/* Redeem Type Toggle */}
-            <div className="flex space-x-2 mb-2">
-              <button
-                onClick={() => setRedeemType('underlying')}
-                className={`px-3 py-1 text-xs rounded ${
-                  redeemType === 'underlying' 
-                    ? 'bg-purple-500 text-white' 
-                    : 'bg-gray-200 text-gray-700'
-                }`}
-              >
-                Specific Amount
-              </button>
-              <button
-                onClick={() => setRedeemType('pTokens')}
-                className={`px-3 py-1 text-xs rounded ${
-                  redeemType === 'pTokens' 
-                    ? 'bg-purple-500 text-white' 
-                    : 'bg-gray-200 text-gray-700'
-                }`}
-              >
-                All pTokens
-              </button>
-            </div>
-            
-            <div className="flex space-x-2">
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  placeholder={redeemType === 'underlying' ? `${asset.symbol} to receive` : `p${asset.symbol} to redeem`}
-                  value={redeemAmount}
-                  onChange={(e) => setRedeemAmount(e.target.value)}
-                  className="w-full px-3 py-2 pr-12 text-sm rounded-md border bg-background disabled:opacity-50"
-                  disabled={
-                    isRedeemLoading ||
-                    (hasSmartContract && !canRedeem) ||
-                    (!hasSmartContract && !isDemoMode) ||
-                    !hasPTokenBalance
-                  }
-                />
-                {hasPTokenBalance && (
-                  <button
-                    onClick={handleMaxRedeem}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-xs text-purple-600 hover:text-purple-800"
-                    disabled={
-                      isRedeemLoading ||
-                      (hasSmartContract && !canRedeem) ||
-                      (!hasSmartContract && !isDemoMode)
-                    }
-                  >
-                    Max
-                  </button>
-                )}
-              </div>
-              <Button
-                size="sm"
-                onClick={handleRedeem}
-                disabled={
-                  isRedeemLoading || 
-                  !redeemAmount || 
-                  (hasSmartContract && !canRedeem) ||
-                  (!hasSmartContract && !isDemoMode) ||
-                  !hasPTokenBalance
-                }
-                className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50"
-              >
-                {isRedeemLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {hasSmartContract ? (
-                      redeemStep === 'redeeming' ? 'Redeeming...' :
-                      'Processing...'
-                    ) : 'Redeem'}
-                  </>
-                ) : (
-                  'Withdraw'
-                )}
-              </Button>
-            </div>
-            
-            {/* Show message if no pTokens to redeem */}
-            {hasSmartContract && isConnected && !hasPTokenBalance && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-center">
-                <p className="text-sm text-yellow-700">
-                  No {asset.symbol} supplied to withdraw
-                </p>
-              </div>
-            )}
-            
-            {/* Redeem Transaction Status */}
-            {redeemStatusMessage && isRedeemLoading && (
-              <div className="mt-2 p-2 bg-purple-50 border border-purple-200 text-purple-800 rounded text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
-                  {redeemStatusMessage}
-                </div>
-              </div>
-            )}
-            
-            {/* Redeem Transaction Hash */}
-            {redeemHash && (
-              <div className="mt-2 text-xs text-gray-600">
-                Redeem: <span className="font-mono">{redeemHash.slice(0, 10)}...{redeemHash.slice(-8)}</span>
-              </div>
-            )}
-            
-            {/* Redeem Success Message */}
-            {redeemStep === 'success' && (
-              <div className="mt-2 p-2 bg-purple-50 border border-purple-200 text-purple-800 rounded text-sm">
-                <div className="flex items-center gap-2">
-                  <Check className="h-4 w-4" />
-                  Successfully redeemed {redeemAmount} {redeemType === 'underlying' ? asset.symbol : `p${asset.symbol}`}!
-                </div>
-              </div>
-            )}
-            
-            {/* Redeem Error */}
-            {redeemError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-sm text-red-700">{redeemError}</p>
-              </div>
-            )}
-          </div>
-
-          {showConfirmation && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-sm text-center text-green-500 flex items-center justify-center"
-            >
-              <Check className="h-4 w-4 mr-1" />
-              Transaction Successful!
             </motion.div>
           )}
         </div>
       </div>
+
+      {/* Error Modal */}
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={() => setErrorModal({ isOpen: false, message: '', details: undefined })}
+        title="Transaction Failed"
+        message={errorModal.message}
+        details={errorModal.details}
+      />
     </motion.div>
-  )
-} 
+    </TooltipProvider>
+  );
+}; 

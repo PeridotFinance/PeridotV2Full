@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAccount, useWriteContract, useReadContract, useWaitForTransactionReceipt } from 'wagmi'
 import { parseUnits, Address, formatUnits } from 'viem'
 import { getAssetContractAddresses, getMarketsForChain } from '@/data/market-data'
@@ -27,6 +27,11 @@ export function useBorrowTransaction({
   const [error, setError] = useState<string | null>(null)
   const [borrowHash, setBorrowHash] = useState<`0x${string}` | undefined>()
 
+  const onErrorRef = useRef(onError);
+  useEffect(() => {
+      onErrorRef.current = onError;
+  });
+
   // Get contract addresses for the asset
   const contractAddresses = chainId ? getAssetContractAddresses(assetId, chainId) : null
   
@@ -41,12 +46,29 @@ export function useBorrowTransaction({
   const allAssets = chainId ? getMarketsForChain(chainId) : []
   const currentAsset = allAssets.find(a => a.id === assetId)
 
-  // Check if we have valid contract addresses
-  const canBorrow = contractAddresses && contractAddresses.pTokenAddress && contractAddresses.underlyingAddress && controllerAddress
+  // Read underlying token decimals
+  const { data: underlyingDecimals } = useReadContract({
+    address: contractAddresses?.underlyingAddress as `0x${string}`,
+    abi: combinedAbi,
+    functionName: 'decimals',
+    args: [],
+    query: {
+      enabled: !!contractAddresses?.underlyingAddress,
+    }
+  })
 
-  // Parse amount to proper units (most tokens have 18 decimals)
-  const parsedAmount = amount ? parseUnits(amount, 18) : BigInt(0)
-  const numericAmount = parseFloat(amount) || 0
+  // Check if we have valid contract addresses
+  const canBorrow = contractAddresses && contractAddresses.pTokenAddress
+
+  // Clean and parse amount to proper units
+  const cleanAmount = (rawAmount: string): string => {
+    if (!rawAmount) return '0'
+    // Remove commas and any other formatting characters, keep only numbers and decimal point
+    return rawAmount.replace(/[^0-9.]/g, '')
+  }
+  
+  const parsedAmount = amount ? parseUnits(cleanAmount(amount), (underlyingDecimals as number) || 18) : BigInt(0)
+  const numericAmount = parseFloat(cleanAmount(amount)) || 0
 
   // Read account liquidity from controller
   const { data: accountLiquidity, refetch: refetchLiquidity } = useReadContract({
@@ -111,20 +133,21 @@ export function useBorrowTransaction({
 
   // Handle errors
   useEffect(() => {
-    if (borrowError) {
-      setError(`Borrow failed: ${borrowError.message}`)
-      setStep('error')
-      onError?.(borrowError)
+    const combinedError = borrowError || borrowReceiptError
+    if (combinedError) {
+      const errorObject = combinedError instanceof Error ? combinedError : new Error(String(combinedError))
+      console.error("A borrow error occurred:", errorObject)
+      
+      if (errorObject.message.includes('User rejected')) {
+        setError('Borrow transaction rejected. Please try again.')
+        reset() // Reset state if user rejects
+      } else {
+        onErrorRef.current?.(errorObject)
+        setError(errorObject.message)
+        setStep('error')
+      }
     }
-  }, [borrowError, onError])
-
-  useEffect(() => {
-    if (borrowReceiptError) {
-      setError(`Borrow transaction failed: ${borrowReceiptError.message}`)
-      setStep('error')
-      onError?.(new Error(borrowReceiptError.message))
-    }
-  }, [borrowReceiptError, onError])
+  }, [borrowError, borrowReceiptError])
 
   // Execute borrow transaction
   const executeBorrow = async () => {

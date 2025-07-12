@@ -15,10 +15,10 @@ export function usePTokenBalance({ assetId }: UsePTokenBalanceProps) {
   
   // Read raw pToken balance 
   const { 
-    data: rawPTokenBalance, 
+    data: pTokenBalance, 
     isLoading, 
     error,
-    refetch 
+    refetch: refetchPTokenBalance
   } = useReadContract({
     address: contractAddresses?.pTokenAddress as `0x${string}`,
     abi: erc20Abi,
@@ -30,16 +30,18 @@ export function usePTokenBalance({ assetId }: UsePTokenBalanceProps) {
     }
   })
 
-  // Read exchange rate to normalize the display
-  const { 
-    data: exchangeRate, 
+  // Fetch the balance in terms of the underlying asset directly
+  const {
+    data: underlyingBalance,
+    refetch: refetchUnderlyingBalance
   } = useReadContract({
     address: contractAddresses?.pTokenAddress as `0x${string}`,
     abi: combinedAbi,
-    functionName: 'exchangeRateStored',
-    args: [],
+    functionName: 'balanceOfUnderlying',
+    args: [address!],
     query: {
-      enabled: !!contractAddresses?.pTokenAddress,
+      enabled: !!contractAddresses?.pTokenAddress && !!address,
+      refetchInterval: 30000,
     }
   })
 
@@ -56,47 +58,53 @@ export function usePTokenBalance({ assetId }: UsePTokenBalanceProps) {
     }
   })
 
-  // Calculate underlying balance from pToken balance and exchange rate
-  // In Compound V2: underlyingBalance = pTokenBalance * exchangeRate / 1e18
-  const calculateUnderlyingBalance = (): bigint => {
-    if (!rawPTokenBalance || !exchangeRate) return BigInt(0)
-    
-    // Exchange rate is in mantissa form (scaled by 1e18)
-    // In Compound V2: exchangeRateStored returns the current exchange rate as a mantissa (scaled by 1e18)
-    // Formula: (pTokenBalance * exchangeRate) / 1e18
-    // Note: This works regardless of pToken decimals because we're converting to underlying token amount
-    return (rawPTokenBalance * BigInt(exchangeRate.toString())) / BigInt(10 ** 18)
-  }
+  // Read underlying token decimals
+  const {
+    data: underlyingDecimals,
+  } = useReadContract({
+    address: contractAddresses?.underlyingAddress as `0x${string}`,
+    abi: erc20Abi,
+    functionName: 'decimals',
+    args: [],
+    query: {
+      enabled: !!contractAddresses?.underlyingAddress,
+    }
+  })
 
-  const underlyingBalance = calculateUnderlyingBalance()
-  const decimals = pTokenDecimals || 18 // Default to 18 if not available
+  const decimals = underlyingDecimals || 18 // Default to 18 if not available
 
   // Format the balance to a readable string
-  const formatBalance = (balance: bigint | undefined, decimals: number = 18): string => {
-    if (!balance) return '0.00'
+  const formatBalance = (balance: bigint | undefined, decimals: number | undefined): string => {
+    if (!balance || decimals === undefined) return '0.00'
     
-    const formattedBalance = formatUnits(balance, decimals)
-    const numericBalance = parseFloat(formattedBalance)
+    const numericBalance = parseFloat(formatUnits(balance, decimals))
     
     if (numericBalance === 0) return '0.00'
-    if (numericBalance < 0.01) return '< 0.01'
+    if (numericBalance < 0.01) {
+      return parseFloat(numericBalance.toPrecision(4)).toString()
+    }
     
     return numericBalance.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 4,
     })
   }
+  
+  const refetch = () => {
+    refetchPTokenBalance()
+    refetchUnderlyingBalance()
+  }
 
   return {
-    pTokenBalance: rawPTokenBalance,
-    underlyingBalance: underlyingBalance,
-    exchangeRate,
-    decimals,
-    formattedBalance: formatBalance(underlyingBalance),
+    pTokenBalance: pTokenBalance as bigint | undefined,
+    underlyingBalance: underlyingBalance as bigint | undefined,
+    decimals: underlyingDecimals,
+    pTokenDecimals: pTokenDecimals,
+    formattedBalance: formatBalance(underlyingBalance as bigint, decimals),
     isLoading,
     error,
     refetch,
-    hasBalance: underlyingBalance > BigInt(0),
+    hasBalance: underlyingBalance && (underlyingBalance as bigint) > BigInt(0),
     contractAddresses,
   }
 } 
