@@ -4,12 +4,15 @@ import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardFooter, CardTitle } from "@/components/ui/card"
 import { ArrowRight, Calendar, User } from "lucide-react"
 import PostPreview from "@/components/blog/post-preview"
-import { getAllPosts } from "@/lib/blog-utils"
+import { fetchAllPostsFromDB } from "@/lib/blog-utils"
 import type { Metadata } from "next"
+
+export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {
   title: "Blog | Peridot - Cross-Chain DeFi Lending Platform",
   description: "Stay updated with the latest news, tutorials, and insights about Peridot and the DeFi ecosystem.",
+  alternates: { canonical: "/blog" },
   openGraph: {
     title: "Peridot Blog - Cross-Chain DeFi Insights",
     description: "Stay updated with the latest news, tutorials, and insights about Peridot and the DeFi ecosystem.",
@@ -25,7 +28,21 @@ export const metadata: Metadata = {
 }
 
 export default async function Blog() {
-  const allPosts = getAllPosts()
+  const allPosts = await fetchAllPostsFromDB()
+  
+  if (allPosts.length === 0) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <section className="py-16 md:py-24 hero-gradient">
+          <div className="container mx-auto px-4 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">Peridot Blog</h1>
+            <p className="text-lg text-text/80">No articles published yet. Check back soon!</p>
+          </div>
+        </section>
+      </div>
+    )
+  }
+
   const featuredPost = allPosts[0]
   const morePosts = allPosts.slice(1)
 
@@ -55,6 +72,7 @@ export default async function Blog() {
                   alt={featuredPost.title}
                   fill
                   className="object-cover"
+                  unoptimized={featuredPost.coverImage?.includes('r2.dev') || featuredPost.coverImage?.includes('cdn.peridot.finance') || false}
                 />
               </div>
               <div className="p-6 flex flex-col justify-center">
@@ -110,9 +128,9 @@ export default async function Blog() {
       {/* Blog Posts */}
       <section className="py-12 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex flex-col gap-3 mb-8 sm:flex-row sm:justify-between sm:items-center">
             <h2 className="text-2xl font-bold">Latest Articles</h2>
-            <div className="flex space-x-2">
+            <div className="flex flex-wrap gap-2">
               <Button variant="outline" size="sm">
                 All
               </Button>

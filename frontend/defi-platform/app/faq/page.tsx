@@ -1,9 +1,42 @@
+import type { Metadata } from "next"
+import Script from "next/script"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
+export const metadata: Metadata = {
+  title: "FAQ | Peridot: DeFi Lending, Borrowing & Cross-Chain",
+  description: "Answers to common questions about Peridot: how lending and borrowing works, pTokens, liquidation, collateral, cross-chain functionality, and security.",
+  alternates: { canonical: "/faq" },
+  openGraph: {
+    title: "Frequently Asked Questions | Peridot",
+    description: "Everything you need to know about using Peridot's cross-chain DeFi protocol.",
+    url: "/faq",
+  },
+}
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    { "@type": "Question", name: "What is Peridot?", acceptedAnswer: { "@type": "Answer", text: "Peridot is a decentralized cross-chain lending and borrowing platform that enables users to earn interest on their crypto assets and borrow against their collateral. The platform uses algorithmic interest rates based on supply and demand to create efficient money markets for various crypto assets across multiple blockchains." } },
+    { "@type": "Question", name: "How do I start using Peridot?", acceptedAnswer: { "@type": "Answer", text: "To start using Peridot, hit the launch app button on the top right of the page and connect your wallet. You can then supply assets to earn interest or borrow against your collateral. Earn points by interacting with the protocol and climb the leaderboard." } },
+    { "@type": "Question", name: "What blockchains does Peridot support?", acceptedAnswer: { "@type": "Answer", text: "Peridot currently supports Ethereum, Polygon, Avalanche, Binance Smart Chain, Arbitrum, Optimism, Solana (for the bridge) and Monad, XDC and Binance Smart Chain (for the lending and borrowing testnet)." } },
+    { "@type": "Question", name: "How are interest rates determined?", acceptedAnswer: { "@type": "Answer", text: "Interest rates on Peridot are determined algorithmically based on the utilization rate of each asset. When demand for borrowing is high, rates increase to incentivize more supply. When demand is low, rates decrease to encourage more borrowing." } },
+    { "@type": "Question", name: "What are pTokens?", acceptedAnswer: { "@type": "Answer", text: "pTokens are interest-bearing tokens that represent your deposit in the Peridot protocol. When you supply assets, you receive pTokens in return. These tokens automatically accumulate interest over time, increasing in value relative to the underlying asset." } },
+    { "@type": "Question", name: "How does collateral work?", acceptedAnswer: { "@type": "Answer", text: "When you supply assets to Peridot, they can be used as collateral for borrowing other assets. Each asset has a collateral factor (between 0 and 1) that determines how much you can borrow against it. For example, if ETH has a collateral factor of 0.75, you can borrow up to 75% of the value of your supplied ETH." } },
+    { "@type": "Question", name: "What is liquidation and how can I avoid it?", acceptedAnswer: { "@type": "Answer", text: "Liquidation occurs when the value of your borrowed assets exceeds your allowed borrowing capacity due to price fluctuations or accrued interest. To avoid liquidation, maintain a healthy buffer in your collateral ratio by either supplying more assets or repaying part of your borrowed assets." } },
+    { "@type": "Question", name: "Is Peridot secure?", acceptedAnswer: { "@type": "Answer", text: "Peridot prioritizes security through multiple measures: our smart contracts have undergone rigorous security audits by leading firms, we implement robust risk management protocols, and we maintain a conservative approach to collateral factors. Our non-custodial architecture means users always maintain control of their assets." } },
+    { "@type": "Question", name: "How does cross-chain functionality work?", acceptedAnswer: { "@type": "Answer", text: "Peridot's cross-chain functionality allows users to supply assets on one blockchain and borrow on another without manually bridging assets. This is achieved through cross-chain messaging protocols, liquidity pools on each supported chain, and proprietary bridging technology." } },
+    { "@type": "Question", name: "How is Peridot governed?", acceptedAnswer: { "@type": "Answer", text: "Peridot is governed by a decentralized autonomous organization (DAO) where token holders can propose and vote on changes to the protocol, including adding new markets, adjusting interest rate models, and managing price oracles." } },
+  ],
+}
+
 export default function FAQ() {
   return (
+    <>
+      <Script id="faq-schema" type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="py-16 md:py-24 hero-gradient">
@@ -37,9 +70,9 @@ export default function FAQ() {
                   How do I start using Peridot?
                 </AccordionTrigger>
                 <AccordionContent className="text-text/80 pb-4">
-                  To start using Peridot, you need to connect your wallet (such as MetaMask, WalletConnect, or other
-                  supported wallets) to our platform. Once connected, you can supply assets to earn interest or borrow
-                  against your collateral. Visit our "Launch App" page and click on "Connect Wallet" to get started.
+                  To start using Peridot, hit the launch app button on the top right of the page and connect your wallet.
+                  You can then supply assets to earn interest or borrow against your collateral.
+                  Earn points by interacting with the protocol and climb the leaderboard. (You earn for future rewards)
                 </AccordionContent>
               </AccordionItem>
 
@@ -49,7 +82,7 @@ export default function FAQ() {
                 </AccordionTrigger>
                 <AccordionContent className="text-text/80 pb-4">
                   Peridot currently supports Ethereum, Polygon, Avalanche, Binance Smart Chain, Arbitrum, Optimism,
-                  Solana, and more. We're continuously working to add support for additional blockchains to enhance
+                  Solana (for the bridge) and Monad, XDC and Binance Smart Chain (for the lending and borrowing testnet) . We're continuously working to add support for additional blockchains to enhance
                   cross-chain functionality and provide users with more options.
                 </AccordionContent>
               </AccordionItem>
@@ -67,12 +100,12 @@ export default function FAQ() {
               </AccordionItem>
 
               <AccordionItem value="item-5" className="bg-card border border-border/50 rounded-lg px-6">
-                <AccordionTrigger className="text-lg font-medium py-4">What are cTokens?</AccordionTrigger>
+                <AccordionTrigger className="text-lg font-medium py-4">What are pTokens?</AccordionTrigger>
                 <AccordionContent className="text-text/80 pb-4">
-                  cTokens are interest-bearing tokens that represent your deposit in the Peridot protocol. When you
-                  supply assets, you receive cTokens in return. These tokens automatically accumulate interest over
+                  pTokens are interest-bearing tokens that represent your deposit in the Peridot protocol. When you
+                  supply assets, you receive pTokens in return. These tokens automatically accumulate interest over
                   time, increasing in value relative to the underlying asset. When you want to withdraw your assets, you
-                  redeem your cTokens for the original asset plus accrued interest.
+                  redeem your pTokens for the original asset plus accrued interest.
                 </AccordionContent>
               </AccordionItem>
 
@@ -135,7 +168,7 @@ export default function FAQ() {
 
             <div className="mt-12 text-center">
               <p className="text-text/70 mb-6">Still have questions? Reach out to our community or support team.</p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
                 <Button asChild variant="outline">
                   <Link href="/contact">Contact Support</Link>
                 </Button>
@@ -145,10 +178,28 @@ export default function FAQ() {
                   </Link>
                 </Button>
               </div>
+              <div className="border-t border-border/30 pt-8">
+                <p className="text-text/50 text-sm mb-4">Explore more</p>
+                <div className="flex flex-wrap gap-3 justify-center">
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/how-it-works">How it works</Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/agents">AI Agents</Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/glossary">DeFi Glossary</Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/app">Launch App</Link>
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
     </div>
+    </>
   )
 }

@@ -1,0 +1,131 @@
+{
+  "generatedAt": "2026-05-27T07:52:07.915Z",
+  "baseUrl": "http://localhost:3000",
+  "shots": {
+    "easy-portfolio": {
+      "mobile": {
+        "path": "/guide/shots/easy-portfolio-mobile.webp",
+        "width": 780,
+        "height": 1688
+      },
+      "desktop": {
+        "path": "/guide/shots/easy-portfolio-desktop.webp",
+        "width": 2880,
+        "height": 1800
+      }
+    },
+    "easy-account": {
+      "mobile": {
+        "path": "/guide/shots/easy-account-mobile.webp",
+        "width": 780,
+        "height": 1688
+      },
+      "desktop": {
+        "path": "/guide/shots/easy-account-desktop.webp",
+        "width": 2880,
+        "height": 1800
+      }
+    },
+    "login-screen": {
+      "mobile": {
+        "path": "/guide/shots/login-screen-mobile.webp",
+        "width": 780,
+        "height": 1688
+      }
+    },
+    "connect-chooser": {
+      "mobile": {
+        "path": "/guide/shots/connect-chooser-mobile.webp",
+        "width": 780,
+        "height": 1688
+      },
+      "desktop": {
+        "path": "/guide/shots/connect-chooser-desktop.webp",
+        "width": 2880,
+        "height": 1800
+      }
+    },
+    "easy-deposit-idle": {
+      "mobile": {
+        "path": "/guide/shots/easy-deposit-idle-mobile.webp",
+        "width": 780,
+        "height": 1688
+      },
+      "desktop": {
+        "path": "/guide/shots/easy-deposit-idle-desktop.webp",
+        "width": 2880,
+        "height": 1800
+      }
+    },
+    "expert-markets": {
+      "mobile": {
+        "path": "/guide/shots/expert-markets-mobile.webp",
+        "width": 780,
+        "height": 1688
+      },
+      "desktop": {
+        "path": "/guide/shots/expert-markets-desktop.webp",
+        "width": 2880,
+        "height": 1800
+      }
+    },
+    "expert-network-switcher": {
+      "desktop": {
+        "path": "/guide/shots/expert-network-switcher-desktop.webp",
+        "width": 2880,
+        "height": 1800
+      }
+    },
+    "action-waiting": {
+      "mobile": {
+        "path": "/guide/shots/action-waiting-mobile.webp",
+        "width": 780,
+        "height": 1688
+      },
+      "desktop": {
+        "path": "/guide/shots/action-waiting-desktop.webp",
+        "width": 2880,
+        "height": 1800
+      }
+    },
+    "action-success": {
+      "mobile": {
+        "path": "/guide/shots/action-success-mobile.webp",
+        "width": 780,
+        "height": 1688
+      },
+      "desktop": {
+        "path": "/guide/shots/action-success-desktop.webp",
+        "width": 2880,
+        "height": 1800
+      }
+    },
+    "action-error-insufficient": {
+      "mobile": {
+        "path": "/guide/shots/action-error-insufficient-mobile.webp",
+        "width": 780,
+        "height": 1688
+      },
+      "desktop": {
+        "path": "/guide/shots/action-error-insufficient-desktop.webp",
+        "width": 2880,
+        "height": 1800
+      }
+    },
+    "toast-pending-desktop": {
+      "desktop": {
+        "path": "/guide/shots/toast-pending-desktop-desktop.webp",
+        "width": 2880,
+        "height": 1800
+      }
+    },
+    "sheet-deposit": {
+      "desktop": {
+        "path": "/guide/shots/sheet-deposit-desktop.webp",
+        "width": 2880,
+        "height": 1800
+      }
+    },
+    "sheet-withdraw": {}
+  }
+}

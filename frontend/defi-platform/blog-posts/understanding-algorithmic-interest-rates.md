@@ -4,8 +4,8 @@ excerpt: "Learn how Peridot's algorithmic interest rate model works to balance s
 coverImage: "/blog/algorithmic-interest-rates.jpg"
 date: "2025-04-05"
 author:
-  name: "Alex Johnson"
-  picture: "/team/alex-johnson.jpg"
+  name: "Asyncsan"
+  picture: "/blog/author/asyncsan.jpg"
 category: "Education"
 tags: ["Interest Rates", "DeFi", "Algorithmic Models", "Market Dynamics"]
 ---
@@ -41,15 +41,15 @@ Rather than using a simple linear relationship between utilization and interest 
 
 This approach allows for reasonable rates during normal market conditions while rapidly increasing rates as the protocol approaches full utilization, which helps protect against liquidity crises.
 
-\`\`\`
+```
 // Pseudocode for the interest rate calculation
 if (utilizationRate <= optimalUtilization) {
   borrowRate = baseRate + (utilizationRate / optimalUtilization) * multiplier;
 } else {
-  borrowRate = baseRate + multiplier + 
+  borrowRate = baseRate + multiplier +
                ((utilizationRate - optimalUtilization) / (1 - optimalUtilization)) * jumpMultiplier;
 }
-\`\`\`
+```
 
 ### Cross-Chain Rate Equilibrium
 
@@ -80,7 +80,7 @@ Different assets have different base parameters in the model, reflecting their r
 
 The chart below demonstrates how borrowing interest rates change as utilization increases:
 
-![Interest Rate Model Visualization](/blog/interest-rate-chart.jpg)
+![Interest Rate Model Visualization](/blog/inblogimages/interest-rate-chart.jpg)
 
 The chart clearly shows:
 1. A gradual increase in rates up to the optimal utilization point
@@ -106,4 +106,3 @@ Understanding the algorithmic interest rate model helps users optimize their str
 Algorithmic interest rates are one of the most powerful innovations in DeFi, creating efficient markets that automatically balance supply and demand without central coordination. By understanding how Peridot's rate model works, users can make more informed decisions about when to supply or borrow assets.
 
 The model's sophistication—particularly its jump rate approach and cross-chain awareness—makes Peridot's lending markets more resilient and capital-efficient than traditional financial systems or simpler DeFi protocols. As the DeFi ecosystem continues to mature, we can expect further refinements to these models that will create even more efficient and stable decentralized capital markets.
-\`\`\`

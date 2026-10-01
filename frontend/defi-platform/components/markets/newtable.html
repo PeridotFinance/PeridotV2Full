@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peridot.Finance - Asset Table Concept</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        /* Define the accent color from the design scheme */
+        :root {
+            --accent-color: #5e7945;
+            --accent-color-glow: rgba(94, 121, 69, 0.5);
+            --bg-color: #f9fafb; /* Off-white from screenshot */
+            --text-color: #1f2937;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .cyber-table-container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 1rem;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .asset-row {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        .asset-row:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px var(--accent-color-glow);
+        }
+
+        .asset-row.is-open {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 20px var(--accent-color-glow);
+        }
+
+        .row-main {
+            cursor: pointer;
+            padding: 16px 24px;
+            display: grid;
+            grid-template-columns: 2fr repeat(5, 1fr);
+            align-items: center;
+            gap: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .asset-row.is-open .row-main {
+             background-color: #f7f9f6; /* Very light green */
+        }
+
+        .row-dropdown {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1), padding 0.5s ease;
+            padding: 0 24px;
+            border-top: 1px solid transparent;
+        }
+        
+        .asset-row.is-open .row-dropdown {
+            max-height: 500px; /* Arbitrary large value */
+            padding: 24px;
+            border-top-color: var(--border-color);
+        }
+
+        .dropdown-content {
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.4s ease 0.2s, transform 0.4s ease 0.2s;
+        }
+
+        .asset-row.is-open .dropdown-content {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* NEW: Cyber Tabs styling */
+        .cyber-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .cyber-tab {
+            padding: 8px 16px;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 6px 6px 0 0;
+            background: none;
+            cursor: pointer;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: #6b7280;
+            transition: all 0.2s ease;
+            transform: translateY(1px); /* Sits on the border */
+        }
+        .cyber-tab:hover {
+            background-color: #f0f3ee;
+            color: var(--text-color);
+        }
+        .cyber-tab.active {
+            background-color: #fff;
+            border-color: var(--border-color);
+            color: var(--accent-color);
+        }
+
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+
+        /* NEW: Pool Vitals & Risk Console */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            md:grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            padding-bottom: 24px;
+            margin-bottom: 16px;
+        }
+
+        .pool-vitals {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .vital {
+            background: #f7f9f6;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+        }
+        .vital-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        .vital-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+        
+        /* NEW: Risk Gauge Styling */
+        .risk-console {
+            text-align: center;
+        }
+        .risk-gauge-svg {
+            width: 100px;
+            height: 100px;
+            transform: rotate(-90deg);
+            margin: 0 auto;
+        }
+        .gauge-track {
+            stroke: #e5e7eb;
+            fill: none;
+            stroke-width: 8;
+        }
+        .gauge-fill {
+            stroke: var(--accent-color);
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease-out, stroke 0.5s ease;
+        }
+        .risk-text {
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+        .risk-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+
+        /* NEW: Borrow Limit Bar */
+        .borrow-limit-container {
+            margin-bottom: 16px;
+        }
+        .borrow-limit-bar {
+            position: relative;
+            height: 28px;
+            background-color: #f0f3ee;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+        .borrow-limit-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background-color: var(--accent-color);
+            opacity: 0.6;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .borrow-limit-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 12px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-color);
+            /* This makes text color invert against the fill */
+            mix-blend-mode: difference;
+            filter: invert(1) grayscale(1);
+        }
+        .borrow-limit-text span {
+             filter: invert(1); /* Invert back to normal */
+        }
+
+
+        /* Glitch effect on header hover */
+        .table-header span {
+            display: inline-block;
+        }
+        .table-header:hover span {
+            animation: glitch 0.5s linear infinite;
+        }
+        @keyframes glitch{
+            2%,64%{ transform: translate(2px,0) skew(0deg); }
+            4%,60%{ transform: translate(-2px,0) skew(0deg); }
+            62%{ transform: translate(0,0) skew(5deg); }
+        }
+        .table-header:hover span:nth-child(2) { animation-delay: 0.1s; }
+        .table-header:hover span:nth-child(3) { animation-delay: 0.2s; }
+        
+        /* Custom styles for form elements */
+        .cyber-input {
+            background-color: #f0f3ee;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            font-family: 'Space Mono', monospace;
+            border-radius: 6px;
+            padding: 10px 12px;
+            width: 100%;
+            transition: all 0.2s ease;
+        }
+        .cyber-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px var(--accent-color-glow);
+            background-color: #fff;
+        }
+
+        .cyber-button {
+            background-color: var(--accent-color);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 700;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .cyber-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px var(--accent-color-glow);
+        }
+        .cyber-button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .cyber-button.secondary {
+             background-color: transparent;
+             color: var(--accent-color);
+             border: 1px solid var(--accent-color);
+        }
+
+         /* For processing animation */
+        .cyber-button.processing::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 20px;
+            height: 20px;
+            margin: -10px 0 0 -10px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .asset-icon {
+            width: 32px;
+            height: 32px;
+        }
+
+        .text-reward-green { color: #22c55e; }
+        .text-reward-red { color: #ef4444; }
+
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <div class="cyber-table-container">
+        <h2 class="text-2xl font-bold mb-2 ml-2">Markets</h2>
+        
+        <!-- Table Header -->
+        <div class="table-header hidden md:grid grid-cols-6 items-center gap-4 px-6 py-3 text-xs text-gray-500 font-bold uppercase">
+            <span>Asset</span>
+            <span class="text-right">Supply APY</span>
+            <span class="text-right">Supply Rewards</span>
+            <span class="text-right">Borrow APY</span>
+            <span class="text-right">Borrow Rewards</span>
+            <span class="text-right">Balance</span>
+        </div>
+
+        <!-- Asset Rows -->
+        <div id="asset-table">
+            <!-- Data will be injected here by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA ---
+            const assets = [
+                { 
+                    name: 'USDC', 
+                    ticker: 'USDC',
+                    icon: `<svg class="asset-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path fill="#2775ca" d="M16 32C7.163 32 0 24.837 0 16S7.163 0 16 0s16 7.163 16 16-7.163 16-16 16zm-3.21-11.75l-.014.014c-.45.45-.45 1.18 0 1.63l1.83 1.83c.45.45 1.18.45 1.63 0l.015-.015c1.92-1.92 3.23-4.22 3.5-6.71h-3.41c-.24 1.13-.8 2.2-1.6 3.01zm6.42 0c.8-.8 1.36-1.88 1.6-3.01h3.41c-.27 2.49-1.58 4.79-3.5 6.71l.015.015c.45.45 1.18.45 1.63 0l1.83-1.83c.45-.45.45-1.18 0-1.63l-.014-.014c-.8-..81-1.88-1.37-3.01-1.6V16h-3.01v2.65c1.13.23 2.21.79 3.01 1.6zm-3.21-11.5c-2.49.27-4.79 1.58-6.71 3.5l-.015-.015c-.45-.45-1.18-.45-1.63 0l-1.83 1.83c-.45.45-.45 1.18 0 1.63l.014.014c.8.8 1.88 1.36 3.01 1.6V16h3.01v-2.65c-1.13-.23-2.2-.79-3-1.6l.013-.013c.45-.45 1.18-.45 1.63 0l1.83 1.83c.45.45 1.18.45 1.63 0l.015-.014c.8-.81 1.37-1.88 1.6-3.01h-2.65c-1.13 0-2.21.57-3.01 1.6zm0-2.65V4.1c-2.49.27-4.79 1.58-6.71 3.5l-.015-.015c-.45-.45-1.18-.45-1.63 0l-1.83 1.83c-.45.45-.45 1.18 0 1.63l.014.014c.8.8 1.88 1.36 3.01 1.6V16h3.01v-2.65c-1.13-.23-2.2-.79-3-1.6l.013-.013c.45-.45 1.18-.45 1.63 0l1.83 1.83c.45.45 1.18.45 1.63 0l.015-.014c.8-.81 1.37-1.88 1.6-3.01h-2.65c-1.13 0-2.21.57-3.01 1.6zM13.35 16h5.3v-2.65c1.13-.23 2.2-.79 3-1.6l-.014-.014c-.45-.45-.45-1.18 0-1.63l-1.83-1.83c-.45-.45-1.18-.45-1.63 0l-.015.015c-1.92 1.92-4.22 3.23-6.71 3.5v3.41c1.13 0 2.21.57 3.01 1.6zm-5.3 0h-5.3c.27-2.49 1.58-4.79 3.5-6.71l-.015-.015c-.45-.45-1.18-.45-1.63 0l-1.83 1.83c-.45-.45-.45-1.18 0-1.63l.014.014c.8-.81 1.88-1.37 3-1.6V4.1h3.01v2.65c-1.13.23-2.2.79-3.01 1.6z"/></svg>`,
+                    supplyAPY: 12.42, supplyRewards: 327.66, borrowAPY: 13.50, borrowRewards: 5.49, balance: 0.000402, balanceUSD: 0.00, supplied: 1000, borrowed: 250,
+                    tvl: 562746, available: 422224, utilization: 24.5, liqIncentive: 8.00, risk: 2.2, borrowLimit: 1250.75
+                },
+                { 
+                    name: 'Tether', 
+                    ticker: 'USDT',
+                    icon: `<svg class="asset-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path fill="#26a17b" d="M16 32C7.163 32 0 24.837 0 16S7.163 0 16 0s16 7.163 16 16-7.163 16-16 16zM12.91 8.59h6.18v2.75h-2.3v9.07h-1.58v-9.07h-2.3V8.59zm-3.32 0h2.75v11.82h-2.75V8.59zm12.63 0h2.75v11.82h-2.75V8.59z"/></svg>`,
+                    supplyAPY: 12.42, supplyRewards: 471.57, borrowAPY: 13.50, borrowRewards: 7.11, balance: 0.000723, balanceUSD: 0.00, supplied: 500.50, borrowed: 0,
+                    tvl: 450123, available: 300000, utilization: 33.3, liqIncentive: 7.50, risk: 0, borrowLimit: 800
+                },
+                { 
+                    name: 'Wrapped Ether', 
+                    ticker: 'WETH',
+                    icon: `<svg class="asset-icon" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path fill="#8a92b2" d="M16 32C7.163 32 0 24.837 0 16S7.163 0 16 0s16 7.163 16 16-7.163 16-16 16zM16 4.1l-6.53 11.31 6.53 3.97 6.53-3.97L16 4.1zm0 23.8l-6.53-6.53 6.53-3.97 6.53 3.97-6.53 6.53z"/></svg>`,
+                    supplyAPY: 12.42, supplyRewards: 0.00, borrowAPY: 13.50, borrowRewards: 1.56, balance: 0.2482, balanceUSD: 899.72, supplied: 0, borrowed: 0,
+                    tvl: 1205000, available: 950000, utilization: 21.2, liqIncentive: 9.25, risk: 0, borrowLimit: 2000
+                }
+            ];
+
+            // --- SOUNDS ---
+            let soundsReady = false;
+            const initAudio = () => {
+                if (soundsReady) return;
+                Tone.start();
+                soundsReady = true;
+            };
+
+            const hoverSynth = new Tone.Synth({
+                oscillator: { type: 'sine' },
+                envelope: { attack: 0.005, decay: 0.1, sustain: 0, release: 0.1 },
+            }).toDestination();
+
+            const toggleSynth = new Tone.Synth({
+                oscillator: { type: 'triangle' },
+                envelope: { attack: 0.01, decay: 0.2, sustain: 0.1, release: 0.2 },
+                volume: -10
+            }).toDestination();
+            
+            const filter = new Tone.AutoFilter("4n").toDestination().start();
+            toggleSynth.connect(filter);
+            
+            const actionSynth = new Tone.PluckSynth().toDestination();
+            
+            // NEW sounds
+            const tabSynth = new Tone.MembraneSynth({
+                octaves: 4,
+                pitchDecay: 0.1,
+                envelope: { attack: 0.001, decay: 0.1, sustain: 0.01, release: 0.1 }
+            }).toDestination();
+
+            const riskSynth = new Tone.FMSynth({
+                harmonicity: 1.2,
+                modulationIndex: 5,
+                envelope: { attack: 0.01, decay: 0.2, release: 0.2 },
+                volume: -15
+            }).toDestination();
+
+            const barSynth = new Tone.MonoSynth({
+                oscillator: { type: 'sawtooth' },
+                envelope: { attack: 0.01, decay: 0.1, release: 0.1 },
+                filter: { Q: 2, type: 'lowpass', rolloff: -24 },
+                filterEnvelope: { attack: 0.01, decay: 0.1, sustain: 0.2, baseFrequency: 100, octaves: 2.6 }
+            }).toDestination();
+
+
+            const playHoverSound = () => soundsReady && hoverSynth.triggerAttackRelease('C2', '8n');
+            const playToggleOpenSound = () => soundsReady && toggleSynth.triggerAttackRelease('C4', '4n', Tone.now());
+            const playToggleCloseSound = () => soundsReady && toggleSynth.triggerAttackRelease('C3', '4n', Tone.now());
+            const playActionSound = () => soundsReady && actionSynth.triggerAttack('G4', Tone.now());
+            const playTabSound = () => soundsReady && tabSynth.triggerAttackRelease("C2", "8n");
+            const playRiskSound = (freq) => soundsReady && riskSynth.triggerAttack(freq);
+            const playBarSound = () => soundsReady && barSynth.triggerAttackRelease('C3', '16n');
+
+
+            // --- RENDER TABLE ---
+            const tableContainer = document.getElementById('asset-table');
+            tableContainer.innerHTML = assets.map((asset, index) => `
+                <div class="asset-row" data-ticker="${asset.ticker}" data-index="${index}">
+                    <div class="row-main grid grid-cols-3 md:grid-cols-6 items-center gap-4">
+                        <!-- Asset -->
+                        <div class="flex items-center gap-3 col-span-3 md:col-span-1">
+                            ${asset.icon}
+                            <div>
+                                <p class="font-bold">${asset.name}</p>
+                                <p class="text-xs text-gray-500">${asset.ticker}</p>
+                            </div>
+                        </div>
+
+                        <!-- Data Points (visible on md+) -->
+                        <div class="hidden md:block text-right">
+                            <p>${asset.supplyAPY.toFixed(2)}%</p>
+                        </div>
+                        <div class="hidden md:block text-right">
+                            <p class="text-reward-green">+${asset.supplyRewards.toFixed(2)}%</p>
+                        </div>
+                        <div class="hidden md:block text-right">
+                            <p>${asset.borrowAPY.toFixed(2)}%</p>
+                        </div>
+                        <div class="hidden md:block text-right">
+                            <p class="text-reward-red">+${asset.borrowRewards.toFixed(2)}%</p>
+                        </div>
+                        <div class="hidden md:block text-right">
+                            <p class="font-bold">${asset.balance.toFixed(4)} ${asset.ticker}</p>
+                            <p class="text-xs text-gray-500">$${asset.balanceUSD.toFixed(2)}</p>
+                        </div>
+                    </div>
+                    <div class="row-dropdown">
+                        <div class="dropdown-content">
+
+                            <!-- Pool Vitals & Risk Console -->
+                            <div class="info-grid grid-cols-1 md:grid-cols-3">
+                                <div class="pool-vitals md:col-span-2">
+                                    <div class="vital">
+                                        <p class="vital-label">TVL</p>
+                                        <p class="vital-value">$${asset.tvl.toLocaleString()}</p>
+                                    </div>
+                                    <div class="vital">
+                                        <p class="vital-label">Available</p>
+                                        <p class="vital-value">$${asset.available.toLocaleString()}</p>
+                                    </div>
+                                    <div class="vital">
+                                        <p class="vital-label">Utilization</p>
+                                        <p class="vital-value">${asset.utilization}%</p>
+                                    </div>
+                                    <div class="vital">
+                                        <p class="vital-label">Liq. Incentive</p>
+                                        <p class="vital-value">${asset.liqIncentive}%</p>
+                                    </div>
+                                </div>
+                                <div class="risk-console">
+                                     <svg class="risk-gauge-svg">
+                                        <circle class="gauge-track" cx="50" cy="50" r="42"></circle>
+                                        <circle class="gauge-fill" cx="50" cy="50" r="42" style="stroke-dasharray: 264; stroke-dashoffset: 264;"></circle>
+                                    </svg>
+                                    <p class="risk-text mt-[-65px] mb-[45px]">${asset.risk.toFixed(1)}%</p>
+                                    <p class="risk-label">Your Risk Level</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Cyber Tabs -->
+                            <div class="cyber-tabs">
+                                <button class="cyber-tab active" data-tab="supply">Supply</button>
+                                <button class="cyber-tab" data-tab="borrow">Borrow</button>
+                                <button class="cyber-tab" data-tab="manage">Manage</button>
+                            </div>
+
+                            <!-- Tab Content -->
+                            <div class="tab-content active" data-content="supply">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600 mb-1">You Supplied: <span class="font-bold">${asset.supplied.toFixed(4)} ${asset.ticker}</span></p>
+                                    <p class="text-sm text-gray-600 mb-4">Wallet Balance: <span class="font-bold">${asset.balance.toFixed(4)} ${asset.ticker}</span></p>
+                                    <div class="relative mb-2">
+                                        <input type="number" placeholder="0.0" class="cyber-input">
+                                        <button class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-500 hover:text-[var(--accent-color)]">MAX</button>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button class="cyber-button w-full action-btn" data-action="Supply">Supply</button>
+                                        <button class="cyber-button secondary w-full action-btn" data-action="Withdraw">Withdraw</button>
+                                    </div>
+                                </div>
+                            </div>
+                             <div class="tab-content" data-content="borrow">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <p class="text-sm text-gray-600 mb-1">You Borrowed: <span class="font-bold">${asset.borrowed.toFixed(4)} ${asset.ticker}</span></p>
+                                    
+                                    <!-- NEW: Borrow Limit Bar -->
+                                    <div class="borrow-limit-container">
+                                        <div class="borrow-limit-bar">
+                                            <div class="borrow-limit-fill"></div>
+                                            <div class="borrow-limit-text">
+                                                <span class="borrow-text-current">Borrowed: ${asset.borrowed.toFixed(2)}</span>
+                                                <span class="borrow-text-limit">Limit: ${asset.borrowLimit.toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="relative mb-2">
+                                        <input type="number" placeholder="0.0" class="cyber-input risk-input">
+                                        <button class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-500 hover:text-[var(--accent-color)]">MAX</button>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button class="cyber-button w-full action-btn" data-action="Borrow">Borrow</button>
+                                        <button class="cyber-button secondary w-full action-btn" data-action="Repay">Repay</button>
+                                    </div>
+                                </div>
+                            </div>
+                             <div class="tab-content" data-content="manage">
+                                 <div class="bg-gray-50 p-4 rounded-lg text-center">
+                                     <p class="text-gray-600">Management interface coming soon.</p>
+                                 </div>
+                             </div>
+
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // --- EVENT LISTENERS ---
+            document.body.addEventListener('click', initAudio, { once: true });
+            document.body.addEventListener('mouseover', initAudio, { once: true });
+
+            const rows = document.querySelectorAll('.asset-row');
+            rows.forEach(row => {
+                const main = row.querySelector('.row-main');
+                
+                main.addEventListener('click', () => {
+                    const isOpen = row.classList.contains('is-open');
+                    // Close all other rows
+                    rows.forEach(r => {
+                        if (r !== row && r.classList.contains('is-open')) {
+                            r.classList.remove('is-open');
+                        }
+                    });
+                    
+                    // Toggle current row
+                    row.classList.toggle('is-open');
+                    if (!isOpen) {
+                        playToggleOpenSound();
+                        const asset = assets[row.dataset.index];
+                        updateRiskGauge(row, asset.risk);
+                        updateBorrowBar(row, asset.borrowed, asset.borrowLimit);
+                    } else {
+                        playToggleCloseSound();
+                    }
+                });
+
+                row.addEventListener('mouseenter', playHoverSound);
+
+                // NEW: Tab functionality
+                const tabs = row.querySelectorAll('.cyber-tab');
+                const contents = row.querySelectorAll('.tab-content');
+                tabs.forEach(tab => {
+                    tab.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        playTabSound();
+                        
+                        tabs.forEach(t => t.classList.remove('active'));
+                        contents.forEach(c => c.classList.remove('active'));
+                        
+                        tab.classList.add('active');
+                        row.querySelector(`.tab-content[data-content="${tab.dataset.tab}"]`).classList.add('active');
+                    });
+                });
+
+                // NEW: Risk gauge interaction
+                const riskInput = row.querySelector('.risk-input');
+                if (riskInput) {
+                    riskInput.addEventListener('input', (e) => {
+                        const asset = assets[row.dataset.index];
+                        const baseRisk = asset.risk;
+                        const borrowAmount = parseFloat(e.target.value) || 0;
+                        
+                        // Mock risk calculation
+                        let newRisk = baseRisk + (borrowAmount / 50); 
+                        if (newRisk > 100) newRisk = 100;
+                        
+                        // Mock borrow bar calculation
+                        const newBorrowedTotal = asset.borrowed + borrowAmount;
+                        
+                        updateRiskGauge(row, newRisk);
+                        updateBorrowBar(row, newBorrowedTotal, asset.borrowLimit);
+                        
+                        // Sound feedback
+                        const freq = 200 + (newRisk * 4); // from 200Hz to 600Hz
+                        playRiskSound(freq);
+                        if (borrowAmount > 0) playBarSound();
+                    });
+                }
+            });
+            
+            // Mock action buttons
+            const actionButtons = document.querySelectorAll('.action-btn');
+            actionButtons.forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevent row from closing
+                    playActionSound();
+
+                    const originalText = btn.textContent;
+                    const action = btn.dataset.action;
+                    
+                    btn.classList.add('processing');
+                    btn.textContent = '';
+                    btn.disabled = true;
+
+                    setTimeout(() => {
+                        btn.classList.remove('processing');
+                        btn.textContent = `${action}ed ✓`;
+                        setTimeout(() => {
+                            btn.textContent = originalText;
+                            btn.disabled = false;
+                        }, 2000);
+                    }, 2000);
+                });
+            });
+
+            // --- HELPER FUNCTIONS ---
+            function updateRiskGauge(row, riskPercent) {
+                const gaugeFill = row.querySelector('.gauge-fill');
+                const riskText = row.querySelector('.risk-text');
+                const riskLabel = row.querySelector('.risk-label');
+                const circumference = 264; // 2 * PI * 42
+                
+                const offset = circumference - (riskPercent / 100) * circumference;
+                gaugeFill.style.strokeDashoffset = offset;
+                riskText.textContent = `${riskPercent.toFixed(1)}%`;
+
+                // Change color based on risk
+                if (riskPercent > 75) {
+                    gaugeFill.style.stroke = '#ef4444'; // red
+                    riskLabel.textContent = "High Risk";
+                } else if (riskPercent > 40) {
+                    gaugeFill.style.stroke = '#f59e0b'; // amber
+                    riskLabel.textContent = "Medium Risk";
+                } else {
+                    gaugeFill.style.stroke = 'var(--accent-color)'; // green
+                    riskLabel.textContent = "Low Risk";
+                }
+            }
+            
+            function updateBorrowBar(row, currentBorrow, limit) {
+                const barFill = row.querySelector('.borrow-limit-fill');
+                const currentText = row.querySelector('.borrow-text-current');
+                
+                let percentage = 0;
+                if (limit > 0) {
+                    percentage = (currentBorrow / limit) * 100;
+                }
+                if (percentage > 100) percentage = 100;
+                if (percentage < 0) percentage = 0;
+                
+                barFill.style.width = `${percentage}%`;
+                currentText.textContent = `Borrowed: ${currentBorrow.toFixed(2)}`;
+            }
+        });
+    </script>
+
+</body>
+</html>
+
+

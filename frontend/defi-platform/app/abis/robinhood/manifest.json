@@ -1,0 +1,175 @@
+{
+  "status": "MAINNET_5X_RISK_VERIFIED",
+  "tradingReady": true,
+  "chainId": 4663,
+  "rpcURL": "https://rpc.mainnet.chain.robinhood.com",
+  "explorerURL": "https://robinhoodchain.blockscout.com",
+  "gasSymbol": "ETH",
+  "existingAddresses": {
+    "usd": "0x5fc5360D0400a0Fd4f2af552ADD042D716F1d168",
+    "stock": "0xd0601CE157Db5bdC3162BbaC2a2C8aF5320D9EEC",
+    "pUsd": "0x55aed0569c8f0d166d71face57b57c2f2624a563",
+    "pStock": "0xa155cccb986774ae818b3f10f07d01d1b7a47b26",
+    "controller": "0x6148183676e304dbe63a85c350c208da3ceac39c",
+    "feed": "0x379EC4f7C378F34a1B47E4F3cbeBCbAC3E8E9F15",
+    "guard": "0xaE4D4DdB8dD646951d54fE9B13BE23DcB61C6741"
+  },
+  "marginAddresses": {
+    "executor": "0x6A45Ae86bD992d250580d08D340A06A04D478977",
+    "marginVault": "0x04D4A5555b7a37017A67B4D21A1Da5838de28B9e",
+    "config": "0x09F94fe0B79E000c8a26617c63E3427fdECB528b",
+    "riskEngine": "0xC8b178C3c74570472FF1eeE0DD559e61AF9f9678",
+    "quoter": "0xeD3c353Ab237329BD53CC7eB24E66B370155FE6e",
+    "liquidator": "0x1434CDa56d0Aeac4d5abC16F91ca76a8A989083c",
+    "oracle": "0x63150Eb3DDf71420dA0b09b66838aab398f7dEdD",
+    "guardedSource": "0x25E02b142E0785a59D85a6CA820c400e601a9E8E",
+    "flashVault": "0x79d33c9BbC1D0711e88C5602f86135Ab4C088b06",
+    "router": "0xa32C34F100B4F1f36ECA09c427a098f99F4423F0",
+    "swapModule": "0xa2a022B17e0201894937755584EecC878AEFe1bf",
+    "accountFactory": "0x88BDf12F3b6B5C11bd0Ed5c117181FeA3130D15C",
+    "insuranceFund": "0x17c72B8f171999C4d8863a3517D1C5d9cBfBb068",
+    "feeDistributor": "0x8D2707946A9d7abce3d8fb3FafDc40f4811180b7"
+  },
+  "requestedFinalState": {
+    "opensPaused": false,
+    "flashPaused": false,
+    "maxLeverageX100": 500,
+    "maxPositionValueUsd18": "2000000000000000000",
+    "maxDebtValueUsd18": "1000000000000000000",
+    "perPositionCapsOnly": true,
+    "testerAllowlist": false,
+    "initialMarginBps": 2000,
+    "maintenanceMarginBps": 1000
+  },
+  "pairs": {
+    "long": {
+      "marginPToken": "0x55aed0569c8f0d166d71face57b57c2f2624a563",
+      "positionPToken": "0xa155cccb986774ae818b3f10f07d01d1b7a47b26",
+      "debtPToken": "0x55aed0569c8f0d166d71face57b57c2f2624a563",
+      "side": 0
+    },
+    "short": {
+      "marginPToken": "0x55aed0569c8f0d166d71face57b57c2f2624a563",
+      "positionPToken": "0x55aed0569c8f0d166d71face57b57c2f2624a563",
+      "debtPToken": "0xa155cccb986774ae818b3f10f07d01d1b7a47b26",
+      "side": 1
+    }
+  },
+  "decimals": {
+    "usd": 6,
+    "stock": 18,
+    "pToken": 8,
+    "usdRiskValues": 18
+  },
+  "positionStatus": {
+    "NONE": 0,
+    "OPENING": 1,
+    "ACTIVE": 2,
+    "CLOSING": 3,
+    "LIQUIDATING": 4,
+    "CLOSED": 5,
+    "LIQUIDATED": 6
+  },
+  "artifacts": {
+    "executor": {
+      "contract": "IsolatedMarginExecutorUpgradeable",
+      "abiFile": "IsolatedMarginExecutorUpgradeable.abi.json",
+      "abiSha256": "83d9cbc5b509ef3d28b2a97d82bc2a8aa311c846f5ed58165d2ba446af9d5c8a",
+      "buildArtifactSha256": "c1b447b940104590b16aa183cff7bfbe3fd03ebc0244bb70d6bc40a7fad6ec2f"
+    },
+    "marginVault": {
+      "contract": "IsolatedMarginVaultUpgradeable",
+      "abiFile": "IsolatedMarginVaultUpgradeable.abi.json",
+      "abiSha256": "2ec62808f77ea73ba87475212645cbe42cb0558cf6b4d08505851c8854bc9376",
+      "buildArtifactSha256": "0d88d8270bfd7e1054a18b30a9e5d001fca316fb76ac97bbc0c944bc676c877e"
+    },
+    "config": {
+      "contract": "IsolatedMarginConfigUpgradeable",
+      "abiFile": "IsolatedMarginConfigUpgradeable.abi.json",
+      "abiSha256": "8dbbe72d2e4d4b866af863e157d48f2734859aca4223fe8d375199e8544521f6",
+      "buildArtifactSha256": "1f73ace842dd999ffa21f34ea27a303b6afed9365a379584f7762ce19c59e0b3"
+    },
+    "riskEngine": {
+      "contract": "IsolatedMarginRiskEngineUpgradeable",
+      "abiFile": "IsolatedMarginRiskEngineUpgradeable.abi.json",
+      "abiSha256": "fa174b33640769a45eb64a0457df3288e9e9ace3b737826e219a93cf88e1e2c4",
+      "buildArtifactSha256": "0f18be74f6da89460fd00edd45816c7cc2eab110ab8be3707283093053b22fc3"
+    },
+    "quoter": {
+      "contract": "IsolatedMarginQuoter",
+      "abiFile": "IsolatedMarginQuoter.abi.json",
+      "abiSha256": "8c3509ecac7c8a1ac0380112021f690cd31e367e77d275175215f082cc03b3ce",
+      "buildArtifactSha256": "95c7e80792cbc02bbe1730159cf4fef54d7942f33a5cfe8ac642a8db3a727d34"
+    },
+    "liquidator": {
+      "contract": "IsolatedMarginLiquidatorUpgradeable",
+      "abiFile": "IsolatedMarginLiquidatorUpgradeable.abi.json",
+      "abiSha256": "170b4949feb780741f8f716cd7f1f99e75bf4f66c35ff0a61eb873394e28e967",
+      "buildArtifactSha256": "a4e1fab2e39b412d3d74df18335c4eef8fadd9eeca6fc9032f614bf32998e854"
+    },
+    "oracle": {
+      "contract": "RobinhoodMarginPriceOracle",
+      "abiFile": "RobinhoodMarginPriceOracle.abi.json",
+      "abiSha256": "2ed5abfc3e22cdaf7026e070f7241366b15dcd3fd30b097c3e0b54bead1b8039",
+      "buildArtifactSha256": "5ddf2b4166caa22835b72ad88a7febacc13eeae92729f373555f97399857d8dc"
+    },
+    "guardedSource": {
+      "contract": "GuardedMarginPriceSource",
+      "abiFile": "GuardedMarginPriceSource.abi.json",
+      "abiSha256": "2e58c4c3d61cd693153cc18759112bdaa0914ec012771428901532b4580a5888",
+      "buildArtifactSha256": "619c01606198237604cb604f537a4cf8c6273bacb9834d4570231391a408eceb"
+    },
+    "flashVault": {
+      "contract": "SimpleFlashLoanVault",
+      "abiFile": "SimpleFlashLoanVault.abi.json",
+      "abiSha256": "b6eccb0381c70d4ac700a2f34c0273330c334a0477dfa79fc5b88a6aa22755d6",
+      "buildArtifactSha256": "30285760e10000ca6778bb36bccdbc0f9de827add9fb5885e437e44b4b9a8cd8"
+    },
+    "router": {
+      "contract": "RobinhoodV4RouterAdapter",
+      "abiFile": "RobinhoodV4RouterAdapter.abi.json",
+      "abiSha256": "b576a4c2d81ebd574e1f8193bc6c74c19de0e7f6a65733b3399bf4053a59e3bf",
+      "buildArtifactSha256": "925c429c754e0c9a5c52eaa024bf8647b5fd559ea877ac7ed7d07249e38d64a6"
+    },
+    "swapModule": {
+      "contract": "IsolatedMarginSwapModule",
+      "abiFile": "IsolatedMarginSwapModule.abi.json",
+      "abiSha256": "ef0367eb50f284ba52cbefb8644f4faf59416a5689ce98f1498de72a3e8818f3",
+      "buildArtifactSha256": "749b21b8a38437fdabcccdd58cd4efa31d69cd5073130174f16ee1adc93e5d5f"
+    },
+    "accountFactory": {
+      "contract": "IsolatedMarginAccountFactory",
+      "abiFile": "IsolatedMarginAccountFactory.abi.json",
+      "abiSha256": "69aae774d85a5ab5b6c21878d9940025ffd10a3f81cb90c058a9abfe71fbe391",
+      "buildArtifactSha256": "73308fb6cc966ad7dbd1e18e86fbfb23e1a5b91ce154c9285417044a7fcb82fa"
+    },
+    "insuranceFund": {
+      "contract": "MarginInsuranceFundUpgradeable",
+      "abiFile": "MarginInsuranceFundUpgradeable.abi.json",
+      "abiSha256": "e2cfbdbcd69d76237f830b840b017ea0f070f4ab66f28f870141b1df296c7677",
+      "buildArtifactSha256": "0200dadf1ab240fcc9be46d5ce415206dcdc656344274392e62641d2d3d8fe7e"
+    },
+    "feeDistributor": {
+      "contract": "MarginFeeDistributorUpgradeable",
+      "abiFile": "MarginFeeDistributorUpgradeable.abi.json",
+      "abiSha256": "79f8e10eeffc445292753c3b1d0db4d1f46cd9b8feb1998c70b51a906233e423",
+      "buildArtifactSha256": "94705c3c7d566508870de163a8da1e62a352069ce93ea7d1f27c52566614157d"
+    },
+    "pToken": {
+      "contract": "RobinhoodBoostedDelegate",
+      "abiFile": "RobinhoodBoostedDelegate.abi.json",
+      "abiSha256": "1f50261b939bb0cc94603bef351bb26e0890ca5b6a2bd1bf0ceacf3d2aa0dd61",
+      "buildArtifactSha256": "50461f820d23df5c4d2e9fecaec5e537d90619104b68e7f45fa90cc6f8cc5add"
+    },
+    "erc20": {
+      "contract": "IERC20",
+      "abiFile": "IERC20.abi.json",
+      "abiSha256": "00ed6ce9a746aaf0c8413a9795113be0d2fcc4363ea20f7cd97f15af2a2c3b7d",
+      "buildArtifactSha256": "a45c579ecdca8fa9b820bb20e6e29e5ca6c98d76c9aa4dca0a8f6bc444887b52"
+    }
+  },
+  "note": "Active state and runtime verified. This runner installs no keeper service and establishes no legal eligibility.",
+  "productionKeeperInstalledByRunner": false,
+  "deploymentRecord": "deployments/margin-mainnet-live/addresses.json",
+  "riskUpdateRecord": "deployments/margin-mainnet-5x-live/status.json"
+}

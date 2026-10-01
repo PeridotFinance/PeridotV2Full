@@ -1,48 +1,27 @@
-"use client"
+import { BridgePageClient } from "@/components/bridge/BridgePageClient"
+import type { Metadata } from "next"
 
-import { useState, useEffect, Suspense } from "react"
-import { Skeleton } from "@/components/ui/skeleton"
-import dynamic from "next/dynamic"
-
-// Dynamically import the BridgeComponent to avoid SSR issues
-const BridgeComponent = dynamic(
-  () => import("@/components/bridge/BridgeComponent"),
-  { 
-    ssr: false,
-    loading: () => <BridgeSkeleton />
-  }
-)
-
-const BridgeSkeleton = () => {
-  return (
-    <div className="w-full max-w-5xl mx-auto mt-8 p-4">
-      <Skeleton className="h-12 w-2/3 mb-4" />
-      <Skeleton className="h-4 w-full mb-2" />
-      <Skeleton className="h-4 w-5/6 mb-6" />
-      <Skeleton className="h-[580px] w-full rounded-lg" />
-    </div>
-  )
+// SEO Metadata
+export const metadata: Metadata = {
+  title: "Swap / Bridge | Peridot Finance",
+  description: "Swap tokens and bridge across chains with the best rates. Trade USDC, USDT, ETH, BNB and more across Ethereum, Arbitrum, Base, Polygon, BSC and other supported networks.",
+  openGraph: {
+    title: "Swap / Bridge | Peridot Finance",
+    description: "Swap tokens and bridge across chains seamlessly with Peridot — best rates, lowest fees.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Swap / Bridge | Peridot Finance",
+    description: "Swap tokens and bridge across chains seamlessly with Peridot.",
+  },
 }
 
 export default function BridgePage() {
-  // Use a state to control client-side rendering
-  const [isClient, setIsClient] = useState(false)
-
-  // Only render on the client
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  if (!isClient) {
-    return <BridgeSkeleton />
-  }
-  
   return (
     <main className="container mx-auto px-4 py-8 md:py-12">
       <div className="max-w-5xl mx-auto">
-        <Suspense fallback={<BridgeSkeleton />}>
-          <BridgeComponent />
-        </Suspense>
+        <BridgePageClient />
       </div>
     </main>
   )

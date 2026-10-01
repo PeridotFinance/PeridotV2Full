@@ -1,0 +1,5 @@
+export * from './types'
+export * from './config'
+export { McpClient } from './client'
+export { McpRegistry, getMcpRegistry, resetMcpRegistry } from './registry'
+export { injectWalletAddress, WALLET_AWARE_TOOL_NAMES } from './wallet-injection'

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 288 360">
+  <!-- Generator: Adobe Illustrator 29.8.1, SVG Export Plug-In . SVG Version: 2.1.1 Build 2)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: #efefef;
+      }
+    </style>
+  </defs>
+  <circle class="st0" cx="252" cy="324" r="36"/>
+  <path class="st0" d="M144,0H0v360h72v-91.27c21.18,12.25,45.77,19.27,72,19.27,79.53,0,144-64.47,144-144S223.53,0,144,0ZM144,216c-39.76,0-72-32.24-72-72s32.24-72,72-72,72,32.24,72,72-32.24,72-72,72Z"/>
+</svg>

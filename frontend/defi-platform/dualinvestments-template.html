@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dual Investment | Peridot.finance</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'peridot-green': '#5e7945',
+                        'peridot-green-darker': '#4a6036',
+                        'peridot-dark': {
+                            900: '#0d110b',
+                            800: '#1a2216',
+                            700: '#283322',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .panel-enter {
+            transform: translateY(100%);
+            opacity: 0;
+        }
+        .panel-enter-active {
+            transform: translateY(0);
+            opacity: 1;
+            transition: transform 300ms ease-out, opacity 300ms ease-out;
+        }
+        .panel-exit-active {
+            transform: translateY(100%);
+            opacity: 0;
+            transition: transform 300ms ease-in, opacity 300ms ease-in;
+        }
+        .overlay-enter {
+            opacity: 0;
+        }
+        .overlay-enter-active {
+            opacity: 1;
+            transition: opacity 300ms ease-out;
+        }
+        .overlay-exit-active {
+            opacity: 0;
+            transition: opacity 300ms ease-in;
+        }
+    </style>
+</head>
+<body class="bg-peridot-dark-900 text-slate-300">
+
+    <!-- Header -->
+    <header class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                 <svg width="32" height="32" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#81a665;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#5e7945;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M50 0 L100 25 L100 75 L50 100 L0 75 L0 25 Z" fill="url(#grad1)"/>
+                    <path d="M50 10 L90 30 L90 70 L50 90 L10 70 L10 30 Z" fill="none" stroke="#d1e0c8" stroke-width="4"/>
+                    <text x="50" y="62" font-family="Inter, sans-serif" font-size="30" font-weight="bold" fill="#ffffff" text-anchor="middle">P</text>
+                </svg>
+                <h1 class="text-2xl font-bold text-white">peridot.finance</h1>
+            </div>
+            <button class="bg-peridot-dark-700 hover:bg-peridot-dark-800 text-white font-semibold py-2 px-4 border border-peridot-green rounded-lg transition-all duration-200">
+                Connect Wallet
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Step 1: Goal Selector -->
+        <section class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-white mb-2">Earn High Yields on Your Crypto</h2>
+            <p class="text-lg text-slate-400">Choose your strategy to get started.</p>
+            <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                <button id="strategy-sellHigh" class="strategy-btn p-6 border-2 border-peridot-green bg-peridot-dark-800 rounded-xl text-left transition-all duration-200">
+                    <div class="flex items-center space-x-4">
+                        <div class="bg-peridot-green/20 p-3 rounded-lg">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-peridot-green"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-lg">Earn Yield on Your Crypto</h3>
+                            <p class="text-slate-400 text-sm">I want to earn returns on my ETH or BTC. I'm happy to sell if the price rises.</p>
+                        </div>
+                    </div>
+                </button>
+                <button id="strategy-buyLow" class="strategy-btn p-6 border-2 border-slate-700 bg-transparent rounded-xl text-left transition-all duration-200 hover:border-peridot-green/50">
+                     <div class="flex items-center space-x-4">
+                        <div class="bg-slate-700/50 p-3 rounded-lg">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><circle cx="12" cy="12" r="10"></circle><path d="M16 12H8"></path><path d="m12 16-4-4 4-4"></path></svg>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-lg">Buy Crypto at a Target Price</h3>
+                            <p class="text-slate-400 text-sm">I have stablecoins and want to buy crypto if it dips, while earning yield.</p>
+                        </div>
+                    </div>
+                </button>
+            </div>
+        </section>
+
+        <!-- Step 2: Product List -->
+        <section id="products-section">
+            <h3 id="products-title" class="text-2xl font-bold text-white mb-6">Available "Sell High" Products</h3>
+            <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Product cards will be injected here by JavaScript -->
+            </div>
+        </section>
+        
+        <!-- Step 3: My Investments -->
+        <section class="mt-16">
+            <h3 class="text-2xl font-bold text-white mb-6">My Investments</h3>
+            <div class="bg-peridot-dark-800 border border-slate-700 rounded-xl p-6">
+                <div class="flex flex-col items-center justify-center text-center py-10">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-slate-500 mb-4"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"></path><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path><path d="M18 12a2 2 0 0 0 0 4h4v-4h-4z"></path></svg>
+                    <p class="text-slate-400">Your active and completed investments will appear here.</p>
+                    <p class="text-sm text-slate-500 mt-1">Connect your wallet to see your positions.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Investment Panel (Modal) -->
+    <div id="investment-panel-overlay" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 hidden"></div>
+    <div id="investment-panel" class="fixed bottom-0 left-0 right-0 z-50 bg-peridot-dark-800 border-t border-slate-700 rounded-t-2xl shadow-2xl hidden p-6 md:p-8 max-h-[90vh] overflow-y-auto">
+       <div class="max-w-3xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="panel-title" class="text-2xl font-bold text-white">Sell ETH High</h2>
+                <button id="panel-close-btn" class="text-slate-400 hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Left side: Input & Terms -->
+                <div>
+                    <div class="mb-4">
+                        <label for="investment-amount" class="block text-sm font-medium text-slate-400 mb-2">Amount to Invest</label>
+                        <div class="relative">
+                            <input type="number" id="investment-amount" class="w-full bg-peridot-dark-900 border border-slate-700 rounded-lg py-3 px-4 text-white text-lg placeholder-slate-500 focus:ring-2 focus:ring-peridot-green focus:border-peridot-green" placeholder="0.0">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center space-x-2">
+                                <span id="panel-asset-symbol" class="text-white font-semibold">ETH</span>
+                                <button class="text-peridot-green font-bold text-sm">MAX</button>
+                            </div>
+                        </div>
+                         <p class="text-xs text-slate-500 mt-2">Wallet Balance: 1.75 ETH</p>
+                    </div>
+
+                    <div class="space-y-3 bg-peridot-dark-900/50 p-4 rounded-lg border border-slate-700">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400">🎯 Target Price</span>
+                            <span id="panel-target-price" class="font-semibold text-white"></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-400">🗓️ Decision Date</span>
+                            <span id="panel-decision-date" class="font-semibold text-white"></span>
+                        </div>
+                         <div class="flex justify-between items-center">
+                            <span class="text-slate-400">✅ Your Yield (APY)</span>
+                            <span id="panel-apy" class="font-semibold text-peridot-green"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right side: Outcomes -->
+                <div class="bg-peridot-dark-900 p-4 rounded-lg">
+                    <h3 class="font-bold text-white mb-4 text-center">Two Possible Outcomes</h3>
+                    <div class="space-y-4">
+                        <!-- Outcome 1 -->
+                        <div class="bg-peridot-dark-800 border border-slate-700 p-4 rounded-lg">
+                            <p id="outcome1-condition" class="font-semibold text-white text-sm mb-1"></p>
+                            <p id="outcome1-explanation" class="text-slate-400 text-xs mb-3"></p>
+                            <p class="text-slate-300 text-sm">You will receive:</p>
+                            <p id="outcome1-payout" class="text-xl font-bold text-peridot-green">--</p>
+                        </div>
+                        <!-- Outcome 2 -->
+                         <div class="bg-peridot-dark-800 border border-slate-700 p-4 rounded-lg">
+                            <p id="outcome2-condition" class="font-semibold text-white text-sm mb-1"></p>
+                            <p id="outcome2-explanation" class="text-slate-400 text-xs mb-3"></p>
+                            <p class="text-slate-300 text-sm">You will receive:</p>
+                            <p id="outcome2-payout" class="text-xl font-bold text-peridot-green">--</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <div class="flex items-start space-x-3 mb-6">
+                    <input id="confirm-checkbox" type="checkbox" class="mt-1 h-4 w-4 rounded border-slate-600 bg-slate-800 text-peridot-green focus:ring-peridot-green">
+                    <label for="confirm-checkbox" class="text-sm text-slate-400">I understand that my investment will be returned in either <span id="panel-asset-name1" class="font-bold text-white">ETH</span> or <span id="panel-asset-name2" class="font-bold text-white">USDC</span> depending on the market price at the Decision Date.</label>
+                </div>
+                <button id="deposit-btn" disabled class="w-full bg-peridot-green text-white font-bold py-4 rounded-lg transition-all duration-300 disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed">
+                    Deposit and Earn
+                </button>
+            </div>
+       </div>
+    </div>
+    
+    <!-- Success Message -->
+    <div id="success-message" class="fixed top-5 right-5 bg-peridot-green text-white py-2 px-5 rounded-lg shadow-lg opacity-0 translate-y-5 transition-all duration-300">
+        ✅ Success! Your funds are deposited.
+    </div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // --- MOCK DATA ---
+    const mockProducts = [
+        { id: 1, type: 'sellHigh', asset: 'ETH', currency: 'USDC', strikePrice: 3500, apy: 52.1, durationDays: 14, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="#627EEA" d="M12 1.75l-6.25 10.938l6.25 3.062l6.25-3.062L12 1.75z"/><path fill="#4655A2" d="M5.75 12.688L12 22.25l6.25-9.563l-6.25 3.063z"/><path fill="#627EEA" d="M12 15.75l-6.25-3.062L12 1.75l6.25 10.938z"/><path fill="#8998E6" d="M5.75 12.688L12 15.75V1.75z"/><path fill="#4655A2" d="M12 15.75l6.25-3.062L12 22.25z"/></svg>' },
+        { id: 2, type: 'sellHigh', asset: 'ETH', currency: 'USDC', strikePrice: 3800, apy: 65.5, durationDays: 28, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="#627EEA" d="M12 1.75l-6.25 10.938l6.25 3.062l6.25-3.062L12 1.75z"/><path fill="#4655A2" d="M5.75 12.688L12 22.25l6.25-9.563l-6.25 3.063z"/><path fill="#627EEA" d="M12 15.75l-6.25-3.062L12 1.75l6.25 10.938z"/><path fill="#8998E6" d="M5.75 12.688L12 15.75V1.75z"/><path fill="#4655A2" d="M12 15.75l6.25-3.062L12 22.25z"/></svg>' },
+        { id: 3, type: 'sellHigh', asset: 'BTC', currency: 'USDC', strikePrice: 75000, apy: 40.2, durationDays: 14, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><circle cx="12" cy="12" r="12" fill="#F7931A"/><path fill="white" d="M14.2 14.99V16.6h-1.35v1.65h-1.7V16.6h-2.2v-1.61h.83c.31 0 .5-.15.53-.45l.23-1.42h-1.6v-1.6h1.5l.3-1.85c0-.22-.12-.4-.36-.4H8.9v-1.6h1.9c.45 0 .76-.23.83-.67l.2-1.22c.03-.18.01-.28-.1-.35c-.12-.07-.3-.1-.53-.1H9.99V5.75h1.35V4.1h1.7v1.65h2.2v1.6h-.83c-.3 0-.48.14-.52.42l-.23 1.43h1.6v1.6h-1.5l-.3 1.85c0 .26.13.43.4.43h.93zm-2.55-3.46l-.3 1.85h-1.6l.3-1.85h1.6zm.5-3.26l-.3 1.84h-1.6l.3-1.84h1.6z"/></svg>' },
+        { id: 4, type: 'buyLow', asset: 'ETH', currency: 'USDC', strikePrice: 2800, apy: 48.9, durationDays: 14, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="#627EEA" d="M12 1.75l-6.25 10.938l6.25 3.062l6.25-3.062L12 1.75z"/><path fill="#4655A2" d="M5.75 12.688L12 22.25l6.25-9.563l-6.25 3.063z"/><path fill="#627EEA" d="M12 15.75l-6.25-3.062L12 1.75l6.25 10.938z"/><path fill="#8998E6" d="M5.75 12.688L12 15.75V1.75z"/><path fill="#4655A2" d="M12 15.75l6.25-3.062L12 22.25z"/></svg>' },
+        { id: 5, type: 'buyLow', asset: 'ETH', currency: 'USDC', strikePrice: 2500, apy: 61.3, durationDays: 30, icon: '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24"><path fill="#627EEA" d="M12 1.75l-6.25 10.938l6.25 3.062l6.25-3.062L12 1.75z"/><path fill="#4655A2" d="M5.75 12.688L12 22.25l6.25-9.563l-6.25 3.063z"/><path fill="#627EEA" d="M12 15.75l-6.25-3.062L12 1.75l6.25 10.938z"/><path fill="#8998E6" d="M5.75 12.688L12 15.75V1.75z"/><path fill="#4655A2" d="M12 15.75l6.25-3.062L12 22.25z"/></svg>' },
+        { id: 6, type: 'buyLow', asset: 'AVAX', currency: 'USDC', strikePrice: 30, apy: 55.0, durationDays: 14, icon: '<svg width="48" height="48" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg"><circle cx="64" cy="64" r="64" fill="#E84142"/><path d="M96.83 103.52L72.27 34.69h17.43l13.75 42.4h.34l13.78-42.4h17.09L109.43 103.52h-20.2z" fill="#FFF"/><path d="M2.93 103.52l24.56-68.83h17.43l13.75 42.4h.34l13.78-42.4h17.09L64.63 103.52H44.4L31.84 62.13h-.34L18.42 103.52H2.93z" fill="#B0B0B0"/></svg>' }
+    ];
+
+    // --- STATE ---
+    let selectedStrategy = 'sellHigh';
+    let selectedProduct = null;
+
+    // --- DOM ELEMENTS ---
+    const strategyButtons = document.querySelectorAll('.strategy-btn');
+    const productsGrid = document.getElementById('products-grid');
+    const productsTitle = document.getElementById('products-title');
+    
+    // Panel Elements
+    const panelOverlay = document.getElementById('investment-panel-overlay');
+    const panel = document.getElementById('investment-panel');
+    const panelCloseBtn = document.getElementById('panel-close-btn');
+    const panelTitle = document.getElementById('panel-title');
+    const investmentAmountInput = document.getElementById('investment-amount');
+    const panelAssetSymbol = document.getElementById('panel-asset-symbol');
+    const panelTargetPrice = document.getElementById('panel-target-price');
+    const panelDecisionDate = document.getElementById('panel-decision-date');
+    const panelApy = document.getElementById('panel-apy');
+    const outcome1Condition = document.getElementById('outcome1-condition');
+    const outcome1Explanation = document.getElementById('outcome1-explanation');
+    const outcome1Payout = document.getElementById('outcome1-payout');
+    const outcome2Condition = document.getElementById('outcome2-condition');
+    const outcome2Explanation = document.getElementById('outcome2-explanation');
+    const outcome2Payout = document.getElementById('outcome2-payout');
+    const panelAssetName1 = document.getElementById('panel-asset-name1');
+    const panelAssetName2 = document.getElementById('panel-asset-name2');
+    const confirmCheckbox = document.getElementById('confirm-checkbox');
+    const depositBtn = document.getElementById('deposit-btn');
+    const successMessage = document.getElementById('success-message');
+
+    // --- FUNCTIONS ---
+
+    const formatCurrency = (value, currency) => {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value);
+    }
+    
+    const formatCrypto = (value, asset) => {
+        return `${value.toFixed(4)} ${asset}`;
+    }
+    
+    const renderProducts = () => {
+        productsGrid.innerHTML = '';
+        const filteredProducts = mockProducts.filter(p => p.type === selectedStrategy);
+        
+        filteredProducts.forEach(product => {
+            const card = document.createElement('div');
+            card.className = 'bg-peridot-dark-800 p-6 rounded-xl border border-slate-700 flex flex-col justify-between hover:border-peridot-green transition-all duration-200 cursor-pointer group';
+            
+            const title = selectedStrategy === 'sellHigh'
+                ? `Sell ${product.asset} above ${formatCurrency(product.strikePrice, 'USD').replace('$', '$')}`
+                : `Buy ${product.asset} below ${formatCurrency(product.strikePrice, 'USD').replace('$', '$')}`;
+            
+            card.innerHTML = `
+                <div>
+                    <div class="flex items-center space-x-4 mb-4">
+                        <div class="w-12 h-12">${product.icon}</div>
+                        <div>
+                            <p class="font-semibold text-white text-lg">${title}</p>
+                            <span class="text-sm text-slate-400 bg-peridot-dark-700/50 px-2 py-1 rounded">🗓️ ${product.durationDays} Days</span>
+                        </div>
+                    </div>
+                    <div class="text-left">
+                        <p class="text-slate-400 text-sm">Yield (APY)</p>
+                        <p class="text-3xl font-bold text-peridot-green">${product.apy}%</p>
+                    </div>
+                </div>
+                <button data-product-id="${product.id}" class="select-btn w-full mt-6 bg-peridot-green-darker text-white font-bold py-3 rounded-lg group-hover:bg-peridot-green transition-all duration-200">
+                    Select
+                </button>
+            `;
+            productsGrid.appendChild(card);
+        });
+    };
+
+    const handleStrategySelect = (e) => {
+        const selectedBtn = e.currentTarget;
+        selectedStrategy = selectedBtn.id.split('-')[1];
+
+        strategyButtons.forEach(btn => {
+            btn.classList.remove('bg-peridot-dark-800', 'border-peridot-green');
+            btn.classList.add('bg-transparent', 'border-slate-700', 'hover:border-peridot-green/50');
+            btn.querySelector('div div').classList.remove('bg-peridot-green/20');
+            btn.querySelector('div div').classList.add('bg-slate-700/50');
+            btn.querySelector('svg').classList.remove('text-peridot-green');
+            btn.querySelector('svg').classList.add('text-slate-300');
+        });
+
+        selectedBtn.classList.add('bg-peridot-dark-800', 'border-peridot-green');
+        selectedBtn.classList.remove('bg-transparent', 'border-slate-700', 'hover:border-peridot-green/50');
+        selectedBtn.querySelector('div div').classList.add('bg-peridot-green/20');
+        selectedBtn.querySelector('div div').classList.remove('bg-slate-700/50');
+        selectedBtn.querySelector('svg').classList.add('text-peridot-green');
+        selectedBtn.querySelector('svg').classList.remove('text-slate-300');
+        
+        productsTitle.textContent = `Available "${selectedStrategy === 'sellHigh' ? 'Sell High' : 'Buy Low'}" Products`;
+        renderProducts();
+    };
+    
+    const updateOutcomePreview = () => {
+        const amount = parseFloat(investmentAmountInput.value) || 0;
+        if (!selectedProduct || amount <= 0) {
+             outcome1Payout.textContent = '--';
+             outcome2Payout.textContent = '--';
+             return;
+        }
+
+        const { strikePrice, apy, durationDays, asset, currency } = selectedProduct;
+        const yearlyInterestRate = apy / 100;
+        const dailyInterestRate = yearlyInterestRate / 365;
+        const periodInterestRate = dailyInterestRate * durationDays;
+
+        if (selectedStrategy === 'sellHigh') {
+            // Outcome 1: Price < Strike
+            const interestEarnedAsset = amount * periodInterestRate;
+            const totalAsset = amount + interestEarnedAsset;
+            outcome1Payout.textContent = formatCrypto(totalAsset, asset);
+            
+            // Outcome 2: Price >= Strike
+            const valueInCurrency = amount * strikePrice;
+            const interestEarnedCurrency = valueInCurrency * periodInterestRate;
+            const totalCurrency = valueInCurrency + interestEarnedCurrency;
+            outcome2Payout.textContent = formatCurrency(totalCurrency, currency);
+
+        } else { // buyLow
+             // Outcome 1: Price >= Strike
+            const interestEarnedCurrency = amount * periodInterestRate;
+            const totalCurrency = amount + interestEarnedCurrency;
+            outcome1Payout.textContent = formatCurrency(totalCurrency, currency);
+
+            // Outcome 2: Price < Strike
+            const assetPurchased = amount / strikePrice;
+            const interestEarnedAsset = assetPurchased * periodInterestRate;
+            const totalAsset = assetPurchased + interestEarnedAsset;
+            outcome2Payout.textContent = formatCrypto(totalAsset, asset);
+        }
+    };
+
+    const openPanel = (productId) => {
+        selectedProduct = mockProducts.find(p => p.id === parseInt(productId));
+        if (!selectedProduct) return;
+
+        // Reset panel state
+        investmentAmountInput.value = '';
+        confirmCheckbox.checked = false;
+        depositBtn.disabled = true;
+        updateOutcomePreview();
+
+        const { strikePrice, apy, durationDays, asset, currency } = selectedProduct;
+        
+        const decisionDate = new Date();
+        decisionDate.setDate(decisionDate.getDate() + durationDays);
+
+        if (selectedStrategy === 'sellHigh') {
+            panelTitle.textContent = `Sell ${asset} High`;
+            panelAssetSymbol.textContent = asset;
+            panelAssetName1.textContent = asset;
+            panelAssetName2.textContent = currency;
+            
+            outcome1Condition.textContent = `If ${asset} is < ${formatCurrency(strikePrice, 'USD')}`;
+            outcome1Explanation.textContent = `You get your ${asset} back, plus earnings.`;
+            outcome2Condition.textContent = `If ${asset} is ≥ ${formatCurrency(strikePrice, 'USD')}`;
+            outcome2Explanation.textContent = `Your ${asset} is sold, you get ${currency} back, plus earnings.`;
+        } else {
+            panelTitle.textContent = `Buy ${asset} Low`;
+            panelAssetSymbol.textContent = currency;
+            panelAssetName1.textContent = currency;
+            panelAssetName2.textContent = asset;
+            
+            outcome1Condition.textContent = `If ${asset} is ≥ ${formatCurrency(strikePrice, 'USD')}`;
+            outcome1Explanation.textContent = `You get your ${currency} back, plus earnings.`;
+            outcome2Condition.textContent = `If ${asset} is < ${formatCurrency(strikePrice, 'USD')}`;
+            outcome2Explanation.textContent = `Your ${currency} buys ${asset}, plus earnings.`;
+        }
+        
+        panelTargetPrice.textContent = formatCurrency(strikePrice, 'USD');
+        panelDecisionDate.textContent = decisionDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        panelApy.textContent = `${apy}%`;
+        
+        panel.classList.remove('hidden');
+        panelOverlay.classList.remove('hidden');
+        
+        requestAnimationFrame(() => {
+            panel.classList.add('panel-enter', 'panel-enter-active');
+            panelOverlay.classList.add('overlay-enter', 'overlay-enter-active');
+            panel.addEventListener('transitionend', () => {
+                panel.classList.remove('panel-enter', 'panel-enter-active');
+                panelOverlay.classList.remove('overlay-enter', 'overlay-enter-active');
+            }, { once: true });
+        });
+    };
+
+    const closePanel = () => {
+        panel.classList.add('panel-exit-active');
+        panelOverlay.classList.add('overlay-exit-active');
+        panel.addEventListener('transitionend', () => {
+            panel.classList.remove('panel-exit-active');
+            panelOverlay.classList.remove('overlay-exit-active');
+            panel.classList.add('hidden');
+            panelOverlay.classList.add('hidden');
+            selectedProduct = null;
+        }, { once: true });
+    };
+
+    const handleDeposit = () => {
+        closePanel();
+        successMessage.classList.remove('opacity-0', 'translate-y-5');
+        setTimeout(() => {
+            successMessage.classList.add('opacity-0', 'translate-y-5');
+        }, 3000);
+    };
+
+    // --- EVENT LISTENERS ---
+    strategyButtons.forEach(btn => btn.addEventListener('click', handleStrategySelect));
+
+    productsGrid.addEventListener('click', (e) => {
+        const selectBtn = e.target.closest('.select-btn');
+        if (selectBtn) {
+            openPanel(selectBtn.dataset.productId);
+        } else {
+             const card = e.target.closest('.group');
+             if(card) {
+                const btn = card.querySelector('.select-btn');
+                if(btn) openPanel(btn.dataset.productId);
+             }
+        }
+    });
+
+    panelCloseBtn.addEventListener('click', closePanel);
+    panelOverlay.addEventListener('click', closePanel);
+    investmentAmountInput.addEventListener('input', updateOutcomePreview);
+    
+    confirmCheckbox.addEventListener('change', () => {
+        depositBtn.disabled = !confirmCheckbox.checked;
+    });
+    
+    depositBtn.addEventListener('click', handleDeposit);
+
+
+    // --- INITIALIZATION ---
+    renderProducts();
+});
+</script>
+
+</body>
+</html>

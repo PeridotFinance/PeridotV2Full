@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peridot.fi - Glitch Asset Table</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-color: #5e7945;
+            --background-color: #0a0a0a;
+            --text-color: #e0e0e0;
+            --border-color: rgba(94, 121, 69, 0.3);
+            --hover-bg: rgba(94, 121, 69, 0.1);
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-family: 'Roboto Mono', monospace;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .cyber-table-container {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: #111;
+            box-shadow: 0 0 15px rgba(94, 121, 69, 0.1), 0 0 5px rgba(94, 121, 69, 0.2);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cyber-table-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><g fill="%231a1a1a" fill-opacity="0.3"><rect x="0" y="0" width="10" height="100"/><rect x="20" y="0" width="10" height="100"/><rect x="40" y="0" width="10" height="100"/><rect x="60" y="0" width="10" height="100"/><rect x="80" y="0" width="10" height="100"/></g></svg>');
+            opacity: 0.1;
+            pointer-events: none;
+        }
+
+
+        .table-row {
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            position: relative;
+        }
+
+        .table-row:hover {
+            background-color: var(--hover-bg);
+        }
+        
+        .table-row.active {
+             background-color: var(--hover-bg);
+        }
+
+        .dropdown-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.7s cubic-bezier(0.16, 1, 0.3, 1), padding 0.5s ease;
+            background: rgba(0,0,0,0.3);
+            border-top: 1px solid transparent;
+        }
+        
+        .table-row.active .dropdown-content {
+            padding: 24px;
+            max-height: 500px; /* Adjust as needed */
+            border-top-color: var(--border-color);
+        }
+        
+        .glitch-text {
+            position: relative;
+            color: var(--accent-color);
+            font-family: 'Share Tech Mono', monospace;
+            text-shadow: 0 0 2px var(--accent-color);
+        }
+
+        .glitch-text:hover::before,
+        .glitch-text:hover::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background-color);
+            overflow: hidden;
+        }
+
+        .glitch-text:hover::before {
+            left: 2px;
+            text-shadow: -1px 0 red;
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+
+        .glitch-text:hover::after {
+            left: -2px;
+            text-shadow: -1px 0 blue;
+            animation: glitch-anim-2 2s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim-1 {
+            0% { clip-path: inset(10% 0 80% 0); }
+            100% { clip-path: inset(40% 0 20% 0); }
+        }
+
+        @keyframes glitch-anim-2 {
+            0% { clip-path: inset(70% 0 10% 0); }
+            100% { clip-path: inset(20% 0 50% 0); }
+        }
+        
+        .cyber-button {
+            background-color: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 10px 20px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: color 0.4s ease, background-color 0.4s ease;
+        }
+
+        .cyber-button:hover {
+            background-color: var(--accent-color);
+            color: #0a0a0a;
+            box-shadow: 0 0 15px var(--accent-color);
+        }
+
+        .cyber-input {
+             background-color: rgba(0,0,0,0.5);
+             border: 1px solid var(--border-color);
+             color: var(--text-color);
+             border-radius: 4px;
+             transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .cyber-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px rgba(94, 121, 69, 0.5);
+        }
+
+        .tab-btn {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab-btn.active {
+            color: var(--accent-color);
+            border-bottom-color: var(--accent-color);
+            text-shadow: 0 0 5px var(--accent-color);
+        }
+
+        .asset-icon {
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .table-row:hover .asset-icon {
+            transform: rotate(15deg) scale(1.1);
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--accent-color);
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        .loader::after {
+            content: '';
+            box-sizing: border-box;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 3px solid;
+            border-color: var(--text-color) transparent;
+        }
+
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body class="p-4 sm:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <h1 class="text-3xl font-bold mb-2 glitch-text" data-text="Markets">Markets</h1>
+        <p class="text-gray-400 mb-8">Supply assets, borrow funds, and optimize your yield. Handle with care.</p>
+
+        <div class="cyber-table-container">
+            <!-- Table Header -->
+            <div class="hidden md:grid grid-cols-12 gap-4 p-4 font-bold text-gray-400 text-sm uppercase tracking-wider">
+                <div class="col-span-3">Asset</div>
+                <div class="col-span-2 text-right">Supply APY</div>
+                <div class="col-span-1 text-right">Supply Rewards</div>
+                <div class="col-span-2 text-right">Borrow APY</div>
+                <div class="col-span-1 text-right">Borrow Rewards</div>
+                <div class="col-span-3 text-right">Balance</div>
+            </div>
+
+            <!-- Table Body -->
+            <div id="asset-table-body">
+                <!-- Assets will be injected here by JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const assets = [
+                {
+                    name: 'USDC',
+                    icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/3408.png',
+                    supplyApy: '12.42%',
+                    supplyRewards: '+327.66%',
+                    borrowApy: '13.50%',
+                    borrowRewards: '+5.49%',
+                    available: '1,234,567 USDC',
+                    balance: '0.000402 USDC',
+                    details: { tvl: '1.2M', utilization: '78%', liqIncentive: '8.00%' }
+                },
+                {
+                    name: 'Tether',
+                    sub: 'USDT',
+                    icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/825.png',
+                    supplyApy: '12.42%',
+                    supplyRewards: '+471.57%',
+                    borrowApy: '13.50%',
+                    borrowRewards: '+7.11%',
+                    available: '2,500,000 USDT',
+                    balance: '0.000723 USDT',
+                    details: { tvl: '2.5M', utilization: '65%', liqIncentive: '7.50%' }
+                },
+                {
+                    name: 'Wrapped Ether',
+                    sub: 'WETH',
+                    icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/2396.png',
+                    supplyApy: '2.15%',
+                    supplyRewards: '+0.00%',
+                    borrowApy: '3.20%',
+                    borrowRewards: '+1.56%',
+                    available: '5,820 WETH',
+                    balance: '0.2482 WETH',
+                    details: { tvl: '15.1M', utilization: '82%', liqIncentive: '5.00%' }
+                },
+                 {
+                    name: 'Axelar aUSDC',
+                    sub: 'aUSDC',
+                    icon: 'https://s2.coinmarketcap.com/static/img/coins/64x64/20332.png',
+                    supplyApy: '2.25%',
+                    supplyRewards: '+0.50%',
+                    borrowApy: '2.25%',
+                    borrowRewards: '+0.75%',
+                    available: '1.78 aUSDC',
+                    balance: '0.6401 aUSDC',
+                    details: { tvl: '...', utilization: '0.00%', liqIncentive: '8.00%' }
+                }
+            ];
+
+            const tableBody = document.getElementById('asset-table-body');
+
+            // --- Sound Engine ---
+            const synth = new Tone.Synth({
+                oscillator: { type: 'sine' },
+                envelope: { attack: 0.005, decay: 0.1, sustain: 0.3, release: 1 }
+            }).toDestination();
+            
+            const noise = new Tone.NoiseSynth({
+                noise: { type: 'white' },
+                envelope: { attack: 0.005, decay: 0.05, sustain: 0 }
+            }).toDestination();
+            noise.volume.value = -20;
+
+            function playSound(type) {
+                if (!Tone.context.state === 'running') {
+                    Tone.start();
+                }
+                switch(type) {
+                    case 'open':
+                        synth.triggerAttackRelease('C2', '8n');
+                        setTimeout(() => synth.triggerAttackRelease('G2', '8n'), 100);
+                        break;
+                    case 'close':
+                        synth.triggerAttackRelease('G2', '8n');
+                        setTimeout(() => synth.triggerAttackRelease('C2', '8n'), 100);
+                        break;
+                    case 'hover':
+                        noise.triggerAttack();
+                        break;
+                    case 'click':
+                         new Tone.MembraneSynth().toDestination().triggerAttackRelease("C1", "8n");
+                        break;
+                    case 'action':
+                        synth.triggerAttackRelease('E4', '16n');
+                        break;
+                }
+            }
+
+
+            assets.forEach(asset => {
+                const row = document.createElement('div');
+                row.className = 'table-row';
+                row.innerHTML = `
+                    <div class="grid grid-cols-12 gap-4 p-4 items-center">
+                        <div class="col-span-8 md:col-span-3 flex items-center space-x-4">
+                            <img src="${asset.icon}" alt="${asset.name}" class="w-8 h-8 md:w-10 md:h-10 asset-icon">
+                            <div>
+                                <p class="font-bold text-base md:text-lg">${asset.name}</p>
+                                ${asset.sub ? `<p class="text-sm text-gray-400">${asset.sub}</p>` : ''}
+                            </div>
+                        </div>
+                        <div class="col-span-4 md:col-span-2 text-right">
+                             <span class="md:hidden text-xs uppercase text-gray-500">Supply APY</span>
+                            <p class="font-mono text-green-400">${asset.supplyApy}</p>
+                        </div>
+                        <div class="hidden md:col-span-1 md:block text-right">
+                            <p class="font-mono text-green-400">${asset.supplyRewards}</p>
+                        </div>
+                        <div class="hidden md:col-span-2 md:block text-right">
+                            <p class="font-mono text-red-400">${asset.borrowApy}</p>
+                        </div>
+                        <div class="hidden md:col-span-1 md:block text-right">
+                            <p class="font-mono text-red-400">${asset.borrowRewards}</p>
+                        </div>
+                        <div class="hidden md:col-span-3 md:block text-right">
+                            <p class="font-mono">${asset.balance}</p>
+                        </div>
+                    </div>
+                    <div class="dropdown-content">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6 text-center">
+                            <div>
+                                <p class="text-sm text-gray-400 uppercase">Available to Borrow</p>
+                                <p class="text-lg font-bold font-mono">${asset.available}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-400 uppercase">TVL</p>
+                                <p class="text-lg font-bold font-mono">${asset.details.tvl}</p>
+                            </div>
+                             <div>
+                                <p class="text-sm text-gray-400 uppercase">Utilization</p>
+                                <p class="text-lg font-bold font-mono">${asset.details.utilization}</p>
+                            </div>
+                             <div>
+                                <p class="text-sm text-gray-400 uppercase">Liq. Incentive</p>
+                                <p class="text-lg font-bold font-mono">${asset.details.liqIncentive}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-black bg-opacity-30 p-4 rounded-lg">
+                            <div class="flex justify-center border-b border-[var(--border-color)] mb-4">
+                                <button data-action="supply" class="tab-btn active px-6 py-2 font-bold">Supply</button>
+                                <button data-action="borrow" class="tab-btn px-6 py-2 font-bold">Borrow</button>
+                                <button data-action="withdraw" class="tab-btn px-6 py-2 font-bold">Withdraw</button>
+                                <button data-action="repay" class="tab-btn px-6 py-2 font-bold">Repay</button>
+                            </div>
+                            <div class="action-content">
+                                <!-- JS will inject content here -->
+                            </div>
+                        </div>
+                    </div>
+                `;
+                tableBody.appendChild(row);
+
+                row.addEventListener('mouseenter', () => playSound('hover'));
+
+                const header = row.querySelector('.grid');
+                header.addEventListener('click', (e) => {
+                     // Ensure clicking on interactive elements inside dropdown doesn't close it
+                    if (e.target.closest('.dropdown-content')) return;
+
+                    const isActive = row.classList.contains('active');
+                    
+                    document.querySelectorAll('.table-row.active').forEach(activeRow => {
+                         if(activeRow !== row) {
+                            activeRow.classList.remove('active');
+                         }
+                    });
+                    
+                    row.classList.toggle('active');
+                    playSound(isActive ? 'close' : 'open');
+                    
+                    // If we just opened this row, setup the default action panel
+                    if (!isActive) {
+                        setupActionPanel(row.querySelector('.action-content'), 'supply');
+                    }
+                });
+            });
+
+            function setupActionPanel(contentContainer, action) {
+                playSound('click');
+                contentContainer.innerHTML = `
+                     <div class="text-center p-8"><div class="loader"></div></div>
+                `;
+
+                setTimeout(() => {
+                    let title, buttonText, balanceText;
+                    switch (action) {
+                        case 'supply':
+                            title = `Supply ${assets[0].name}`;
+                            buttonText = 'Supply';
+                            balanceText = `Wallet Balance: 13.55 ${assets[0].sub || assets[0].name}`;
+                            break;
+                        case 'borrow':
+                            title = `Borrow ${assets[0].name}`;
+                            buttonText = 'Borrow';
+                            balanceText = `Available to borrow: 422.22 ${assets[0].sub || assets[0].name}`;
+                            break;
+                        case 'withdraw':
+                            title = `Withdraw ${assets[0].name}`;
+                            buttonText = 'Withdraw';
+                            balanceText = `Currently supplying: 10.00 ${assets[0].sub || assets[0].name}`;
+                            break;
+                        case 'repay':
+                            title = `Repay ${assets[0].name}`;
+                            buttonText = 'Repay';
+                            balanceText = `Outstanding debt: 5.50 ${assets[0].sub || assets[0].name}`;
+                            break;
+                    }
+
+                    contentContainer.innerHTML = `
+                        <h3 class="text-lg font-bold text-center mb-1">${title}</h3>
+                        <p class="text-sm text-gray-400 text-center mb-4">Earn APY on your assets.</p>
+                        <div class="flex flex-col space-y-4">
+                            <div class="flex justify-between items-center">
+                                <label for="amount-${action}" class="text-gray-400">Amount</label>
+                                <span class="text-xs text-gray-500">${balanceText}</span>
+                            </div>
+                            <input type="text" id="amount-${action}" class="cyber-input w-full p-3 text-lg font-mono" placeholder="0.0">
+                             <div class="flex justify-between text-sm">
+                                <button class="hover:text-[var(--accent-color)]">25%</button>
+                                <button class="hover:text-[var(--accent-color)]">50%</button>
+                                <button class="hover:text-[var(--accent-color)]">75%</button>
+                                <button class="hover:text-[var(--accent-color)]">MAX</button>
+                            </div>
+                            <button class="cyber-button w-full">${buttonText}</button>
+                        </div>
+                    `;
+                    contentContainer.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => playSound('action')));
+                }, 500);
+            }
+            
+            tableBody.addEventListener('click', e => {
+                if (e.target.matches('.tab-btn')) {
+                    const action = e.target.dataset.action;
+                    const row = e.target.closest('.table-row');
+                    const contentContainer = row.querySelector('.action-content');
+                    
+                    row.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+
+                    setupActionPanel(contentContainer, action);
+                }
+            });
+        });
+
+    </script>
+</body>
+</html>
+

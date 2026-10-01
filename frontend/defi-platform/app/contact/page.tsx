@@ -1,85 +1,34 @@
 "use client"
 
 import { useState, useRef, ReactNode, ChangeEvent, FormEvent } from "react"
-import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
-import { ArrowRight, Send, CheckCircle } from "lucide-react"
 import { useReducedMotion } from "@/lib/use-reduced-motion"
 import { useMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
-// Re-use the same floating element animation component from the main page
-const FloatingElement = ({ children, xOffset = 0, yOffset = 0, duration = 3 }: {
-  children: ReactNode;
-  xOffset?: number;
-  yOffset?: number;
-  duration?: number;
-}) => {
-  const { isLowPerfDevice } = useReducedMotion()
+// Simple checkmark icon as SVG
+const CheckCircle = () => (
+  <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+)
 
-  // Skip animation on low performance devices
-  if (isLowPerfDevice) {
-    return <div style={{ transform: `translate(${xOffset}px, ${yOffset}px)` }}>{children}</div>
-  }
+// Simple arrow right icon
+const ArrowRight = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+  </svg>
+)
 
-  return (
-    <motion.div
-      animate={{
-        y: [yOffset, yOffset - 15, yOffset],
-        x: [xOffset, xOffset + 5, xOffset],
-        rotate: [0, 2, 0],
-      }}
-      transition={{
-        duration,
-        repeat: Number.POSITIVE_INFINITY,
-        repeatType: "reverse",
-        ease: "easeInOut",
-      }}
-    >
-      {children}
-    </motion.div>
-  )
-}
-
-// Re-use the magnetic button effect from the main page
-const MagneticButton = ({ children, className }: { 
-  children: ReactNode; 
-  className?: string;
-}) => {
-  const { isLowPerfDevice } = useReducedMotion()
-
-  // Skip animation on low performance devices
-  if (isLowPerfDevice) {
-    return (
-      <div className={cn("relative", className)}>
-        {children}
-      </div>
-    )
-  }
-
-  return (
-    <motion.div
-      className={cn("relative", className)}
-      whileHover={{ scale: 1.03 }}
-      transition={{ duration: 0.2 }}
-    >
-      {children}
-      <motion.div
-        className="absolute -inset-4 pointer-events-none"
-        style={{
-          background: "radial-gradient(circle, rgba(127, 183, 113, 0.15) 0%, rgba(127, 183, 113, 0) 50%)",
-          borderRadius: "50%",
-          opacity: 0,
-        }}
-        whileHover={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
-      />
-    </motion.div>
-  )
-}
+// Simple send icon
+const Send = ({ className }: { className?: string }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+  </svg>
+)
 
 // Form data type definition
 interface FormData {
@@ -90,7 +39,6 @@ interface FormData {
 }
 
 export default function Contact() {
-  const { isLowPerfDevice } = useReducedMotion()
   const isMobile = useMobile()
   const [formState, setFormState] = useState<FormData>({
     name: "",
@@ -139,112 +87,50 @@ export default function Contact() {
     }
   }
 
-  // Background transform for parallax effect
-  const mouseX = useRef(0)
-  const mouseY = useRef(0)
-
   return (
     <div className="flex flex-col min-h-screen">
       {/* Hero Section */}
       <section className="relative pt-28 md:pt-40 pb-20 md:pb-32 overflow-hidden">
-        {/* Dynamic background - simplified for mobile */}
-        {!isLowPerfDevice && (
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 z-0"
-            style={{ scale: 1.1 }}
-            transition={{ type: "spring", damping: 25, stiffness: 100 }}
-          />
-        )}
-
-        {/* Floating elements - only on desktop */}
-        {!isLowPerfDevice && (
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <FloatingElement xOffset={100} yOffset={100} duration={4}>
-              <div className="w-64 h-64 rounded-full bg-primary/5 blur-3xl absolute top-1/4 -left-32" />
-            </FloatingElement>
-
-            <FloatingElement xOffset={-50} yOffset={300} duration={5}>
-              <div className="w-96 h-96 rounded-full bg-accent/5 blur-3xl absolute bottom-0 right-0" />
-            </FloatingElement>
-
-            <FloatingElement xOffset={0} yOffset={200} duration={6}>
-              <div className="w-32 h-32 rounded-full bg-secondary/10 blur-xl absolute top-1/3 right-1/4" />
-            </FloatingElement>
-          </div>
-        )}
+        {/* Simple background gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 z-0" />
 
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="flex flex-col items-center justify-center text-center mb-12">
-            <motion.p
-              className="text-primary font-medium tracking-wider"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-            >
+            <p className="text-primary font-medium tracking-wider">
               GET IN TOUCH
-            </motion.p>
+            </p>
 
-            <motion.h1
-              className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-4">
               Contact <span className="gradient-text">Peridot</span>
-            </motion.h1>
+            </h1>
 
-            <motion.p
-              className="text-lg md:text-xl text-text/80 max-w-2xl"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
+            <p className="text-lg md:text-xl text-text/80 max-w-2xl">
               Have questions about our platform or need assistance? We're here to help. 
               Fill out the form below and our team will get back to you shortly.
-            </motion.p>
+            </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
             {/* Contact Form */}
-            <motion.div
-              className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-xl"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.3 }}
-            >
+            <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-xl">
               {isSubmitted ? (
-                <motion.div 
-                  className="flex flex-col items-center justify-center h-full py-16 text-center"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <motion.div 
-                    className="text-primary mb-6"
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1, rotate: [0, 15, 0] }}
-                    transition={{ 
-                      duration: 0.7, 
-                      type: "spring",
-                      stiffness: 200,
-                      damping: 10
-                    }}
-                  >
-                    <CheckCircle className="w-20 h-20" />
-                  </motion.div>
-                  <h3 className="text-2xl font-bold mb-4">Message Sent!</h3>
+                <div className="flex flex-col items-center justify-center h-full py-16 text-center">
+                  <div className="text-primary mb-6">
+                    <CheckCircle />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4">Message Sent Successfully!</h3>
                   <p className="text-text/70 mb-8 max-w-md">
-                    Thank you for reaching out. We've received your message and will respond as soon as possible.
+                    Thank you for contacting us! We've received your message and our team will get back to you within 24-48 hours. 
+                    We appreciate your interest in Peridot.
                   </p>
                   <Button 
-                    variant="outline" 
                     onClick={() => setIsSubmitted(false)} 
-                    className="border-primary/20 hover:border-primary/40 rounded-xl group"
+                    className="border border-primary/20 hover:border-primary/40 bg-background hover:bg-accent hover:text-accent-foreground rounded-xl group"
                   >
                     Send Another Message
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
-                </motion.div>
+                </div>
               ) : (
                 <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
                   <div className="space-y-4">
@@ -312,46 +198,26 @@ export default function Contact() {
                     </div>
                   </div>
 
-                  <MagneticButton className="w-full sm:w-auto">
+                  <div className="w-full sm:w-auto">
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      size="lg"
-                      className="bg-primary text-background hover:bg-primary/90 rounded-xl group relative overflow-hidden w-full sm:w-auto"
+                      className="h-11 rounded-md px-8 bg-primary text-background hover:bg-primary/90 rounded-xl group relative overflow-hidden w-full sm:w-auto"
                     >
                       <span className="relative z-10 flex items-center">
                         {isSubmitting ? "Sending..." : "Send Message"}
-                        <motion.div
-                          className="ml-2"
-                          animate={isSubmitting ? { x: [0, 5, 0], opacity: [1, 0.5, 1] } : { x: [0, 4, 0] }}
-                          transition={{
-                            duration: isSubmitting ? 1 : 1.5,
-                            repeat: Number.POSITIVE_INFINITY,
-                            repeatType: "reverse",
-                          }}
-                        >
+                        <div className="ml-2">
                           {isSubmitting ? <Send className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-                        </motion.div>
+                        </div>
                       </span>
-                      <motion.div
-                        className="absolute inset-0 bg-primary-foreground/10"
-                        initial={{ x: "-100%" }}
-                        whileHover={{ x: "100%" }}
-                        transition={{ duration: 0.6 }}
-                      />
                     </Button>
-                  </MagneticButton>
+                  </div>
                 </form>
               )}
-            </motion.div>
+            </div>
 
             {/* Contact Information */}
-            <motion.div
-              className="space-y-8"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, delay: 0.5 }}
-            >
+            <div className="space-y-8">
               <div className="bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-xl">
                 <h3 className="text-xl font-bold mb-6">Connect With Us</h3>
                 <div className="flex space-x-4">
@@ -366,19 +232,7 @@ export default function Contact() {
                     </svg>
                   </a>
                   <a 
-                    href="https://discord.gg/peridot" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="bg-primary/10 hover:bg-primary/20 p-3 rounded-full transition-colors duration-200"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5 text-primary">
-                      <path d="M5.8 14.4s-1.2-.5-2.2-1.2c0 0 1 .7 3.1 1.4 0 0-1.1 1.1-.2 1.9.8.8 2.1 0 2.1 0s.6.8 1.4.8c.8 0 2.3-1.1 3.2-2.2.9-1.1 2.8-2.9 3.3-4 .5-1.1 0-1.3 0-1.3s-.8-.5-1.3-.2c-.5.3-1.7.8-1.7.8s-1.2-1-2.1-1.6c-.9-.7-2-.9-3.2-.9-1.3 0-2.2.3-2.9.7-1 .5-1.2 1-1.2 1s-.8.5-.3 2 2 2.8 2 2.8z"></path>
-                      <circle cx="10.5" cy="8.5" r="1"></circle>
-                      <circle cx="15.5" cy="8.5" r="1"></circle>
-                    </svg>
-                  </a>
-                  <a 
-                    href="https://t.me/peridotfinance" 
+                    href="https://t.me/peridotlabs" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="bg-primary/10 hover:bg-primary/20 p-3 rounded-full transition-colors duration-200"
@@ -398,7 +252,7 @@ export default function Contact() {
                     </svg>
                   </a>
                   <a 
-                    href="https://medium.com/peridotfinance" 
+                    href="https://medium.com/@peridot.finance" 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="bg-primary/10 hover:bg-primary/20 p-3 rounded-full transition-colors duration-200"
@@ -409,7 +263,7 @@ export default function Contact() {
                   </a>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </section>

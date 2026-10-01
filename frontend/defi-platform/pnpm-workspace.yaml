@@ -1,0 +1,2 @@
+patchedDependencies:
+  '@creit.tech/xbull-wallet-connect@0.4.0': patches/@creit.tech__xbull-wallet-connect@0.4.0.patch

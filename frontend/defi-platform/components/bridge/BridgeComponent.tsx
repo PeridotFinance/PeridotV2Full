@@ -1,117 +1,151 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import dynamic from "next/dynamic"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
-import { AlertCircle } from "lucide-react"
-import type { WormholeConnectConfig, WormholeConnectTheme } from "@wormhole-foundation/wormhole-connect"
+import { useMemo, useRef } from "react"
 import { useTheme } from "next-themes"
-import { cn } from "@/lib/utils"
-
-// Dynamically import WormholeConnect to prevent SSR errors
-const WormholeConnect = dynamic(
-  () => import("@wormhole-foundation/wormhole-connect").then(m => m.default),
-  { ssr: false }
-)
+import BridgeArticle from "./BridgeArticle"
+import { SquidWidgetWrapper } from "./SquidWidgetWrapper"
+import { PeridotWalletAnnouncer } from "@/components/wallet/PeridotWalletAnnouncer"
+import { FEE_WALLET, FEE_BPS } from "@/lib/swap/fee-config"
 
 type BridgeComponentProps = {
   className?: string
 }
 
 const BridgeComponent = ({ className }: BridgeComponentProps) => {
-  // Add a state to ensure the component only renders on client side
-  const [isMounted, setIsMounted] = useState(false)
-  const { theme, resolvedTheme } = useTheme()
-  const isDarkMode = theme === "dark" || resolvedTheme === "dark"
-  const network = "Testnet"
+  const { resolvedTheme } = useTheme()
+  const widgetThemeType: 'dark' | 'light' = resolvedTheme === "dark" ? "dark" : "light"
 
-  // Set mounted state to true after component mounts on client
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
+  // Stable base config to avoid re-initializing the widget on unrelated re-renders
+  const baseSquidConfigRef = useRef({
+    integratorId: "peridot-finance-1f8r3-4f2f",
+    apiUrl: "https://apiplus.squidrouter.com",
+    collectFees: {
+      integratorAddress: FEE_WALLET,
+      fee: FEE_BPS,
+    },
+  })
 
-  // Define the configuration options with proper types
-  const config: Partial<WormholeConnectConfig> = {
-    // network: "Mainnet",
-    network: network,
-    chains: ["Ethereum", "Solana", "Avalanche", "Polygon", "Bsc", "Terra", "Oasis", "Algorand", "Aurora", "Fantom", "Karura", "Acala", "Klaytn", "Celo", "Near", "Moonbeam", "Neon", "PolygonSepolia", "Arbitrum", "Optimism", "Base", "Scroll", "Gnosis", "ArbitrumSepolia", "OptimismSepolia", "BaseSepolia"],
-    rpcs: {
-      // Optional: provide your own RPC endpoints for better reliability
-      // Ethereum: "https://rpc.ankr.com/eth/your-key-here",
-      // Solana: "https://api.mainnet-beta.solana.com",
+  // Peridot theme colors - aligned with brand
+  // Primary: hsl(150, 59%, 48%) ≈ #33C47C (green/teal)
+  const themeOverrides = useMemo(() => {
+    if (widgetThemeType === 'dark') {
+      return {
+        color: {
+          "grey-100": "#F0F5F2", // Light green-tinted
+          "grey-200": "#E0EAE4",
+          "grey-300": "#C4D4CA",
+          "grey-400": "#9DB5A8",
+          "grey-500": "#7A9585",
+          "grey-600": "#5F7568",
+          "grey-700": "#4A5D52",
+          "grey-800": "#2F3D35",
+          "grey-900": "#1A241F", // Dark green-tinted background
+          "royal-300": "#7AE5A8", // Light Peridot green
+          "royal-400": "#5DD895",
+          "royal-500": "#33C47C", // Peridot primary green
+          "royal-600": "#2AA066",
+          "royal-700": "#217C50",
+          "status-positive": "#7AE870",
+          "status-negative": "#FF4D5B",
+          "status-partial": "#F3AF25",
+          "highlight-700": "#7AE870",
+          "animation-bg": "#33C47C",
+          "animation-text": "#F0F5F2",
+          "button-lg-primary-bg": "#33C47C",
+          "button-lg-primary-text": "#1A241F",
+          "button-lg-secondary-bg": "#2F3D35",
+          "button-lg-secondary-text": "#F0F5F2",
+          "button-lg-tertiary-bg": "#4A5D52",
+          "button-lg-tertiary-text": "#C4D4CA",
+          "button-md-primary-bg": "#33C47C",
+          "button-md-primary-text": "#1A241F",
+          "button-md-secondary-bg": "#2F3D35",
+          "button-md-secondary-text": "#F0F5F2",
+          "button-md-tertiary-bg": "#4A5D52",
+          "button-md-tertiary-text": "#C4D4CA",
+          "button-sm-primary-bg": "#33C47C",
+          "button-sm-primary-text": "#1A241F",
+          "button-sm-secondary-bg": "#2F3D35",
+          "button-sm-secondary-text": "#F0F5F2",
+          "button-sm-tertiary-bg": "#4A5D52",
+          "button-sm-tertiary-text": "#C4D4CA",
+          "input-bg": "#1A241F",
+          "input-placeholder": "#7A9585",
+          "input-text": "#E0EAE4",
+          "input-selection": "#33C47C",
+          "menu-bg": "#1A241FA8",
+          "menu-text": "#F0F5F2A8",
+          "menu-backdrop": "#F0F5F21A",
+          "modal-backdrop": "#1A241F54"
+        },
+        boxShadow: {
+          container: '0 2px 4px rgba(0,0,0,0.35), 0 6px 40px -2px rgba(0,0,0,0.4)'
+        },
+      } as any
     }
-  }
+    // Light mode - Peridot green theme
+    return {
+      color: {
+        'grey-100': '#F8FAF9',
+        'grey-200': '#F0F5F2',
+        'grey-300': '#E0EAE4',
+        'grey-400': '#C4D4CA',
+        'grey-500': '#9DB5A8',
+        'grey-600': '#7A9585',
+        'grey-700': '#5F7568',
+        'grey-800': '#4A5D52',
+        'grey-900': '#2F3D35',
+        'royal-300': '#7AE5A8',
+        'royal-400': '#5DD895',
+        'royal-500': '#33C47C', // Peridot primary green
+        'royal-600': '#2AA066',
+        'royal-700': '#217C50',
+        'status-positive': '#33C47C',
+        'status-negative': '#FF4D5B',
+        'status-partial': '#F3AF25',
+        'button-lg-primary-bg': '#33C47C',
+        'button-lg-primary-text': '#FFFFFF',
+        'button-md-primary-bg': '#33C47C',
+        'button-md-primary-text': '#FFFFFF',
+        'button-sm-primary-bg': '#33C47C',
+        'button-sm-primary-text': '#FFFFFF',
+      },
+    } as any
+  }, [widgetThemeType])
 
-  // Define the dark theme with proper hex colors
-  const darkTheme: Partial<WormholeConnectTheme> = {
-    mode: 'dark',
-    primary: '#22c55e',         // Green color 
-    secondary: '#6366f1',       // Indigo color
-    text: '#ffffff',            // White
-    textSecondary: '#94a3b8',   // Gray color
-    error: '#ef4444',           // Red color
-    success: '#10b981',         // Green color
-    font: 'system-ui, sans-serif'
-  }
-
-  // Define the light theme with proper hex colors
-  const lightTheme: Partial<WormholeConnectTheme> = {
-    mode: 'light',
-    primary: '#16a34a',         // Green color (darker for better contrast on light)
-    secondary: '#4f46e5',       // Indigo color
-    text: '#171717',            // Near black
-    textSecondary: '#525252',   // Gray color
-    error: '#dc2626',           // Red color
-    success: '#059669',         // Green color
-    font: 'system-ui, sans-serif'
-  }
-
-  // Use theme based on current app theme
-  const bridgeTheme = isDarkMode ? darkTheme : lightTheme
+  // Merge theme into a derived config that only changes when theme changes
+  const squidConfig = useMemo(() => {
+    return { ...baseSquidConfigRef.current, themeType: widgetThemeType, theme: themeOverrides }
+  }, [widgetThemeType, themeOverrides])
 
   return (
-    <Card className={cn(
-      "w-full overflow-hidden border shadow-md",
-      isDarkMode ? "bg-card/95 border-border/30" : "bg-card border-border/20",
-      className
-    )}>
-      <CardHeader className={cn(
-        "border-b py-3", 
-        isDarkMode ? "bg-muted/30 border-border/30" : "bg-muted/10 border-border/10"
-      )}>
-        <CardTitle className="text-xl md:text-2xl flex flex-col md:flex-row md:items-center gap-2">
-          <span>Cross-Chain Bridge</span>
-          <p className="text-sm font-normal text-muted-foreground flex items-center gap-1 md:ml-2">
-            <AlertCircle className="h-4 w-4" /> 
-            <span>{network}</span>
-          </p>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className={cn(
-          "px-6 py-4",
-          isDarkMode ? "bg-background/20" : "bg-background"
-        )}>
-          <p className="text-sm text-muted-foreground mb-3">
-            Transfer tokens between different blockchains seamlessly. Select your source and 
-            destination chains, connect your wallets, and transfer tokens in a few clicks.
-          </p>
-          <Separator className={cn(
-            "my-3",
-            isDarkMode ? "bg-border/30" : "bg-border/20"
-          )} />
-          <div className="w-full min-h-[580px]">
-            {isMounted && (
-              <WormholeConnect 
-                config={config}
-                theme={bridgeTheme}
-              />
-            )}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <>
+      {/* Puts the user's Privy wallet into the widget's own wallet picker.
+          Mounted here rather than app-wide: the announcement is one-way, so we
+          make it only on the surface that needs it. */}
+      <PeridotWalletAnnouncer />
+
+      <div className="text-center mb-8">
+        <h1 className="text-3xl md:text-4xl font-bold mb-3">Swap / Bridge</h1>
+        <a 
+          href="#what-is" 
+          className="inline-block text-sm text-muted-foreground hover:text-foreground transition-colors underline-offset-4 hover:underline"
+        >
+          Learn about cross-chain bridges →
+        </a>
+      </div>
+
+      <div className="flex justify-center">
+        <SquidWidgetWrapper 
+          config={squidConfig} 
+          className={className}
+          widgetThemeType={widgetThemeType}
+        />
+      </div>
+
+      {/* Quick jump chips + article (server-rendered) */}
+      <BridgeArticle />
+    </>
   )
 }
 

@@ -19,6 +19,7 @@ export default function PostPreview({ post }: PostPreviewProps) {
           alt={post.title}
           fill
           className="object-cover"
+          unoptimized={post.coverImage?.includes('r2.dev') || post.coverImage?.includes('cdn.peridot.finance') || false}
         />
         <div className="absolute top-3 left-3 bg-primary/90 text-background px-2 py-1 rounded-full text-xs font-medium">
           {post.category}
@@ -44,7 +45,13 @@ export default function PostPreview({ post }: PostPreviewProps) {
         <div className="flex items-center">
           <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center mr-2 overflow-hidden">
             {post.author.picture ? (
-              <Image src={post.author.picture || "/placeholder.svg"} alt={post.author.name} width={24} height={24} />
+              <Image 
+                src={post.author.picture || "/placeholder.svg"} 
+                alt={post.author.name} 
+                width={24} 
+                height={24}
+                unoptimized={post.author.picture?.includes('r2.dev') || post.author.picture?.includes('cdn.peridot.finance') || false}
+              />
             ) : (
               <User className="h-3 w-3" />
             )}

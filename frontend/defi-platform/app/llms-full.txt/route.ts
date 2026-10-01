@@ -1,0 +1,7 @@
+import { buildLlmsFullTxt, PLAIN_TEXT_HEADERS } from "@/lib/docs/llms"
+
+export const dynamic = "force-static"
+
+export function GET() {
+  return new Response(buildLlmsFullTxt(), { headers: PLAIN_TEXT_HEADERS })
+}

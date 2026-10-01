@@ -21,13 +21,27 @@ const config = {
     extend: {
       fontFamily: {
         poppins: ["var(--font-poppins)", "sans-serif"],
+        inter: ["var(--font-inter)", "sans-serif"],
+        mono: ["var(--font-mono)", "monospace"],
       },
       colors: {
+        // Cyber-Elegant Design System Colors (driven by CSS variables in app/globals.css)
+        "cyber-bg-main": "var(--bg-app-main)",
+        "cyber-bg-card": "var(--bg-card-surface)",
+        "cyber-bg-hover": "var(--bg-card-hover)",
+        "cyber-accent-primary": "var(--accent-primary)",
+        "cyber-accent-secondary": "var(--accent-secondary)",
+        "cyber-success": "var(--status-success)",
+        "cyber-warning": "var(--status-warning)",
+        "cyber-critical": "var(--status-critical)",
+        "cyber-text-primary": "var(--text-primary)",
+        "cyber-text-secondary": "var(--text-secondary)",
+        "cyber-text-tertiary": "var(--text-tertiary)",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        background: "hsl(var(--background) / <alpha-value>)",
+        foreground: "hsl(var(--foreground) / <alpha-value>)",
         text: "hsl(var(--text))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
@@ -46,22 +60,22 @@ const config = {
           foreground: "hsl(var(--destructive-foreground))",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "hsl(var(--muted) / <alpha-value>)",
+          foreground: "hsl(var(--muted-foreground) / <alpha-value>)",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
         },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
+        card: "hsl(var(--card))",
+        "card-foreground": "hsl(var(--card-foreground))",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "cyber-lg": "24px",
+        "cyber-md": "16px",
       },
       keyframes: {
         "accordion-down": {

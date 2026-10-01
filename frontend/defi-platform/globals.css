@@ -1,0 +1,729 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 150, 59%, 48%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 95 33% 76%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 150, 59%, 48%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 95 33% 36%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+  }
+
+  /* Cyber-Elegant Design System - Baseline Protocol */
+  .cyber-elegant {
+    /* Backgrounds - Cyber-Noir */
+    --bg-app-main: #0A0B0F;
+    --bg-card-surface: #13161F;
+    --bg-card-hover: #1C202B;
+
+    /* Primary Accents - Cyber-Glow */
+    --accent-primary: #00F0FF;
+    --accent-secondary: #7B2CBF;
+
+    /* Semantic States */
+    --status-success: #34D399;
+    --status-warning: #FBBF24;
+    --status-critical: #FF0080;
+
+    /* Typography Colors */
+    --text-primary: #FFFFFF;
+    --text-secondary: #9CA3AF;
+    --text-tertiary: #4B5563;
+
+    /* Border & Effects */
+    --border-cyber: rgba(255, 255, 255, 0.08);
+    --border-cyber-hover: rgba(0, 240, 255, 0.4);
+    --glow-primary: rgba(0, 240, 255, 0.2);
+    --glow-secondary: rgba(123, 44, 191, 0.15);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Modal scroll prevention */
+  .modal-open {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+  }
+
+  @keyframes leaderboard-pulse {
+    0%,
+    100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  @keyframes leaderboard-orbit {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  @keyframes leaderboard-shine {
+    0% {
+      transform: translateX(-33%);
+    }
+    100% {
+      transform: translateX(133%);
+    }
+  }
+
+  @keyframes leaderboard-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-0.125rem);
+    }
+  }
+
+  @keyframes leaderboard-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+    }
+    50% {
+      box-shadow: 0 0 16px rgba(99, 102, 241, 0.35);
+    }
+  }
+
+  /* Header Animation Keyframes */
+  @keyframes headerSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes logoFloat {
+    0%, 100% { 
+      transform: translateY(0); 
+    }
+    50% { 
+      transform: translateY(-5px); 
+    }
+  }
+
+  @keyframes menuSlideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer components {
+  .toaster [data-sonner-toast] {
+    position: relative;
+    overflow: visible;
+  }
+
+  .toaster [data-close-button] {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+    border-radius: 9999px;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: grid;
+    place-items: center;
+    opacity: 0.85;
+    transform: var(--toast-close-button-transform) scale(0.95);
+    transform-origin: center;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.08);
+    pointer-events: auto;
+    z-index: 1;
+  }
+
+  .dark .toaster [data-close-button] {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.32);
+  }
+
+  .toaster [data-close-button] svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  .toaster [data-sonner-toast]:hover [data-close-button],
+  .toaster [data-sonner-toast]:focus-within [data-close-button],
+  .toaster [data-close-button]:focus-visible {
+    opacity: 1;
+    transform: var(--toast-close-button-transform) scale(1);
+  }
+
+  .toaster [data-close-button]:active {
+    transform: var(--toast-close-button-transform) scale(0.9);
+  }
+
+  /* Reusable Header Animation Classes */
+  .header-entrance {
+    animation: headerSlideIn 0.5s ease-out;
+    will-change: transform, opacity;
+  }
+
+  .logo-float {
+    animation: logoFloat 6s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  .mobile-menu-enter {
+    animation: menuSlideDown 0.3s ease-out;
+    will-change: transform, opacity;
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    .header-entrance,
+    .logo-float,
+    .mobile-menu-enter {
+      animation: none;
+    }
+  }
+
+  /* Fix hamburger button hover state when mobile menu is open */
+  .mobile-menu-open .hamburger-button {
+    background-color: transparent !important;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .mobile-menu-open .hamburger-button:hover {
+    background-color: transparent !important;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .mobile-menu-open .hamburger-button:focus {
+    background-color: transparent !important;
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .mobile-menu-open .hamburger-button:active {
+    background-color: hsl(var(--accent)) !important;
+    color: hsl(var(--accent-foreground)) !important;
+  }
+}
+
+/* Text Shimmer Effect */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.text-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(148, 163, 184, 0.4),
+    transparent
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: shimmer 5s infinite linear;
+}
+
+.dark .text-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.6),
+    transparent
+  );
+  background-size: 200% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+
+/* Aurora Pointer Effect */
+#aurora-pointer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  background: radial-gradient(circle at var(--x) var(--y), rgba(94, 121, 69, 0.15) 0%, transparent 40%);
+  z-index: 0;
+  transition: background 0.2s ease-out;
+}
+
+/* Gamified Markets Container */
+.gamified-markets-container {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark .gamified-markets-container {
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* Fade In On Scroll Variants */
+.fade-in-up {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.fade-in-up.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Awards Section Animations */
+.awards-content-wrapper {
+  opacity: 0;
+  transform: scale(0.9) translateY(20px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+  transition-delay: 300ms;
+}
+
+.awards-section.visible .awards-content-wrapper {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+.awards-grid-item {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.awards-section.visible .awards-grid-item {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.awards-list-item {
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+}
+
+.awards-section.visible .awards-list-item {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* Stagger Delays */
+.awards-delay-0 { transition-delay: 0ms; }
+.awards-delay-1 { transition-delay: 100ms; }
+.awards-delay-2 { transition-delay: 200ms; }
+.awards-delay-3 { transition-delay: 300ms; }
+.awards-delay-4 { transition-delay: 400ms; }
+.awards-delay-5 { transition-delay: 500ms; }
+.awards-delay-6 { transition-delay: 600ms; }
+.awards-delay-7 { transition-delay: 700ms; }
+
+/* Awards Hover */
+.awards-hover-card {
+  transition: transform 0.3s ease-out;
+}
+.awards-hover-card:hover {
+  transform: scale(1.05) translateY(-5px);
+}
+
+.awards-text-hover {
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Cyber-Elegant Design System Components */
+.cyber-elegant {
+  background: var(--bg-app-main);
+  color: var(--text-primary);
+  font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Cyber Card - Obsidian Glass */
+.cyber-card {
+  background: var(--bg-card-surface);
+  border: 1px solid var(--border-cyber);
+  border-radius: 24px;
+  padding: 24px 32px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.cyber-card:hover {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 15px -3px var(--glow-primary);
+  background: var(--bg-card-hover);
+}
+
+.cyber-card-sm {
+  border-radius: 16px;
+  padding: 16px 24px;
+}
+
+/* Cyber Border Glow Effect */
+.cyber-border-glow {
+  position: relative;
+}
+
+.cyber-border-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cyber-border-glow:hover::before {
+  opacity: 1;
+}
+
+/* Glassmorphism - Subtle */
+.cyber-glass {
+  backdrop-filter: blur(12px);
+  background: rgba(19, 22, 31, 0.7);
+  border: 1px solid var(--border-cyber);
+}
+
+/* Radial Gradient Light Source */
+.cyber-radial-glow {
+  position: relative;
+}
+
+.cyber-radial-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at center, var(--glow-secondary) 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: -1;
+}
+
+/* Typography */
+.cyber-text-primary {
+  color: var(--text-primary);
+  font-weight: 400;
+}
+
+.cyber-text-secondary {
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+.cyber-text-tertiary {
+  color: var(--text-tertiary);
+  font-weight: 400;
+}
+
+.cyber-text-mono {
+  font-family: var(--font-mono), 'Courier New', monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.cyber-text-bold {
+  font-weight: 700;
+}
+
+/* Cyber Button */
+.cyber-button {
+  background: transparent;
+  border: 1px solid var(--accent-primary);
+  color: var(--accent-primary);
+  border-radius: 16px;
+  padding: 12px 24px;
+  font-weight: 500;
+  transition: all 0.2s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.cyber-button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-primary);
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+}
+
+.cyber-button:hover::before {
+  opacity: 0.1;
+}
+
+.cyber-button:hover {
+  box-shadow: 0 0 20px -5px var(--glow-primary);
+  border-color: var(--accent-primary);
+}
+
+.cyber-button-primary {
+  background: var(--accent-primary);
+  color: var(--bg-app-main);
+  border-color: var(--accent-primary);
+}
+
+.cyber-button-primary::before {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Input Fields with Cyber Focus */
+.cyber-input {
+  background: var(--bg-card-surface);
+  border: 1px solid var(--border-cyber);
+  border-radius: 16px;
+  padding: 12px 16px;
+  color: var(--text-primary);
+  transition: all 0.2s ease-out;
+  font-family: var(--font-mono);
+}
+
+.cyber-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px var(--glow-primary);
+}
+
+/* Toggle Switch - Heavy Feel */
+.cyber-toggle {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  background: var(--bg-card-surface);
+  border: 1px solid var(--border-cyber);
+  border-radius: 9999px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.cyber-toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 22px;
+  height: 22px;
+  background: var(--text-secondary);
+  border-radius: 50%;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cyber-toggle.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+
+.cyber-toggle.active::after {
+  transform: translateX(20px);
+  background: var(--bg-app-main);
+}
+
+/* Number Ticker Animation */
+@keyframes cyber-number-tick {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cyber-number {
+  animation: cyber-number-tick 0.3s ease-out;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Status Indicators */
+.cyber-status-success {
+  color: var(--status-success);
+}
+
+.cyber-status-warning {
+  color: var(--status-warning);
+}
+
+.cyber-status-critical {
+  color: var(--status-critical);
+}
+
+/* Bento Grid Layout */
+.cyber-bento-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+}
+
+/* Micro-interactions */
+.cyber-interactive {
+  transition: all 0.2s ease-out;
+  cursor: pointer;
+}
+
+.cyber-interactive:hover {
+  transform: translateY(-2px);
+}
+
+.cyber-interactive:active {
+  transform: translateY(0);
+}
+
+/* Sequential Cyber Typewriter Effect */
+.typewriter-wrapper {
+  position: relative;
+  display: inline-block;
+  min-height: 1.2em; /* Ensure height is preserved */
+  width: 100%;
+}
+
+.typewriter-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 3px solid #00F0FF;
+  color: #00F0FF;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  animation-duration: 12s;
+  animation-iteration-count: infinite;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.typewriter-item:nth-child(1) {
+  animation-name: typewriter-1, cyber-flicker;
+}
+
+.typewriter-item:nth-child(2) {
+  animation-name: typewriter-2, cyber-flicker;
+  animation-delay: 0s, 4s;
+}
+
+.typewriter-item:nth-child(3) {
+  animation-name: typewriter-3, cyber-flicker;
+  animation-delay: 0s, 8s;
+}
+
+@keyframes typewriter-1 {
+  0% { width: 0; opacity: 0; }
+  1% { width: 0; opacity: 1; }
+  12% { width: 100%; opacity: 1; }
+  30% { width: 100%; opacity: 1; }
+  33% { width: 100%; opacity: 0; }
+  100% { width: 0; opacity: 0; }
+}
+
+@keyframes typewriter-2 {
+  0%, 33% { width: 0; opacity: 0; }
+  34% { width: 0; opacity: 1; }
+  45% { width: 100%; opacity: 1; }
+  63% { width: 100%; opacity: 1; }
+  66% { width: 100%; opacity: 0; }
+  100% { width: 0; opacity: 0; }
+}
+
+@keyframes typewriter-3 {
+  0%, 66% { width: 0; opacity: 0; }
+  67% { width: 0; opacity: 1; }
+  78% { width: 100%; opacity: 1; }
+  96% { width: 100%; opacity: 1; }
+  100% { width: 100%; opacity: 0; }
+}
+
+@keyframes cyber-flicker {
+  0%, 19.999%, 22%, 62.999%, 64%, 64.999%, 70%, 100% { opacity: 1; }
+  20%, 21.999%, 63%, 63.999%, 65%, 69.999% { opacity: 0.8; }
+}

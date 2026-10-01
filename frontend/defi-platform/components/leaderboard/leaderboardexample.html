@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peridot.finance Leaderboard - Enhanced UI/UX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* bg-gray-900 */
+            color: #d1d5db; /* text-gray-300 */
+        }
+        .glass-card {
+            background: rgba(31, 41, 55, 0.6); /* bg-gray-800 with opacity */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .tier-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            font-weight: 600;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .tier-legendary { background-color: #f59e0b; color: #422006; }
+        .tier-mythic { background-color: #8b5cf6; color: #2e1065; }
+        .tier-divine { background-color: #ec4899; color: #500724; }
+        .tier-celestial { background-color: #10b981; color: #042f2e; }
+        .tier-expert { background-color: #3b82f6; color: #1e3a8a; }
+
+        .progress-bar-container { background-color: #374151; }
+        .progress-bar { background: linear-gradient(90deg, #f59e0b, #facc15); }
+
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .modal.hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Header Navigation -->
+    <header class="p-4 border-b border-gray-700/50">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-8">
+                <a href="#" class="flex items-center gap-2">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#34D399"></path>
+                        <path d="M2 17L12 22L22 17L12 12L2 17Z" fill="#10B981"></path>
+                        <path d="M2 7L12 12V22L2 17V7Z" fill="#059669"></path>
+                        <path d="M22 7L12 12V22L22 17V7Z" fill="#047857"></path>
+                    </svg>
+                    <span class="text-xl font-bold text-white">Peridot</span>
+                </a>
+                <nav class="hidden md:flex items-center gap-6 text-gray-300">
+                    <a href="#" class="hover:text-white transition">App</a>
+                    <a href="#" class="hover:text-white transition">Bridge</a>
+                    <a href="#" class="hover:text-white transition">Stats</a>
+                    <a href="#" class="text-white font-semibold border-b-2 border-emerald-400 pb-1">Leaderboard</a>
+                    <a href="#" class="hover:text-white transition">Invite</a>
+                </nav>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="hidden sm:flex items-center gap-2 bg-gray-800 px-3 py-2 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM4.332 8.027a6.012 6.012 0 011.912-2.706C6.512 5.73 6.974 6 7.5 6A1.5 1.5 0 019 7.5V8a2 2 0 004 0 2 2 0 011.523-1.943A5.977 5.977 0 0116 10c0 .34-.028.675-.083 1H15a2 2 0 00-2 2v1.5a1.5 1.5 0 01-3 0V14a2 2 0 00-4 0v1a1 1 0 001 1h1.5a1.5 1.5 0 010 3H7.5A1.5 1.5 0 016 18v-2.5a2 2 0 00-2-2V15a1 1 0 00-1-1H1.67a5.981 5.981 0 012.662-6.973z" clip-rule="evenodd" /></svg>
+                    <span class="text-sm font-medium text-white">BSC</span>
+                </div>
+                <div class="bg-gray-800 px-3 py-2 rounded-lg text-sm font-mono text-gray-300">
+                    0x...622548
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-white">Leaderboard</h1>
+            <p class="mt-2 text-lg text-gray-400">Earn points by supplying and borrowing assets. See how you stack up!</p>
+        </div>
+
+        <!-- User's Enhanced Rank Card -->
+        <div class="glass-card rounded-2xl p-6 mb-8 max-w-4xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex-1 text-center md:text-left">
+                    <div class="flex items-center gap-4 justify-center md:justify-start">
+                        <span class="text-5xl font-bold text-white" id="user-rank">#15</span>
+                        <div>
+                            <span class="tier-badge tier-legendary" id="user-tier-badge">Legendary</span>
+                            <p class="font-mono text-gray-400 mt-1" id="user-address">0xf7239...2548</p>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="flex justify-between items-baseline mb-1">
+                            <span class="text-sm font-medium text-gray-300">Progress to Master</span>
+                            <span class="text-sm font-bold text-amber-400" id="user-progress-points">5,123 / 18,000 pts</span>
+                        </div>
+                        <div class="progress-bar-container w-full rounded-full h-2.5">
+                            <div class="progress-bar h-2.5 rounded-full" id="user-progress-bar" style="width: 28.4%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-center md:text-right">
+                    <p class="text-sm text-gray-400">Total Points</p>
+                    <p class="text-5xl font-bold text-white" id="user-total-points">12,877</p>
+                     <button id="share-button" class="mt-4 w-full md:w-auto bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-6 rounded-lg transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M15 8a3 3 0 10-2.977-2.63l-4.94 2.47a3 3 0 100 4.319l4.94 2.47a3 3 0 10.895-1.789l-4.94-2.47a3.027 3.027 0 000-.74l4.94-2.47C13.456 7.68 14.19 8 15 8z" />
+                        </svg>
+                        Share My Rank
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="flex justify-center border-b border-gray-700 mb-8">
+            <button class="px-6 py-3 text-lg font-semibold text-white border-b-2 border-emerald-400">Leaderboard</button>
+            <button class="px-6 py-3 text-lg font-semibold text-gray-400 hover:text-white transition">How It Works</button>
+            <button class="px-6 py-3 text-lg font-semibold text-gray-400 hover:text-white transition">My Profile</button>
+        </div>
+
+        <!-- Leaderboard Table -->
+        <div class="glass-card rounded-2xl overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-gray-900/50">
+                    <tr>
+                        <th class="p-4 font-semibold text-white">Rank</th>
+                        <th class="p-4 font-semibold text-white">User</th>
+                        <th class="p-4 font-semibold text-white text-center">Tier</th>
+                        <th class="p-4 font-semibold text-white text-right">Points</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body">
+                    <!-- Rows will be injected by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Share Modal -->
+    <div id="share-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden">
+        <div class="glass-card rounded-2xl max-w-lg w-full text-center p-6 md:p-8 relative">
+            <button id="close-modal" class="absolute top-4 right-4 text-gray-400 hover:text-white transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <h2 class="text-2xl font-bold text-white mb-4">Share Your Progress!</h2>
+            <p class="text-gray-400 mb-6">Here's your custom shareable card. Post it to show off your rank.</p>
+            
+            <div id="image-container" class="mb-6 rounded-lg overflow-hidden border border-gray-600">
+                <!-- Generated canvas image will be displayed here -->
+                <img id="generated-image" src="" alt="Shareable leaderboard card" class="w-full">
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-4">
+                <a id="share-x-button" href="#" target="_blank" class="w-full bg-black hover:bg-gray-800 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"></path></svg>
+                    <span>Post on X</span>
+                </a>
+                <a id="download-button" href="#" download="peridot-rank.png" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-6 rounded-lg transition-transform transform hover:scale-105 flex items-center justify-center gap-2">
+                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    <span>Download Image</span>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Canvas for generating the image (hidden) -->
+    <canvas id="share-canvas" width="1200" height="630" class="hidden"></canvas>
+
+
+    <script>
+        // --- Mock Data ---
+        const currentUser = {
+            rank: 15,
+            address: '0xf7239a....4d2548',
+            ens: 'vitalik.eth',
+            points: 12877,
+            tier: 'Legendary',
+            tierPoints: 5000,
+            nextTier: 'Master',
+            nextTierPoints: 18000,
+            supplies: 95,
+            borrows: 28,
+        };
+
+        const leaderboardData = [
+            { rank: 1, ens: 'paradigm.eth', points: 115240, tier: 'Celestial', change: 'up' },
+            { rank: 2, address: '0x62bc...80ab7', points: 99801, tier: 'Divine', change: 'down' },
+            { rank: 3, address: '0x81df...f6cc42', points: 98280, tier: 'Divine', change: 'up' },
+            { rank: 4, ens: 'llama.eth', points: 88750, tier: 'Mythic', change: 'none' },
+            { rank: 5, address: '0x88bd...ad672', points: 79150, tier: 'Mythic', change: 'up' },
+            { rank: 6, ens: 'a16z.eth', points: 60650, tier: 'Mythic', change: 'down' },
+            { rank: 7, address: '0x99a1...1f3d8', points: 54321, tier: 'Master', change: 'up' },
+            { rank: 8, address: '0x12b3...4e6a9', points: 48765, tier: 'Master', change: 'none' },
+        ];
+
+        // --- Tier Configuration ---
+        const tiers = {
+            Legendary: { badgeClass: 'tier-legendary', icon: '🏆', color: '#f59e0b' },
+            Mythic: { badgeClass: 'tier-mythic', icon: '🦄', color: '#8b5cf6' },
+            Divine: { badgeClass: 'tier-divine', icon: '✨', color: '#ec4899' },
+            Celestial: { badgeClass: 'tier-celestial', icon: '🌌', color: '#10b981' },
+            Master: { badgeClass: 'tier-expert', icon: '🧙', color: '#3b82f6' },
+        };
+
+        // --- DOM Elements ---
+        const leaderboardBody = document.getElementById('leaderboard-body');
+        const shareButton = document.getElementById('share-button');
+        const modal = document.getElementById('share-modal');
+        const closeModalButton = document.getElementById('close-modal');
+        const downloadButton = document.getElementById('download-button');
+        const shareXButton = document.getElementById('share-x-button');
+        const generatedImage = document.getElementById('generated-image');
+        const canvas = document.getElementById('share-canvas');
+        
+        // --- Functions ---
+        
+        function populateLeaderboard() {
+            let html = '';
+            leaderboardData.forEach(user => {
+                const tierInfo = tiers[user.tier] || { badgeClass: 'bg-gray-500 text-white' };
+                let rankChangeHtml = '';
+                if (user.change === 'up') {
+                    rankChangeHtml = `<span class="text-emerald-400 ml-2">▲</span>`;
+                } else if (user.change === 'down') {
+                    rankChangeHtml = `<span class="text-red-400 ml-2">▼</span>`;
+                }
+
+                html += `
+                    <tr class="border-b border-gray-700 hover:bg-gray-800/50 transition">
+                        <td class="p-4 font-bold text-lg text-white">${user.rank}${rankChangeHtml}</td>
+                        <td class="p-4 font-mono text-gray-300">${user.ens || user.address}</td>
+                        <td class="p-4 text-center">
+                            <span class="tier-badge ${tierInfo.badgeClass}">${user.tier}</span>
+                        </td>
+                        <td class="p-4 text-right font-semibold text-white text-lg">${user.points.toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+            leaderboardBody.innerHTML = html;
+        }
+        
+        function populateCurrentUser() {
+            document.getElementById('user-rank').textContent = `#${currentUser.rank}`;
+            const tierInfo = tiers[currentUser.tier];
+            const badge = document.getElementById('user-tier-badge');
+            badge.textContent = currentUser.tier;
+            badge.className = `tier-badge ${tierInfo.badgeClass}`;
+            document.getElementById('user-address').textContent = currentUser.ens || currentUser.address;
+            document.getElementById('user-total-points').textContent = currentUser.points.toLocaleString();
+
+            // Progress bar logic
+            const progress = ((currentUser.points - currentUser.tierPoints) / (currentUser.nextTierPoints - currentUser.tierPoints)) * 100;
+            document.getElementById('user-progress-bar').style.width = `${Math.min(100, Math.max(0, progress))}%`;
+            document.getElementById('user-progress-points').textContent = `${currentUser.points.toLocaleString()} / ${currentUser.nextTierPoints.toLocaleString()} pts`;
+        }
+
+        async function generateShareableImage() {
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // 1. Background
+            const gradient = ctx.createLinearGradient(0, 0, w, h);
+            gradient.addColorStop(0, '#111827');
+            gradient.addColorStop(1, '#1F2937');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, w, h);
+
+            // 2. Peridot Logo & Text
+            // A simple SVG logo drawn directly to canvas
+            ctx.fillStyle = "#34D399";
+            ctx.beginPath();
+            ctx.moveTo(80, 70); ctx.lineTo(130, 95); ctx.lineTo(80, 120); ctx.lineTo(30, 95); ctx.closePath();
+            ctx.fill();
+            ctx.font = "bold 40px Inter";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText("Peridot", 150, 105);
+
+            // 3. Main User Info
+            const tierInfo = tiers[currentUser.tier];
+            ctx.font = "bold 120px Inter";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText(`#${currentUser.rank}`, 80, 300);
+
+            ctx.font = "bold 60px Inter";
+            ctx.fillStyle = tierInfo.color;
+            ctx.fillText(currentUser.tier, 80, 380);
+            
+            ctx.font = "40px Inter";
+            ctx.fillStyle = "#9CA3AF";
+            ctx.fillText(currentUser.ens || currentUser.address, 80, 440);
+
+            // 4. Points
+            ctx.textAlign = 'right';
+            ctx.font = "36px Inter";
+            ctx.fillStyle = "#D1D5DB";
+            ctx.fillText("Total Points", w - 80, 270);
+
+            ctx.font = "bold 90px Inter";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText(currentUser.points.toLocaleString(), w - 80, 360);
+            
+            // 5. Stats
+            ctx.font = "bold 40px Inter";
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fillText(`${currentUser.supplies} Supplies | ${currentUser.borrows} Borrows`, w-80, 440);
+
+            // 6. Footer
+            ctx.textAlign = 'center';
+            ctx.font = "30px Inter";
+            ctx.fillStyle = "#4B5563";
+            ctx.fillText("Challenge me on peridot.finance", w / 2, h - 60);
+
+            // Reset alignment for next draws
+            ctx.textAlign = 'left';
+
+            // 7. Update image and download links
+            const dataUrl = canvas.toDataURL('image/png');
+            generatedImage.src = dataUrl;
+            downloadButton.href = dataUrl;
+            
+            const tweetText = `Just hit the ${currentUser.tier} tier (#${currentUser.rank}) on @peridotfinance with ${currentUser.points.toLocaleString()} points! 🏆 Come join the competition. #DeFi #Lending`;
+            shareXButton.href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}&url=${encodeURIComponent('https://peridot.finance')}`;
+        }
+        
+        // --- Event Listeners ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateLeaderboard();
+            populateCurrentUser();
+        });
+
+        shareButton.addEventListener('click', () => {
+            modal.classList.remove('hidden');
+            generateShareableImage();
+        });
+
+        closeModalButton.addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.add('hidden');
+            }
+        });
+    </script>
+
+</body>
+</html>

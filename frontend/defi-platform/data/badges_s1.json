@@ -1,0 +1,1602 @@
+[
+  {
+    "id": "s1_bronze_first_contact",
+    "name": "First Contact",
+    "description": "Make your first transaction on Peridot (supply, borrow, etc.).",
+    "icon": "🎯",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "transactions_at_least",
+        "count": 1
+      }
+    ],
+    "sortOrder": 110,
+    "rarity": "common",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 100
+  },
+  {
+    "id": "s1_bronze_dual_state_user",
+    "name": "Dual-State User",
+    "description": "Have an active supply and an active borrow position simultaneously for at least 24 hours.",
+    "icon": "⚖️",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "position_maintained_for_days",
+        "days": 1,
+        "positionType": "supply"
+      },
+      {
+        "type": "position_maintained_for_days",
+        "days": 1,
+        "positionType": "borrow"
+      }
+    ],
+    "sortOrder": 120,
+    "rarity": "uncommon",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 200
+  },
+  {
+    "id": "s1_bronze_polymath",
+    "name": "Polymath",
+    "description": "Successfully perform all four core actions at least once: supply, borrow, repay, and withdraw.",
+    "icon": "⚗️",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "transactions_at_least",
+        "count": 1,
+        "actionTypes": ["supply"]
+      },
+      {
+        "type": "transactions_at_least",
+        "count": 1,
+        "actionTypes": ["borrow"]
+      },
+      {
+        "type": "transactions_at_least",
+        "count": 1,
+        "actionTypes": ["repay"]
+      },
+      {
+        "type": "transactions_at_least",
+        "count": 1,
+        "actionTypes": ["redeem"]
+      }
+    ],
+    "sortOrder": 130,
+    "rarity": "uncommon",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 300
+  },
+  {
+    "id": "s1_bronze_transactionist",
+    "name": "Transactionist",
+    "description": "Complete 5 total transactions.",
+    "icon": "📈",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "transactions_at_least",
+        "count": 5
+      }
+    ],
+    "sortOrder": 140,
+    "rarity": "common",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 400
+  },
+  {
+    "id": "bronze_first_watch",
+    "name": "First Watch",
+    "description": "Connect your wallet on 2 separate days.",
+    "icon": "👀",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "total_days_logged_in_at_least",
+        "days": 2
+      }
+    ],
+    "sortOrder": 2,
+    "rarity": "common",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 100
+  },
+  {
+    "id": "s1_bronze_three_day_vigil",
+    "name": "Three Day Vigil",
+    "description": "Maintain any active position (supply or borrow) for 3 consecutive days.",
+    "icon": "🕒",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "position_maintained_for_days",
+        "days": 3,
+        "positionType": "any"
+      }
+    ],
+    "sortOrder": 220,
+    "rarity": "uncommon",
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 200
+  },
+  {
+    "id": "s1_bronze_week_of_service",
+    "name": "Week of Service",
+    "description": "Achieve a 7-day login streak.",
+    "icon": "🛡️",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "login_streak_at_least",
+        "days": 7
+      }
+    ],
+    "sortOrder": 230,
+    "rarity": "uncommon",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 300
+  },
+  {
+    "id": "s1_bronze_stalwart",
+    "name": "Stalwart",
+    "description": "Maintain a supply position of at least $100 for 10 consecutive days.",
+    "icon": "💪",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "position_maintained_for_days",
+        "days": 10,
+        "positionType": "supply",
+        "minUsdValue": 100
+      }
+    ],
+    "sortOrder": 240,
+    "rarity": "rare",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 400
+  },
+  {
+    "id": "s1_bronze_sentinel",
+    "name": "Sentinel",
+    "description": "Maintain any active position for 14 consecutive days.",
+    "icon": "🪖",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "position_maintained_for_days",
+        "days": 14,
+        "positionType": "any"
+      }
+    ],
+    "sortOrder": 250,
+    "rarity": "rare",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 500
+  },
+  {
+    "id": "s1_bronze_loyal_sentinel",
+    "name": "Loyal Sentinel",
+    "description": "Achieve a 14-day login streak.",
+    "icon": "🎖️",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "login_streak_at_least",
+        "days": 14
+      }
+    ],
+    "sortOrder": 260,
+    "rarity": "superrare",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 600
+  },
+  {
+    "id": "s1_bronze_peridot_knight",
+    "name": "Peridot Knight",
+    "description": "Achieve a 30-day login streak.",
+    "icon": "🟢",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "login_streak_at_least",
+        "days": 30
+      }
+    ],
+    "unlockEmoji": "🟢",
+    "sortOrder": 270,
+    "rarity": "legendary",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 1200
+  },
+  {
+    "id": "s1_bronze_gm_peridot",
+    "name": "GM, Peridot",
+    "description": "Achieve a 32-day login streak.",
+    "icon": "☀️",
+    "tier": "bronze",
+    "unlockBorderColor": "#8BA376",
+    "criteria": [
+      {
+        "type": "login_streak_at_least",
+        "days": 32
+      }
+    ],
+    "sortOrder": 280,
+    "rarity": "common",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 200
+  },
+  {
+    "id": "s1_bronze_first_yield",
+    "name": "First Yield",
+    "description": "Accrue at least $1 in total supply interest.",
+    "icon": "🌱",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 1
+      }
+    ],
+    "sortOrder": 310,
+    "rarity": "common",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 100
+  },
+  {
+    "id": "s1_bronze_market_participant",
+    "name": "Market Participant",
+    "description": "Reach a cumulative transaction volume of at least $500 (total supplied + borrowed).",
+    "icon": "💰",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 500
+      }
+    ],
+    "sortOrder": 320,
+    "rarity": "uncommon",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 200
+  },
+  {
+    "id": "s1_bronze_small_pusher",
+    "name": "Small Pusher",
+    "description": "Reach a cumulative transaction volume of at least $2,000.",
+    "icon": "💼",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 2000
+      }
+    ],
+    "sortOrder": 321,
+    "rarity": "uncommon",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 300
+  },
+  {
+    "id": "s1_bronze_stable_ground",
+    "name": "Stable Ground",
+    "description": "Interact with two different stablecoins through supply or borrow actions (e.g., supply USDC and borrow USDT).",
+    "icon": "🪙",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "distinct_assets_interacted_with",
+        "count": 2,
+        "actionTypes": ["supply", "borrow"],
+        "assetCategory": "stablecoin"
+      }
+    ],
+    "sortOrder": 322,
+    "rarity": "uncommon",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 150
+  },
+  {
+    "id": "s1_bronze_into_the_blue",
+    "name": "Into the Blue",
+    "description": "Supply a volatile 'blue-chip' asset (e.g., ETH or WBTC).",
+    "icon": "💙",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "distinct_assets_interacted_with",
+        "count": 1,
+        "actionTypes": ["supply"],
+        "assetCategory": "blue_chip"
+      }
+    ],
+    "sortOrder": 323,
+    "rarity": "rare",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 250
+  },
+  {
+    "id": "s1_bronze_portfolio_explorer",
+    "name": "Portfolio Explorer",
+    "description": "Have active supply positions in three different assets simultaneously for at least 24 hours.",
+    "icon": "📊",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "multi_position_maintained",
+        "positionCount": 3,
+        "minUsdValuePerPosition": 0,
+        "days": 1,
+        "positionType": "supply"
+      }
+    ],
+    "sortOrder": 324,
+    "rarity": "rare",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 350
+  },
+  {
+    "id": "s1_bronze_borrow_first",
+    "name": "Borrow First",
+    "description": "Borrow an asset for at least $10.",
+    "icon": "💵",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 10,
+        "actionTypes": ["borrow"]
+      }
+    ],
+    "sortOrder": 325,
+    "rarity": "common",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 150
+  },
+  {
+    "id": "s1_bronze_borrow_zone",
+    "name": "Borrow Zone",
+    "description": "Borrow an asset for at least $50.",
+    "icon": "💸",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 50,
+        "actionTypes": ["borrow"]
+      }
+    ],
+    "sortOrder": 326,
+    "rarity": "uncommon",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 250
+  },
+  {
+    "id": "s1_bronze_yield_seeker",
+    "name": "Yield Seeker",
+    "description": "Achieve an effective APY of at least 5%.",
+    "icon": "📈",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "effective_apy_at_least",
+        "value": 5
+      }
+    ],
+    "sortOrder": 327,
+    "rarity": "uncommon",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 300
+  },
+  {
+    "id": "s1_bronze_earnings_starter",
+    "name": "Earnings Starter",
+    "description": "Accrue at least $100 in total lifetime earnings.",
+    "icon": "💵",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "total_lifetime_earnings_at_least",
+        "amount": 100
+      }
+    ],
+    "sortOrder": 328,
+    "rarity": "common",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 200
+  },
+  {
+    "id": "s1_bronze_daily_earner",
+    "name": "Daily Earner",
+    "description": "Achieve a daily average earnings of at least $5.",
+    "icon": "📅",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "daily_average_earnings_at_least",
+        "amount": 5
+      }
+    ],
+    "sortOrder": 329,
+    "rarity": "uncommon",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 250
+  },
+  {
+    "id": "s1_bronze_journeyman",
+    "name": "Journeyman",
+    "description": "Finish 15 badges from the Bronze tier.",
+    "icon": "🥉",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "achievements_completed_at_least",
+        "count": 15
+      }
+    ],
+    "sortOrder": 338,
+    "rarity": "rare",
+    "unlockEmoji": "🥉",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 400
+  },
+  {
+    "id": "s1_bronze_master_of_bronze",
+    "name": "Master of Bronze",
+    "description": "Finish 20 Badges from the Bronze tier.",
+    "icon": "👑",
+    "tier": "bronze",
+    "criteria": [
+      {
+        "type": "achievements_completed_at_least",
+        "count": 20,
+        "tier": "bronze"
+      }
+    ],
+    "sortOrder": 328,
+    "rarity": "superrare",
+    "unlockBorderColor": "#CD7F32",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 800
+  },
+  {
+    "id": "s1_first_jump",
+    "name": "First Jump",
+    "description": "Complete your first cross-chain supply or borrow transaction.",
+    "icon": "🌉",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "transactions_at_least",
+        "count": 1,
+        "actionTypes": ["supply", "borrow"],
+        "isCrossChain": true
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "uncommon",
+    "sortOrder": 329,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 400
+  },
+  {
+    "id": "s1_chain_explorer",
+    "name": "Chain Explorer",
+    "description": "Perform at least 10 cross-chain transactions.",
+    "icon": "🗺️",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "transactions_at_least",
+        "count": 10,
+        "actionTypes": ["supply", "borrow"],
+        "isCrossChain": true
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 330,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 600
+  },
+  {
+    "id": "s1_high_volume_transit",
+    "name": "In Transit",
+    "description": "Achieve a cumulative cross-chain transaction volume of at least $5,000.",
+    "icon": "🚀",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 5000,
+        "isCrossChain": true
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 331,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 1000
+  },
+  {
+    "id": "s1_silver_portfolio_explorer",
+    "name": "Silver Explorer",
+    "description": "Have active supply positions in three different assets simultaneously for at least 24 hours min 100 USD per position.",
+    "icon": "📊",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "multi_position_maintained",
+        "positionCount": 3,
+        "minUsdValuePerPosition": 100,
+        "days": 1,
+        "positionType": "supply"
+      }
+    ],
+    "sortOrder": 392,
+    "rarity": "rare",
+    "seasonIds": [
+      "s1"
+    ],
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 1000
+  },
+  {
+    "id": "s1_polymath",
+    "name": "Early Polymath",
+    "description": "Perform a supply, borrow, repay, and redeem action.",
+    "icon": "⚗️",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "transactions_at_least",
+        "count": 1,
+        "actionTypes": ["supply"]
+      },
+      {
+        "type": "transactions_at_least",
+        "count": 1,
+        "actionTypes": ["borrow"]
+      },
+      {
+        "type": "transactions_at_least",
+        "count": 1,
+        "actionTypes": ["repay"]
+      },
+      {
+        "type": "transactions_at_least",
+        "count": 1,
+        "actionTypes": ["redeem"]
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "uncommon",
+    "sortOrder": 332,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 400
+  },
+  {
+    "id": "s1_polymath_2",
+    "name": "Polymath",
+    "description": "Complete 100 transactions.",
+    "icon": "📚",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "transactions_at_least",
+        "count": 100
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 140,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 800
+  },
+  {
+    "id": "s1_consistent_presence",
+    "name": "Presence",
+    "description": "Maintain any active position (min. value $250) for 14 consecutive days.",
+    "icon": "🛡️",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "position_maintained_for_days",
+        "days": 14,
+        "positionType": "any",
+        "minUsdValue": 250
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "uncommon",
+    "sortOrder": 201,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 500
+  },
+  {
+    "id": "s1_seasoned_veteran",
+    "name": "Seasoned Veteran",
+    "description": "Connect your wallet on 30 separate days within the current season.",
+    "icon": "⚪",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "total_days_logged_in_at_least",
+        "days": 30
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 210,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 800
+  },
+  {
+    "id": "s1_silver_vanguard",
+    "name": "Vanguard",
+    "description": "Maintain a position for 30 consecutive days (min. value $250), unlocking the 1.3x Continuity Bonus multiplier.",
+    "icon": "🛡️",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "position_maintained_for_days",
+        "days": 30,
+        "positionType": "any",
+        "minUsdValue": 250
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 220,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 1500
+  },
+  {
+    "id": "s1_heavy_lifter",
+    "name": "Heavy Lifter",
+    "description": "Reach a cumulative transaction volume of at least $10,000.",
+    "icon": "🏋️",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 10000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "uncommon",
+    "sortOrder": 300,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 400
+  },
+  {
+    "id": "s1_decisive_move",
+    "name": "Decisive Move",
+    "description": "Perform a single supply or borrow transaction of at least $5,000.",
+    "icon": "🎯",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "single_transaction_at_least",
+        "amount": 5000,
+        "actionTypes": ["supply", "borrow"]
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 310,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 500
+  },
+  {
+    "id": "s1_major_player",
+    "name": "Major Player",
+    "description": "Reach a cumulative transaction volume of at least $50,000.",
+    "icon": "💸",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 50000
+      }
+    ],
+    "unlockEmoji": "💸",
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 320,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 800
+  },
+  {
+    "id": "s1_quick_turnaround",
+    "name": "Quick Turnaround",
+    "description": "Successfully repay a loan (min. $500) within 72 hours of opening it.",
+    "icon": "💨",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "repay_within_time",
+        "amount": 500,
+        "hours": 72
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 400,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 600
+  },
+  {
+    "id": "s1_silver_yield_hunter",
+    "name": "Yield Hunter",
+    "description": "Achieve an effective APY of at least 10%.",
+    "icon": "🎯",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "effective_apy_at_least",
+        "value": 10
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 340,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 600
+  },
+  {
+    "id": "s1_silver_earnings_achiever",
+    "name": "Earnings Achiever",
+    "description": "Accrue at least $1,000 in total lifetime earnings.",
+    "icon": "💰",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "total_lifetime_earnings_at_least",
+        "amount": 1000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "uncommon",
+    "sortOrder": 341,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 500
+  },
+  {
+    "id": "s1_silver_consistent_earner",
+    "name": "Consistent Earner",
+    "description": "Achieve a daily average earnings of at least $25.",
+    "icon": "📊",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "daily_average_earnings_at_least",
+        "amount": 25
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 342,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 700
+  },
+  {
+    "id": "s1_silver_axe",
+    "name": "Silver Axe",
+    "description": "Finish at least 35 Badges",
+    "icon": "🪓",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "achievements_completed_at_least",
+        "count": 35
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 500,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 1000
+  },
+  {
+    "id": "s1_silvers_rayleigh",
+    "name": "Silvers Rayleigh",
+    "description": "Finish all badges from the Silver tier.",
+    "icon": "🥈",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "achievements_completed_all",
+        "achievementIds": [
+          "s1_first_jump",
+          "s1_chain_explorer",
+          "s1_high_volume_transit",
+          "s1_consistent_presence",
+          "s1_seasoned_veteran",
+          "s1_silver_vanguard",
+          "s1_heavy_lifter",
+          "s1_decisive_move",
+          "s1_major_player",
+          "s1_quick_turnaround"
+        ]
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "legendary",
+    "unlockBorderColor": "#C0C0C0",
+    "unlockEmoji": "🥈",
+    "sortOrder": 510,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 2000
+  },
+  {
+    "id": "s1_100k_volume",
+    "name": "100 K",
+    "description": "Reach a cumulative transaction volume of $100,000.",
+    "icon": "💸",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 100000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "uncommon",
+    "sortOrder": 515,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 1000
+  },
+  {
+    "id": "s1_quarter_million_club",
+    "name": "Quarter Million Club",
+    "description": "Reach a cumulative transaction volume of $250,000.",
+    "icon": "💵",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 250000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 520,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 2000
+  },
+  {
+    "id": "s1_capital_commitment",
+    "name": "Capital Commitment",
+    "description": "Maintain a total supply value of at least $10,000 for 14 consecutive days.",
+    "icon": "🤝",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "position_maintained_for_days",
+        "days": 14,
+        "positionType": "supply",
+        "minUsdValue": 10000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 530,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 3000
+  },
+  {
+    "id": "s1_volumionaire",
+    "name": "Volumionaire",
+    "description": "Reach a cumulative transaction volume of $1,000,000.",
+    "icon": "💰",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 1000000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 540,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 4000
+  },
+  {
+    "id": "s1_conduit",
+    "name": "Conduit",
+    "description": "Achieve a cumulative cross-chain transaction volume of $100,000.",
+    "icon": "🔗",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 100000,
+        "isCrossChain": true
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 550,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 1500
+  },
+  {
+    "id": "s1_tri_force",
+    "name": "Tri-Force",
+    "description": "Maintain active supply positions on at least three different chains simultaneously for 7 consecutive days (min. total value $5,000).",
+    "icon": "🔱",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "multi_position_maintained",
+        "positionCount": 3,
+        "minUsdValuePerPosition": 5000,
+        "days": 7,
+        "positionType": "supply"
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 560,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 2000
+  },
+  {
+    "id": "s1_multichain_maestro",
+    "name": "Multichain Maestro",
+    "description": "Successfully repay a cross-chain loan using a different asset than the one originally borrowed (min. loan value $2,500).",
+    "icon": " maestro",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "cross_chain_repay_different_asset",
+        "minLoanValue": 2500
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 570,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 3000
+  },
+  {
+    "id": "s1_daily_operator",
+    "name": "Daily Operator",
+    "description": "Perform at least one on-chain transaction (supply, borrow, etc.) for 14 consecutive days.",
+    "icon": "📅",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "transaction_streak_at_least",
+        "days": 14
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 580,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 1500
+  },
+  {
+    "id": "s1_diamond_hands",
+    "name": "Diamond Hands",
+    "description": "Maintain any supply position (min. value $2,500) for 30 consecutive days.",
+    "icon": "💎",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "position_maintained_for_days",
+        "days": 30,
+        "positionType": "supply",
+        "minUsdValue": 2500
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 590,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 3000
+  },
+  {
+    "id": "s1_fixture_of_the_protocol",
+    "name": "Fixture of the Protocol",
+    "description": "Have an active supply or borrow (min. value $2,500) position on 60 separate days within the current season.",
+    "icon": "🟡",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "position_maintained_for_days",
+        "days": 60,
+        "positionType": "any",
+        "minUsdValue": 2500
+      }
+    ],
+    "unlockEmoji": "🟡",
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 600,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 3000
+  },
+  {
+    "id": "s1_looper",
+    "name": "Looper",
+    "description": "Within a 24-hour period: Supply an asset, borrow a different asset against it, and use the borrowed funds to acquire and supply more of the original asset, increasing your initial supply position by at least $10,000 in the process.",
+    "icon": "🔁",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "achievements_completed_at_least",
+        "count": 10000,
+        "pathId": "looping_path_placeholder"
+      }
+    ],
+    "unlockBorderColor": "#A9A9A9",
+    "unlockEmoji": "🔁",
+    "seasonIds": ["s1"],
+    "rarity": "legendary",
+    "sortOrder": 610,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 5000
+  },
+  {
+    "id": "s1_gold_yield_master",
+    "name": "Yield Master",
+    "description": "Achieve an effective APY of at least 15%.",
+    "icon": "⭐",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "effective_apy_at_least",
+        "value": 15
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 615,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 2500
+  },
+  {
+    "id": "s1_gold_earnings_champion",
+    "name": "Earnings Champion",
+    "description": "Accrue at least $5,000 in total lifetime earnings.",
+    "icon": "🏆",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "total_lifetime_earnings_at_least",
+        "amount": 10000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 616,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 2000
+  },
+  {
+    "id": "s1_gold_professional_earner",
+    "name": "Professional Earner",
+    "description": "Achieve a daily average earnings of at least $50.",
+    "icon": "💼",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "daily_average_earnings_at_least",
+        "amount": 50
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 617,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 3000
+  },
+  {
+    "id": "s1_golden_vanguard",
+    "name": "Golden Vanguard",
+    "description": "Finish at least 10 badges from the Gold tier.",
+    "icon": "🏆",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "achievements_completed_at_least",
+        "count": 10,
+        "tier": "gold"
+      }
+    ],
+    "unlockEmoji": "🏆",
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 620,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 3000
+  },
+  {
+    "id": "s1_gol_d_kid",
+    "name": "Gol D. Kid",
+    "description": "Finish all four paths in the Gold tier.",
+    "icon": "👑",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "achievements_completed_all",
+        "achievementIds": [
+          "s1_100k_volume",
+          "s1_quarter_million_club",
+          "s1_capital_commitment",
+          "s1_volumionaire",
+          "s1_conduit",
+          "s1_tri_force",
+          "s1_multichain_maestro",
+          "s1_daily_operator",
+          "s1_diamond_hands",
+          "s1_fixture_of_the_protocol",
+          "s1_looper"
+        ]
+      }
+    ],
+    "unlockBorderColor": "#FFD700",
+    "seasonIds": ["s1"],
+    "rarity": "legendary",
+    "sortOrder": 630,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 5000
+  },
+  {
+    "id": "s1_five_million_club",
+    "name": "Five Million Club",
+    "description": "Reach a cumulative transaction volume of $5,000,000.",
+    "icon": "💎",
+    "tier": "platinum",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 5000000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "uncommon",
+    "sortOrder": 640,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 5000
+  },
+  {
+    "id": "s1_protocol_pillar",
+    "name": "Protocol Pillar",
+    "description": "Maintain a total supply value of at least $100,000 for 30 consecutive days.",
+    "icon": "🏛️",
+    "tier": "platinum",
+    "criteria": [
+      {
+        "type": "position_maintained_for_days",
+        "days": 30,
+        "positionType": "supply",
+        "minUsdValue": 100000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 650,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 8000
+  },
+  {
+    "id": "s1_eight_figure_club",
+    "name": "Eight Figure Club",
+    "description": "Reach a cumulative transaction volume of $10,000,000.",
+    "icon": "💰",
+    "tier": "platinum",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 10000000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 660,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 12000
+  },
+  {
+    "id": "s1_omnichain_presence",
+    "name": "Omnichain Presence",
+    "description": "Have active supply positions of at least $300 on both Monad mainnet and BSC mainnet simultaneously for at least 72 hours.",
+    "icon": "🌐",
+    "tier": "platinum",
+    "criteria": [
+      {
+        "type": "multi_position_maintained",
+        "positionCount": 2,
+        "minUsdValuePerPosition": 300,
+        "days": 3,
+        "positionType": "supply",
+        "requiredChainIds": [56, 143]
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 670,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 8000
+  },
+  {
+    "id": "s1_superhighway",
+    "name": "Superhighway",
+    "description": "Achieve a cumulative cross-chain transaction volume of $250,000.",
+    "icon": "🛣️",
+    "tier": "platinum",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 250000,
+        "isCrossChain": true
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "uncommon",
+    "sortOrder": 680,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 6000
+  },
+  {
+    "id": "s1_the_round_trip",
+    "name": "Round Tripper",
+    "description": "In a single 48-hour period: Supply on Chain A, use that to borrow on Chain B, bridge the borrowed assets to Chain C, and then use assets from Chain C to repay the loan on Chain B.",
+    "icon": "🔁",
+    "tier": "platinum",
+    "criteria": [
+      {
+        "type": "complex_transaction_path",
+        "steps": [
+          "supply",
+          "borrow_from_supply",
+          "bridge_borrowed",
+          "repay_with_bridged"
+        ],
+        "timeframe_hours": 48
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "legendary",
+    "sortOrder": 690,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 12000
+  },
+  {
+    "id": "s1_active_citizen",
+    "name": "Active Citizen",
+    "description": "Perform at least one on-chain transaction (supply, borrow, etc.) for 30 consecutive days.",
+    "icon": "👨‍💼",
+    "tier": "platinum",
+    "criteria": [
+      {
+        "type": "transaction_streak_at_least",
+        "days": 30
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 700,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 8000
+  },
+  {
+    "id": "s1_for_the_people",
+    "name": "For the People",
+    "description": "Reach a cumulative transaction volume of $10,000,000. (Placeholder, as there's a duplicate description with the same points reward but different name).",
+    "icon": "🗣️",
+    "tier": "platinum",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 10000000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 710,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 15000
+  },
+  {
+    "id": "s1_platinum_centurion",
+    "name": "Platinum Centurion",
+    "description": "Finish at 5 badges from the Platinum tier.",
+    "icon": "⚔️",
+    "tier": "platinum",
+    "criteria": [
+      {
+        "type": "achievements_completed_at_least",
+        "count": 5,
+        "tier": "platinum"
+      }
+    ],
+    "unlockEmoji": "⚔️",
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 720,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 10000
+  },
+  {
+    "id": "s1_master_of_platinum",
+    "name": "Master of Platinum",
+    "description": "Finish all three paths in the Platinum tier.",
+    "icon": "🏆",
+    "tier": "platinum",
+    "criteria": [
+      {
+        "type": "achievements_completed_all",
+        "achievementIds": [
+          "s1_five_million_club",
+          "s1_protocol_pillar",
+          "s1_eight_figure_club",
+          "s1_omnichain_presence",
+          "s1_superhighway",
+          "s1_the_round_trip",
+          "s1_active_citizen",
+          "s1_for_the_people"
+        ]
+      }
+    ],
+    "unlockBorderColor": "#E5E4E2",
+    "seasonIds": ["s1"],
+    "rarity": "legendary",
+    "sortOrder": 730,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 20000
+  },
+  {
+    "id": "s1_citadel_of_capital",
+    "name": "Citadel of Capital",
+    "description": "Maintain a total supply value of over $500,000 for 30 consecutive days.",
+    "icon": "🏰",
+    "tier": "diamond",
+    "criteria": [
+      {
+        "type": "position_maintained_for_days",
+        "days": 30,
+        "positionType": "supply",
+        "minUsdValue": 500000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "rare",
+    "sortOrder": 740,
+    "allowLeaderboardDisplay": false,
+    "pointsReward": 15000
+  },
+  {
+    "id": "s1_twenty_five_million_club",
+    "name": "Twenty-Five Million Club",
+    "description": "Reach a cumulative transaction volume of $25,000,000.",
+    "icon": "💰",
+    "tier": "diamond",
+    "criteria": [
+      {
+        "type": "usd_volume_at_least",
+        "amount": 25000000
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 750,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 30000
+  },
+  {
+    "id": "s1_season_of_mastery",
+    "name": "A Season of Mastery",
+    "description": "Achieve all required conditions within the season: complete 'Twenty-Five Million Club', at least one other Diamond sub-tier, maintain an active supply position for all 90 days of the season.",
+    "icon": "👑",
+    "tier": "diamond",
+    "criteria": [
+      {
+        "type": "achievements_completed_all",
+        "achievementIds": [
+          "s1_twenty_five_million_club"
+        ]
+      },
+      {
+        "type": "achievements_completed_at_least",
+        "count": 1,
+        "subTier": "diamond_sub_tier_placeholder"
+      },
+      {
+        "type": "position_maintained_for_days",
+        "days": 90,
+        "positionType": "supply"
+      }
+    ],
+    "seasonIds": ["s1"],
+    "rarity": "legendary",
+    "sortOrder": 760,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 100000
+  },
+  {
+    "id": "s1_diamond_demigod",
+    "name": "Diamond Demi-God",
+    "description": "Finish at least two badges from the Diamond tier.",
+    "icon": "🌌",
+    "tier": "diamond",
+    "criteria": [
+      {
+        "type": "achievements_completed_at_least",
+        "count": 2,
+        "tier": "Diamond"
+      }
+    ],
+    "unlockEmoji": "🌌",
+    "seasonIds": ["s1"],
+    "rarity": "superrare",
+    "sortOrder": 770,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 25000
+  },
+  {
+    "id": "s1_master_of_diamond",
+    "name": "Master of Diamond",
+    "description": "Finish all four paths in the Diamond tier.",
+    "icon": "🌟",
+    "tier": "diamond",
+    "criteria": [
+      {
+        "type": "achievements_completed_all",
+        "achievementIds": [
+          "s1_citadel_of_capital",
+          "s1_twenty_five_million_club",
+          "s1_season_of_mastery",
+          "s1_diamond_demigod"
+        ]
+      }
+    ],
+    "unlockBorderColor": "#B9F2FF",
+    "seasonIds": ["s1"],
+    "rarity": "legendary",
+    "sortOrder": 780,
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 50000
+  },
+  {
+    "id": "test_effective_apy_badge",
+    "name": "Yield Master",
+    "description": "Achieve an effective APY of 20% or higher on your portfolio.",
+    "icon": "📈",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "effective_apy_at_least",
+        "value": 20
+      }
+    ],
+    "sortOrder": 800,
+    "rarity": "rare",
+    "seasonIds": ["s1"],
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 1000,
+    "unlockEmoji": "🚀",
+    "unlockBorderColor": "#10B981"
+  },
+  {
+    "id": "test_achievements_completed",
+    "name": "Achievement Hunter",
+    "description": "Earn 20 achievements of any tier.",
+    "icon": "🏆",
+    "tier": "silver",
+    "criteria": [
+      {
+        "type": "achievements_completed_at_least",
+        "count": 20
+      }
+    ],
+    "sortOrder": 810,
+    "rarity": "uncommon",
+    "seasonIds": ["s1"],
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 500,
+    "unlockEmoji": "🎯"
+  },
+  {
+    "id": "test_achievements_completed_gold",
+    "name": "Gold Collector",
+    "description": "Earn 3 gold-tier achievements.",
+    "icon": "🥇",
+    "tier": "gold",
+    "criteria": [
+      {
+        "type": "achievements_completed_at_least",
+        "count": 3,
+        "tier": "gold"
+      }
+    ],
+    "sortOrder": 815,
+    "rarity": "rare",
+    "seasonIds": ["s1"],
+    "allowLeaderboardDisplay": true,
+    "pointsReward": 750,
+    "unlockBorderColor": "#FFD700"
+  }
+] 

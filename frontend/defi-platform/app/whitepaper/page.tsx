@@ -1,12 +1,37 @@
+import type { Metadata } from "next"
 import Link from "next/link"
+import Image from "next/image"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ArrowRight, Download, FileText } from "lucide-react"
+import { ArrowRight, Download, ExternalLink, Trophy } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "Peridot Whitepaper | Cross-Chain DeFi Protocol Documentation",
+  description: "Read the Peridot Protocol whitepaper — covering protocol architecture, tokenomics, cross-chain mechanics, roadmap, and our hackathon-winning track record.",
+  alternates: { canonical: "/whitepaper" },
+  openGraph: {
+    title: "Peridot Whitepaper | DeFi Protocol Documentation",
+    description: "Technical and conceptual foundation of Peridot's cross-chain lending and borrowing protocol.",
+    url: "/whitepaper",
+  },
+}
+
+const hackathonBadges = [
+  { src: "/hackathonwins/Group 9554.webp", alt: "Wormhole Hackathon Award", title: "Wormhole", subtitle: "Sidetrack" },
+  { src: "/hackathonwins/Group 9557.webp", alt: "Stellar Kickstarter Award", title: "Stellar", subtitle: "Kickstarter" },
+  { src: "/hackathonwins/Group 9559.webp", alt: "Moveathon Award", title: "Moveathon", subtitle: "Winner" },
+  { src: "/hackathonwins/Group 9560.webp", alt: "The Graph side Award", title: "The Graph", subtitle: "Sidetrack" },
+]
+
+const textAwards = [
+  { title: "XDC Hackathon", subtitle: "2nd Place" },
+  { title: "XDC Sidetrack Foundation", subtitle: "1st Place" },
+  { title: "Soneium DeFi", subtitle: "1st Place" },
+]
 
 export default function Whitepaper() {
   return (
     <div className="flex flex-col min-h-screen">
-      {/* Hero Section */}
+      {/* Hero */}
       <section className="py-16 md:py-24 hero-gradient">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
@@ -16,13 +41,13 @@ export default function Whitepaper() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild size="lg" className="bg-primary text-background hover:bg-primary/90">
-                <Link href="#download">
+                <a href="/peridot-whitepaper.pdf" download>
                   <Download className="mr-2 h-4 w-4" />
                   Download PDF
-                </Link>
+                </a>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link href="#abstract">Read Online</Link>
+                <Link href="#abstract">Read Abstract</Link>
               </Button>
             </div>
           </div>
@@ -48,7 +73,7 @@ export default function Whitepaper() {
                 while maintaining security, efficiency, and decentralization.
               </p>
               <p className="text-text/80">
-                The protocol introduces cTokens as interest-bearing assets, implements algorithmic interest rate models
+                The protocol introduces pTokens as interest-bearing assets, implements algorithmic interest rate models
                 based on utilization rates, and establishes a robust liquidation mechanism to manage risk. Peridot's
                 unique contribution is its cross-chain architecture, which allows users to supply assets on one chain
                 and borrow on another without manually bridging assets.
@@ -58,222 +83,157 @@ export default function Whitepaper() {
         </div>
       </section>
 
-      {/* Table of Contents */}
+      {/* Protocol Overview */}
       <section className="py-16 bg-muted">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6">Table of Contents</h2>
-            <Card className="bg-card border-border/50">
-              <CardContent className="p-6">
-                <ol className="space-y-4 list-decimal list-inside">
-                  <li className="text-lg">
-                    <Link href="#introduction" className="hover:text-primary">
-                      Introduction
-                    </Link>
-                    <ul className="pl-6 mt-2 space-y-2 list-disc list-inside text-base text-text/70">
-                      <li>Background and Motivation</li>
-                      <li>Limitations of Existing Systems</li>
-                      <li>Peridot's Vision</li>
-                    </ul>
-                  </li>
-                  <li className="text-lg">
-                    <Link href="#protocol-overview" className="hover:text-primary">
-                      Protocol Overview
-                    </Link>
-                    <ul className="pl-6 mt-2 space-y-2 list-disc list-inside text-base text-text/70">
-                      <li>Key Components</li>
-                      <li>cToken Standard</li>
-                      <li>Cross-Chain Architecture</li>
-                    </ul>
-                  </li>
-                  <li className="text-lg">
-                    <Link href="#interest-rate-model" className="hover:text-primary">
-                      Interest Rate Model
-                    </Link>
-                    <ul className="pl-6 mt-2 space-y-2 list-disc list-inside text-base text-text/70">
-                      <li>Utilization-Based Rates</li>
-                      <li>Jump Rate Model</li>
-                      <li>Cross-Chain Rate Equilibrium</li>
-                    </ul>
-                  </li>
-                  <li className="text-lg">
-                    <Link href="#risk-management" className="hover:text-primary">
-                      Risk Management
-                    </Link>
-                    <ul className="pl-6 mt-2 space-y-2 list-disc list-inside text-base text-text/70">
-                      <li>Collateral Factors</li>
-                      <li>Liquidation Mechanism</li>
-                      <li>Price Oracle Design</li>
-                    </ul>
-                  </li>
-                  <li className="text-lg">
-                    <Link href="#cross-chain-implementation" className="hover:text-primary">
-                      Cross-Chain Implementation
-                    </Link>
-                    <ul className="pl-6 mt-2 space-y-2 list-disc list-inside text-base text-text/70">
-                      <li>Messaging Protocols</li>
-                      <li>Liquidity Management</li>
-                      <li>Security Considerations</li>
-                    </ul>
-                  </li>
-                  <li className="text-lg">
-                    <Link href="#governance" className="hover:text-primary">
-                      Governance
-                    </Link>
-                    <ul className="pl-6 mt-2 space-y-2 list-disc list-inside text-base text-text/70">
-                      <li>Token Economics</li>
-                      <li>Proposal Process</li>
-                      <li>Cross-Chain Governance</li>
-                    </ul>
-                  </li>
-                  <li className="text-lg">
-                    <Link href="#tokenomics" className="hover:text-primary">
-                      Tokenomics
-                    </Link>
-                    <ul className="pl-6 mt-2 space-y-2 list-disc list-inside text-base text-text/70">
-                      <li>Token Distribution</li>
-                      <li>Utility and Value Accrual</li>
-                      <li>Emissions Schedule</li>
-                    </ul>
-                  </li>
-                  <li className="text-lg">
-                    <Link href="#roadmap" className="hover:text-primary">
-                      Roadmap
-                    </Link>
-                  </li>
-                  <li className="text-lg">
-                    <Link href="#conclusion" className="hover:text-primary">
-                      Conclusion
-                    </Link>
-                  </li>
-                  <li className="text-lg">
-                    <Link href="#references" className="hover:text-primary">
-                      References
-                    </Link>
-                  </li>
-                </ol>
-              </CardContent>
-            </Card>
+            <h2 className="text-3xl font-bold mb-6">Protocol Overview</h2>
+            <div className="prose prose-invert max-w-none">
+              <p className="text-text/80 mb-4">
+                Peridot operates on a hub-and-spoke model. Hub chains (BSC, Monad) host the primary lending pools,
+                while spoke chains (Arbitrum, Base, Ethereum, Polygon, Avalanche) provide cross-chain access via
+                Axelar messaging on testnet and Biconomy for gasless execution on mainnet.
+              </p>
+              <p className="text-text/80 mb-4">
+                Users interact with a single interface regardless of which chain their assets reside on. Interest
+                rates are determined algorithmically based on each market's utilization rate: high demand raises
+                rates to attract supply; low demand lowers them to encourage borrowing.
+              </p>
+              <p className="text-text/80">
+                pTokens are the interest-bearing receipt tokens issued upon supply. They accrue value continuously
+                and are redeemable for the underlying asset plus earned interest at any time.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Introduction Section Preview */}
-      <section id="introduction" className="py-16 bg-background">
+      {/* Tokenomics */}
+      <section id="tokenomics" className="py-16 bg-background">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6">1. Introduction</h2>
-            <div className="prose prose-invert max-w-none">
-              <h3 className="text-xl font-semibold mb-4">1.1 Background and Motivation</h3>
-              <p className="text-text/80 mb-4">
-                The emergence of decentralized finance (DeFi) has revolutionized traditional financial services by
-                creating open, permissionless alternatives built on blockchain technology. Lending protocols, in
-                particular, have become a cornerstone of the DeFi ecosystem, enabling users to earn yield on their
-                assets and access liquidity without intermediaries.
-              </p>
-              <p className="text-text/80 mb-4">
-                However, as the blockchain landscape has evolved, it has become increasingly fragmented across multiple
-                networks, each with its own ecosystem of applications and assets. This fragmentation creates significant
-                inefficiencies for users, who must navigate complex bridging processes to move assets between chains and
-                manage separate positions across different protocols.
-              </p>
-              <p className="text-text/80 mb-4">
-                Peridot was conceived to address this fundamental challenge by creating a unified lending protocol
-                that operates seamlessly across multiple blockchain networks. By leveraging cross-chain messaging
-                protocols and innovative liquidity management techniques, Peridot enables users to interact with a
-                single protocol interface while accessing liquidity across the entire DeFi ecosystem.
-              </p>
-
-              <h3 className="text-xl font-semibold mb-4">1.2 Limitations of Existing Systems</h3>
-              <p className="text-text/80 mb-4">
-                Current DeFi lending platforms face several limitations that restrict their utility and efficiency:
-              </p>
-              <ul className="space-y-2 mb-4 text-text/80">
-                <li>
-                  <strong>Chain Isolation:</strong> Most lending protocols operate on a single blockchain, limiting
-                  users to the assets and liquidity available on that specific network.
-                </li>
-                <li>
-                  <strong>Capital Inefficiency:</strong> Users must fragment their capital across multiple chains and
-                  protocols, reducing overall capital efficiency and yield potential.
-                </li>
-                <li>
-                  <strong>Complex User Experience:</strong> Managing positions across different chains requires
-                  technical knowledge of bridging mechanisms and multiple wallet connections.
-                </li>
-                <li>
-                  <strong>Liquidity Fragmentation:</strong> Total liquidity is divided across numerous isolated
-                  protocols, leading to higher slippage and less efficient markets.
-                </li>
-                <li>
-                  <strong>Redundant Infrastructure:</strong> Each chain-specific protocol must independently implement
-                  and maintain similar functionality, leading to duplicated efforts and inconsistent security standards.
-                </li>
-              </ul>
-
-              <h3 className="text-xl font-semibold mb-4">1.3 Peridot's Vision</h3>
-              <p className="text-text/80 mb-4">
-                Peridot aims to create a unified, cross-chain lending ecosystem that addresses these limitations
-                through several key innovations:
-              </p>
-              <ul className="space-y-2 text-text/80">
-                <li>
-                  <strong>Seamless Cross-Chain Experience:</strong> Users can supply assets on one chain and borrow on
-                  another without manually bridging assets.
-                </li>
-                <li>
-                  <strong>Unified Liquidity Pools:</strong> Liquidity is aggregated across chains, creating deeper
-                  markets and more efficient interest rates.
-                </li>
-                <li>
-                  <strong>Chain-Agnostic Interface:</strong> A single user interface allows interaction with all
-                  supported chains through a consistent experience.
-                </li>
-                <li>
-                  <strong>Optimized Capital Efficiency:</strong> Users can leverage their entire portfolio as
-                  collateral, regardless of which chains their assets reside on.
-                </li>
-                <li>
-                  <strong>Decentralized Governance:</strong> Protocol parameters and upgrades are controlled by a
-                  cross-chain governance system that ensures all stakeholders have a voice.
-                </li>
-              </ul>
-            </div>
-
-            <div className="mt-8 text-center">
-              <Button asChild variant="outline">
-                <Link href="#protocol-overview">
-                  Continue to Protocol Overview
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
+            <h2 className="text-3xl font-bold mb-4">Tokenomics</h2>
+            <p className="text-text/70 mb-4">
+              Total supply: <span className="text-text/90 font-medium">1,000,000,000 $P</span>. 40% public sale, 10% liquidity provision, 50% permanently locked for staking. No VC allocation, no team token sell pressure.
+            </p>
+            <p className="text-text/70 mb-8">
+              100% of protocol revenue (interest spreads, liquidations, bridge & swap fees) is distributed to $P stakers, paid in stablecoins, not inflationary emissions. $P launches on Solana with cross-chain interoperability across BNB, Monad, Somnia, and Stellar.
+            </p>
+            <a
+              href="https://peridot-finance.gitbook.io/peridot-protocol/usdp-tokenomics"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-border/50 bg-card hover:border-primary/50 transition-colors text-sm font-medium"
+            >
+              <ExternalLink className="h-4 w-4 text-primary" />
+              Read full Tokenomics on GitBook
+            </a>
           </div>
         </div>
       </section>
 
-      {/* Download Section */}
-      <section id="download" className="py-16 bg-muted">
+      {/* Roadmap */}
+      <section id="roadmap" className="py-16 bg-muted">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-6">Download the Whitepaper</h2>
-            <p className="text-text/80 mb-8">
-              Get the complete technical whitepaper in PDF format for offline reading and reference.
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-3xl font-bold mb-4">Roadmap</h2>
+            <p className="text-text/70 mb-4">
+              Near-term milestones include LP Farm Boosted Markets, Season 2, Somnia Mainnet, Leveraged Margin Trading, Easy Mode for Web2 users, and a Stargate listing with cross-chain token bridge, all targeting Q1/Q2 2026.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="bg-primary text-background hover:bg-primary/90">
-                <FileText className="mr-2 h-4 w-4" />
-                English (1.2 MB)
-              </Button>
-              <Button size="lg" variant="outline">
-                <FileText className="mr-2 h-4 w-4" />
-                German (1.3 MB)
-              </Button>
-              <Button size="lg" variant="outline">
-                <FileText className="mr-2 h-4 w-4" />
-                Spanish (1.2 MB)
-              </Button>
+            <p className="text-text/70 mb-8">
+              Mid- to long-term: Solana, Stellar, and Avalanche mainnet launches (targeting $10M TVL), an open Agent API for external builders, Dual Investment products, a personalized AI agent, and a Fintech Money Market API for institutional integrations.
+            </p>
+            <a
+              href="https://roadmap.peridot.finance/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-3 rounded-lg border border-border/50 bg-card hover:border-primary/50 transition-colors text-sm font-medium"
+            >
+              <ExternalLink className="h-4 w-4 text-primary" />
+              View roadmap.peridot.finance
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* References — Hackathon wins + Partners */}
+      <section id="references" className="py-16 bg-background">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold mb-2">Recognition & Partners</h2>
+            <p className="text-text/70 mb-10">
+              Peridot has been recognized across multiple global hackathons and is backed by leading ecosystem partners.
+            </p>
+
+            {/* Hackathon wins */}
+            <h3 className="text-lg font-semibold mb-5 flex items-center gap-2">
+              <Trophy className="h-5 w-5 text-primary" />
+              Hackathon Wins
+            </h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {hackathonBadges.map((badge, i) => (
+                <div key={i} className="flex flex-col items-center p-4 rounded-xl border border-border/40 bg-card">
+                  <Image
+                    src={badge.src}
+                    alt={badge.alt}
+                    width={120}
+                    height={120}
+                    className="w-full h-auto max-h-[120px] object-contain mb-3"
+                  />
+                  <span className="font-semibold text-sm text-center">{badge.title}</span>
+                  <span className="text-xs text-text/60 text-center">{badge.subtitle}</span>
+                </div>
+              ))}
             </div>
+            <div className="flex flex-col gap-2 mb-12">
+              {textAwards.map((award, i) => (
+                <div key={i} className="flex items-center gap-4 p-4 rounded-xl border border-border/30 bg-card/50">
+                  <div className="flex items-center justify-center w-9 h-9 rounded-full bg-primary/10 text-primary flex-shrink-0">
+                    <Trophy className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="font-semibold">{award.title}</span>
+                    <span className="text-text/60 text-sm ml-2">{award.subtitle}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Partners */}
+            <h3 className="text-lg font-semibold mb-5">Ecosystem Partners</h3>
+            <p className="text-text/70 text-sm mb-4">
+              Working with leading protocols and infrastructure providers across chains.
+            </p>
+            <Link
+              href="/partner"
+              className="inline-flex items-center gap-2 text-primary hover:underline text-sm font-medium"
+            >
+              View all partners
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Bottom CTAs */}
+      <section className="py-16 bg-muted">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto flex flex-col sm:flex-row gap-4">
+            <Button asChild className="bg-primary text-background hover:bg-primary/90">
+              <Link href="/app">
+                Launch App
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/about">About the Team</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <a href="/peridot-whitepaper.pdf" download>
+                <Download className="mr-2 h-4 w-4" />
+                Download PDF
+              </a>
+            </Button>
           </div>
         </div>
       </section>

@@ -1,13 +1,4 @@
-import postgres from 'postgres'
-
-// Database connection
-const sql = postgres({
-  host: '127.0.0.1',
-  port: 5432,
-  database: 'nextjs_app',
-  username: 'nextjs_user',
-  password: 'ylW1JpChPB0+2RWY1kxaNaFG5TmJvLxi6xho6kFqU8M=',
-})
+import { sql } from '@/lib/database'
 
 export async function POST(request) {
   try {

@@ -1,0 +1,298 @@
+/* Leaderboard Animations - Pure CSS replacements for Framer Motion */
+
+/* Leaderboard list items staggered animation */
+.leaderboard-list {
+  /* Container for staggered animations */
+}
+
+.leaderboard-item {
+  opacity: 0;
+  transform: translateX(-10px);
+  animation: leaderboardItemSlideIn 0.4s ease-out forwards;
+}
+
+/* Staggered delays for list items */
+.leaderboard-item:nth-child(1) { animation-delay: 0ms; }
+.leaderboard-item:nth-child(2) { animation-delay: 40ms; }
+.leaderboard-item:nth-child(3) { animation-delay: 80ms; }
+.leaderboard-item:nth-child(4) { animation-delay: 120ms; }
+.leaderboard-item:nth-child(5) { animation-delay: 160ms; }
+.leaderboard-item:nth-child(6) { animation-delay: 200ms; }
+.leaderboard-item:nth-child(7) { animation-delay: 240ms; }
+.leaderboard-item:nth-child(8) { animation-delay: 280ms; }
+.leaderboard-item:nth-child(9) { animation-delay: 320ms; }
+.leaderboard-item:nth-child(10) { animation-delay: 360ms; }
+.leaderboard-item:nth-child(11) { animation-delay: 400ms; }
+.leaderboard-item:nth-child(12) { animation-delay: 440ms; }
+.leaderboard-item:nth-child(13) { animation-delay: 480ms; }
+.leaderboard-item:nth-child(14) { animation-delay: 520ms; }
+.leaderboard-item:nth-child(15) { animation-delay: 560ms; }
+.leaderboard-item:nth-child(16) { animation-delay: 600ms; }
+.leaderboard-item:nth-child(17) { animation-delay: 640ms; }
+.leaderboard-item:nth-child(18) { animation-delay: 680ms; }
+.leaderboard-item:nth-child(19) { animation-delay: 720ms; }
+.leaderboard-item:nth-child(20) { animation-delay: 760ms; }
+
+@keyframes leaderboardItemSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Floating background blobs */
+.floating-blob {
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  will-change: transform, opacity;
+}
+
+.floating-blob--indigo {
+  top: -80px;
+  right: -64px;
+  width: 240px;
+  height: 240px;
+  background: rgba(99, 102, 241, 0.2);
+  filter: blur(48px);
+  animation: floatingBlobIndigo 8s ease-in-out infinite;
+}
+
+.floating-blob--pink {
+  bottom: -40px;
+  left: -40px;
+  width: 256px;
+  height: 256px;
+  background: rgba(236, 72, 153, 0.2);
+  filter: blur(48px);
+  animation: floatingBlobPink 6s ease-in-out infinite;
+}
+
+@keyframes floatingBlobIndigo {
+  0%, 100% {
+    transform: scale(0.9) translateY(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1) translateY(-20px);
+    opacity: 0.8;
+  }
+}
+
+@keyframes floatingBlobPink {
+  0%, 100% {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(0) scale(1.05);
+    opacity: 0.7;
+  }
+}
+
+/* Stats cards animation */
+.stats-card {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: statsCardSlideIn 0.3s ease-out forwards;
+}
+
+.stats-card:nth-child(1) { animation-delay: 0ms; }
+.stats-card:nth-child(2) { animation-delay: 50ms; }
+.stats-card:nth-child(3) { animation-delay: 100ms; }
+.stats-card:nth-child(4) { animation-delay: 150ms; }
+
+@keyframes statsCardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* CTA card animation */
+.cta-card {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: ctaCardSlideIn 0.4s ease-out 0.2s forwards;
+}
+
+@keyframes ctaCardSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .leaderboard-item,
+  .stats-card,
+  .cta-card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  
+  .floating-blob {
+    animation: none;
+    opacity: 0.3;
+  }
+}
+
+/* Elegant Skeleton Animations - Subtle shimmer effects */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.1) 0%, 
+    rgba(255, 255, 255, 0.2) 50%, 
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonShimmer 2.5s ease-in-out infinite;
+}
+
+.skeleton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.15) 50%, 
+    transparent 100%
+  );
+  animation: skeletonWave 2.5s ease-in-out infinite;
+}
+
+/* Dark mode skeleton */
+:global(html.dark) .skeleton {
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0.03) 0%, 
+    rgba(255, 255, 255, 0.08) 50%, 
+    rgba(255, 255, 255, 0.03) 100%
+  );
+}
+
+:global(html.dark) .skeleton::before {
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.06) 50%, 
+    transparent 100%
+  );
+}
+
+@keyframes skeletonShimmer {
+  0%, 100% {
+    background-position: -200% 0;
+  }
+  50% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes skeletonWave {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* Skeleton variants for different elements */
+.skeleton-card {
+  @apply skeleton;
+  border-radius: 1rem;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+:global(html.dark) .skeleton-card {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.skeleton-text {
+  @apply skeleton;
+  border-radius: 0.375rem;
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+:global(html.dark) .skeleton-text {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.skeleton-avatar {
+  @apply skeleton;
+  border-radius: 50%;
+  background-color: rgba(148, 163, 184, 0.3);
+}
+
+:global(html.dark) .skeleton-avatar {
+  background-color: rgba(51, 65, 85, 0.4);
+}
+
+.skeleton-badge {
+  @apply skeleton;
+  border-radius: 0.75rem;
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+:global(html.dark) .skeleton-badge {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Staggered skeleton animations for lists */
+.skeleton-item:nth-child(1) { animation-delay: 0ms; }
+.skeleton-item:nth-child(2) { animation-delay: 100ms; }
+.skeleton-item:nth-child(3) { animation-delay: 200ms; }
+.skeleton-item:nth-child(4) { animation-delay: 300ms; }
+.skeleton-item:nth-child(5) { animation-delay: 400ms; }
+.skeleton-item:nth-child(6) { animation-delay: 500ms; }
+
+/* Reduced motion support for skeletons */
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .skeleton::before {
+    animation: none;
+  }
+  
+  .skeleton {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  :global(html.dark) .skeleton {
+    background: rgba(255, 255, 255, 0.03);
+  }
+}
+
+/* Performance optimizations */
+.leaderboard-item,
+.stats-card,
+.cta-card,
+.skeleton {
+  backface-visibility: hidden;
+}
+
+/* Floating blobs need 3D context for smooth GPU compositing */
+.floating-blob {
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+}

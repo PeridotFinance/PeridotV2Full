@@ -50,14 +50,20 @@ export default function Footer() {
                   Markets
                 </Link>
               </li>
-              <li>
-                <Link href="/governance" className="text-sm text-text/70 hover:text-primary">
-                  Governance
-                </Link>
-              </li>
+
               <li>
                 <Link href="/analytics" className="text-sm text-text/70 hover:text-primary">
                   Analytics
+                </Link>
+              </li>
+              <li>
+                <Link href="/agents" className="text-sm text-text/70 hover:text-primary">
+                  AI Agents / MCP
+                </Link>
+              </li>
+              <li>
+                <Link href="/solana-dashboard" className="text-sm text-text/70 hover:text-primary">
+                  Peridot Dashboard
                 </Link>
               </li>
             </ul>
@@ -66,10 +72,25 @@ export default function Footer() {
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Resources</h3>
             <ul className="mt-4 space-y-2">
+            <li>
+                <a
+                  href="https://peridot-finance.gitbook.io/peridot-protocol"
+                  className="text-text/70 hover:text-primary transition-colors"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Documentation1
+                </a>
+              </li>
               <li>
-                <Link href="/docs" className="text-sm text-text/70 hover:text-primary">
-                  Documentation
-                </Link>
+                <a
+                  href="https://roadmap.peridot.finance/"
+                  className="text-sm text-text/70 hover:text-primary"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Roadmap
+                </a>
               </li>
               <li>
                 <Link href="/whitepaper" className="text-sm text-text/70 hover:text-primary">
@@ -84,6 +105,22 @@ export default function Footer() {
               <li>
                 <Link href="/security" className="text-sm text-text/70 hover:text-primary">
                   Security
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-primary">Legal</h3>
+            <ul className="mt-4 space-y-2">
+              <li>
+                <Link href="/privacy" className="text-sm text-text/70 hover:text-primary">
+                  Privacy & Cookies
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="text-sm text-text/70 hover:text-primary">
+                  Terms & Conditions
                 </Link>
               </li>
             </ul>
@@ -118,7 +155,7 @@ export default function Footer() {
 
         <div className="mt-12 border-t border-border/40 pt-8">
           <p className="text-center text-xs text-text/60">
-            &copy; {new Date().getFullYear()} CrossLend. All rights reserved.
+            &copy; {new Date().getFullYear()} Peridot Finance. All rights reserved.
           </p>
 
         </div>

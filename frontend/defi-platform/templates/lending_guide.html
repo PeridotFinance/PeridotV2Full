@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protocol Navigator Guide</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for the Cyber-Brutalist aesthetic */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Space+Mono:wght==400;700&display=swap');
+
+        :root {
+            --peridot-green: #10B981; /* Emerald-500 */
+            --electric-blue: #3B82F6; /* Blue-500 */
+            --danger-red: #EF4444; /* Red-500 */
+            --dark-bg: #111827; /* Gray-900 */
+            --text-color: #F9FAFB; /* Gray-50 */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            overflow: hidden; /* Prevent body scroll */
+        }
+
+        /* Canvas container styles */
+        #guide-container {
+            height: calc(100vh - 1rem); /* Almost full height */
+            max-width: 1200px;
+            margin: 0.5rem auto; /* Small margin for framing */
+            position: relative;
+            background-color: #0d121c; /* Slightly darker than body for depth */
+            border: 1px rgba(255, 255, 255, 0.1) solid;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        #guide-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none; /* Crucial for better touch dragging */
+        }
+
+        .cyber-text-mono {
+            font-family: 'Space Mono', monospace;
+            text-shadow: 0 0 5px var(--peridot-green);
+        }
+
+        .neon-glow-green {
+            box-shadow: 0 0 8px var(--peridot-green), 0 0 15px rgba(16, 185, 129, 0.5);
+        }
+        
+        /* Custom Modal for interaction messages */
+        .message-modal {
+            background-color: rgba(17, 24, 39, 0.85);
+            backdrop-filter: blur(5px);
+            border: 2px solid var(--electric-blue);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 0 15px var(--electric-blue);
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Tooltip Specific Styling */
+        #tooltip-box {
+            position: absolute;
+            background-color: rgba(17, 24, 39, 0.95);
+            border: 1px solid var(--peridot-green);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+            max-width: 250px;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            pointer-events: none;
+            font-size: 0.875rem;
+            line-height: 1.3;
+        }
+        
+        .tooltip-trigger {
+            cursor: help;
+            border-bottom: 1px dotted rgba(255, 255, 255, 0.5);
+            transition: border-bottom 0.2s;
+        }
+        .tooltip-trigger:hover {
+            border-bottom: 1px solid var(--peridot-green);
+        }
+
+        /* Initial Greeting Modal Styling */
+        #initial-greeting-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(13, 18, 28, 0.95); /* Dark background with slight transparency */
+            z-index: 900; /* Below tooltips, above canvas */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .greeting-content {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+            border: 2px solid var(--peridot-green);
+            border-radius: 1rem;
+            box-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
+            background-color: rgba(17, 24, 39, 0.9);
+        }
+    </style>
+</head>
+<body>
+    <div id="guide-container" class="mt-4">
+        <!-- Canvas for high-performance interactive visualization -->
+        <canvas id="guide-canvas"></canvas>
+
+        <!-- Initial Greeting Modal -->
+        <div id="initial-greeting-modal">
+            <div class="greeting-content">
+                <h1 class="text-3xl md:text-5xl font-extrabold cyber-text-mono text-emerald-400 mb-6">
+                    PROTOCOL GUIDE
+                </h1>
+                <p class="text-xl mb-4 text-white font-bold">
+                    Welcome to Peridot. Understand the core of lending in 90 seconds.
+                </p>
+                <div class="flex flex-col space-y-3 mt-4 text-left mx-auto max-w-sm">
+                    <!-- Supply Block -->
+                    <div class="border-l-4 border-emerald-500 pl-4 py-2 bg-gray-800/50 rounded">
+                        <strong class="text-emerald-300 text-lg">SUPPLY:</strong>
+                        <p class="text-sm text-gray-300">Earn <strong class="text-emerald-300">Passive Yield (APY)</strong>.</p>
+                    </div>
+                    <!-- Borrow Block -->
+                    <div class="border-l-4 border-blue-500 pl-4 py-2 bg-gray-800/50 rounded">
+                        <strong class="text-blue-300 text-lg">BORROW:</strong>
+                        <p class="text-sm text-gray-300">Unlock <strong class="text-blue-300">Strategic Leverage</strong>.</p>
+                    </div>
+                </div>
+                
+                <p class="text-base text-gray-400 mt-8 mb-8">
+                    This interactive guide will teach you the two skills above.
+                </p>
+
+                <button id="start-button" 
+                        class="px-8 py-4 bg-emerald-500 text-gray-900 font-bold text-lg rounded-xl transition-all transform hover:scale-105 neon-glow-green shadow-xl cursor-pointer"
+                        onclick="startGuide()">
+                    START GUIDE &rarr;
+                </button>
+            </div>
+        </div>
+
+        <!-- UI Overlay for Instructions and Next Button -->
+        <div id="overlay-ui" class="absolute inset-0 p-6 flex flex-col justify-between pointer-events-none">
+            
+            <!-- Top Instructions -->
+            <div id="instruction-box" class="message-modal max-w-sm ml-4 mt-4 pointer-events-auto">
+                <p id="instruction-text" class="text-sm md:text-base"></p>
+            </div>
+
+            <!-- Tooltip Box (Hidden by default) -->
+            <div id="tooltip-box" class="pointer-events-none"></div>
+
+            <!-- Bottom Navigation -->
+            <div class="flex justify-end pointer-events-auto">
+                <button id="next-button" 
+                        class="px-6 py-3 bg-emerald-500 text-gray-900 font-bold rounded-lg transition-all transform hover:scale-105 neon-glow-green shadow-lg cursor-pointer opacity-0"
+                        onclick="goToNextStage()">
+                    NEXT &rarr;
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Constants for colors and state management
+        const COLORS = {
+            VAULT_IDLE: 'rgba(59, 130, 246, 0.2)',  // Electric Blue (Transparent)
+            VAULT_ACTIVE: 'rgba(16, 185, 129, 0.4)', // Peridot Green (Transparent)
+            VAULT_BORDER_IDLE: '#3B82F6',         // Electric Blue
+            VAULT_BORDER_ACTIVE: '#10B981',       // Peridot Green
+            DANGER_RED: '#EF4444',                // Red for Borrow Cost
+            TOKEN_USDC: '#10B981',                // Peridot Green
+            TOKEN_ETH: '#A78BFA',                 // Purple/Violet for Borrowed Asset
+            TOKEN_DRAGGING: '#3B82F6',            // Electric Blue
+            TEXT: '#F9FAFB',
+            GRID: 'rgba(249, 250, 251, 0.05)',
+            ACHIEVEMENT_COLOR: '#FBBF24', // Amber/Gold for the badge
+        };
+
+        // State Machine for the Guide
+        const STATES = {
+            INITIAL_GREETING: 'INITIAL_GREETING', // New initial state
+            INTRO: 'INTRO',
+            DRAGGING: 'DRAGGING',
+            SUPPLIED: 'SUPPLIED',
+            BORROW_INTRO: 'BORROW_INTRO',
+            BORROWING: 'BORROWING',
+            BORROWED: 'BORROWED',
+            COMPLETED: 'COMPLETED',
+        };
+
+        let currentState = STATES.INITIAL_GREETING; // Start in the new state
+
+        // Canvas Setup
+        const canvas = document.getElementById('guide-canvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('guide-container');
+
+        // UI Elements
+        const initialGreetingModal = document.getElementById('initial-greeting-modal');
+        const instructionBox = document.getElementById('instruction-box');
+        const instructionText = document.getElementById('instruction-text');
+        const nextButton = document.getElementById('next-button');
+        const tooltipBox = document.getElementById('tooltip-box');
+
+        // Animation and Drawing Variables
+        let animFrameId;
+        let tokenUSDC; 
+        let tokenETH;  
+        let vault;
+        let borrowArea; 
+        let isDragging = false;
+        let mouseX = 0;
+        let mouseY = 0;
+        let frameCount = 0;
+        let hoverableElements = []; // Stores regions for tooltips in the current state
+        let isHtmlTooltipActive = false; // Flag to prevent canvas loop from hiding HTML tooltips
+
+        // Asset Configuration
+        const TOKEN_SIZE = 25;
+        const VAULT_WIDTH = 200;
+        const VAULT_HEIGHT = 150;
+        const WALLET_WIDTH = 140;
+        const WALLET_HEIGHT = 100;
+        const PARTICLE_COUNT = 15;
+        let particles = [];
+        let nexusOrbitals = []; // Array for particles in the Nexus visualization
+
+        // --- Tooltip Definitions ---
+        const TOOLTIPS = {
+            'SUPPLY_TITLE': "Depositing assets into the protocol vault provides liquidity for borrowers and is the source of your passive APY earnings.",
+            'BORROW_TITLE': "Accessing a collateralized loan. This allows you to withdraw capital for external or leveraged strategies.",
+            'TOKEN_USDC_DRAG': "This token represents your liquid capital. Dragging it initiates the collateral process and activates yield generation.",
+            'TOKEN_ETH_DRAG': "This represents the capital you are borrowing. You receive it in your wallet to use immediately.",
+            'APY_EARNINGS': "Annual Percentage Yield. This is the rate of return you earn continuously, paid out from borrower interest payments.",
+            'LOAN_COST': "The variable interest rate (APY) paid by you, the borrower, for accessing the protocol's liquidity.",
+            'YIELD_GENERATION': "Your supplied collateral is actively earning passive income, securing the protocol, and contributing to the global APY rate.",
+            'LEVERAGE_STRATEGY': "Accessing borrowed funds allows for advanced trading strategies, arbitrage, and magnification of potential returns.",
+        };
+        // --- End Tooltip Definitions ---
+
+        // --- Particle System for Drag Trail ---
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 1.5; // Small random horizontal velocity
+                this.vy = (Math.random() - 0.5) * 1.5; // Small random vertical velocity
+                this.alpha = 1;
+                this.color = color;
+                this.size = Math.random() * 3 + 1;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.alpha -= 0.03; // Fade out quickly
+            }
+
+            draw(ctx) {
+                ctx.globalAlpha = Math.max(0, this.alpha);
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1; 
+            }
+        }
+
+        // --- Core Objects Setup ---
+
+        function setupObjects() {
+            // USDC Token (Collateral)
+            const usdcX = canvas.width * 0.2;
+            const usdcY = canvas.height * 0.4;
+
+            tokenUSDC = {
+                x: usdcX,
+                y: usdcY,
+                targetX: usdcX,
+                targetY: usdcY,
+                size: TOKEN_SIZE,
+                color: COLORS.TOKEN_USDC,
+                label: 'USDC',
+                isSupplied: (currentState !== STATES.INTRO && currentState !== STATES.DRAGGING),
+                isCollateral: (currentState !== STATES.INTRO && currentState !== STATES.DRAGGING),
+            };
+
+            // Protocol Vault
+            vault = {
+                x: canvas.width * 0.65,
+                y: canvas.height * 0.35,
+                width: VAULT_WIDTH,
+                height: VAULT_HEIGHT,
+                color: COLORS.VAULT_IDLE,
+                borderColor: COLORS.VAULT_BORDER_IDLE,
+                label: 'Protocol Vault',
+                isTarget: false,
+                fillLevel: currentState === STATES.INTRO ? 0 : 0.8, // Instant fill for stage 2
+                supplyApy: currentState === STATES.INTRO ? 0 : 4.25,
+                borrowApy: currentState === STATES.BORROWED || currentState === STATES.COMPLETED ? -5.5 : 0,
+            };
+
+            // ETH Token (Borrowed Asset) - Repositioned to center-bottom (Outflow)
+            const ethX = canvas.width / 2; 
+            const ethY = canvas.height * 0.75;
+
+            tokenETH = {
+                x: ethX,
+                y: ethY,
+                targetX: ethX,
+                targetY: ethY,
+                size: TOKEN_SIZE,
+                color: COLORS.TOKEN_ETH,
+                label: 'ETH',
+                isBorrowed: (currentState === STATES.BORROWED || currentState === STATES.COMPLETED),
+            };
+
+            // Borrow Target Area (same as initial Wallet area for visual consistency)
+            borrowArea = {
+                x: tokenUSDC.targetX - WALLET_WIDTH / 2,
+                y: tokenUSDC.targetY - WALLET_HEIGHT / 2,
+                w: WALLET_WIDTH,
+                h: WALLET_HEIGHT,
+                label: 'Your Wallet',
+            };
+            
+            // Setup Orbitals for Nexus (only run once)
+            if (nexusOrbitals.length === 0) {
+                for(let i = 0; i < 3; i++) {
+                    nexusOrbitals.push({
+                        angle: Math.random() * Math.PI * 2,
+                        speed: 0.02 + Math.random() * 0.01,
+                        color: COLORS.VAULT_BORDER_ACTIVE,
+                        radius: Math.min(canvas.width, canvas.height) * (0.07 + i * 0.02)
+                    });
+                }
+            }
+        }
+
+        // --- Utility Drawing Functions ---
+
+        function drawGrid(ctx, cellSize = 50) {
+            ctx.strokeStyle = COLORS.GRID;
+            ctx.lineWidth = 1;
+
+            // Draw grid lines
+            for (let x = 0; x < canvas.width; x += cellSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += cellSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawWalletContainer(ctx, x, y, w, h, label, isTargeted) {
+            // Draw a cyber-style wireframe box (with corner accents)
+            const accentSize = 15;
+            const accentWeight = 3;
+            const baseStroke = 1;
+            const pulse = isTargeted ? (Math.sin(frameCount * 0.1) * 0.5 + 1.5) : 0;
+            
+            ctx.strokeStyle = isTargeted ? COLORS.VAULT_BORDER_IDLE : COLORS.TEXT;
+            ctx.lineWidth = baseStroke;
+
+            if (isTargeted) {
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = COLORS.VAULT_BORDER_IDLE;
+            }
+            
+            // 1. Draw thin perimeter line
+            ctx.strokeRect(x, y, w, h);
+            
+            // 2. Draw Corner Accents
+            ctx.lineWidth = accentWeight + pulse;
+            
+            // Top Left
+            ctx.beginPath();
+            ctx.moveTo(x, y + accentSize);
+            ctx.lineTo(x, y);
+            ctx.lineTo(x + accentSize, y);
+            ctx.stroke();
+            
+            // Top Right
+            ctx.beginPath();
+            ctx.moveTo(x + w, y + accentSize);
+            ctx.lineTo(x + w, y);
+            ctx.lineTo(x + w - accentSize, y);
+            ctx.stroke();
+
+            // Bottom Left
+            ctx.beginPath();
+            ctx.moveTo(x, y + h - accentSize);
+            ctx.lineTo(x, y + h);
+            ctx.lineTo(x + accentSize, y + h);
+            ctx.stroke();
+
+            // Bottom Right
+            ctx.beginPath();
+            ctx.moveTo(x + w, y + h - accentSize);
+            ctx.lineTo(x + w, y + h);
+            ctx.lineTo(x + w - accentSize, y + h);
+            ctx.stroke();
+            
+            ctx.shadowBlur = 0; // Reset shadow
+
+            // Draw Label
+            ctx.fillStyle = COLORS.TEXT;
+            ctx.font = '14px Inter';
+            ctx.textAlign = 'center';
+            ctx.fillText(label, x + w / 2, y - 15);
+        }
+
+        function drawVault(ctx, v) {
+            const vaultXEnd = v.x + v.width;
+            const vaultYEnd = v.y + v.height;
+            const isFilled = v.fillLevel > 0.1;
+            
+            // Determine border style based on state
+            ctx.strokeStyle = isFilled ? COLORS.VAULT_BORDER_ACTIVE : v.borderColor;
+            
+            let lineWidth = 1;
+            // Highlight for supply target during drag (Green Target)
+            if ((currentState === STATES.INTRO || currentState === STATES.DRAGGING) && v.isTarget) {
+                 const pulse = Math.sin(frameCount * 0.1) * 0.5 + 2;
+                 lineWidth = pulse; 
+                 ctx.shadowBlur = 20;
+                 ctx.shadowColor = COLORS.VAULT_BORDER_ACTIVE;
+            } else if (isFilled) {
+                lineWidth = 3; 
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = COLORS.VAULT_BORDER_ACTIVE;
+            }
+
+            ctx.lineWidth = lineWidth;
+
+            // 1. Draw Outer Wireframe (Border)
+            ctx.strokeRect(v.x, v.y, v.width, v.height);
+            
+            // 2. Draw Internal Segmentation/Data Channels
+            const segmentColor = isFilled ? 'rgba(255, 255, 255, 0.4)' : 'rgba(255, 255, 255, 0.15)';
+            ctx.strokeStyle = segmentColor;
+            ctx.lineWidth = 1;
+            ctx.shadowBlur = 0;
+
+            // Horizontal Segments
+            ctx.beginPath();
+            ctx.moveTo(v.x, v.y + v.height / 3);
+            ctx.lineTo(v.x + v.width, v.y + v.height / 3);
+            ctx.moveTo(v.x, v.y + v.height * 2 / 3);
+            ctx.lineTo(v.x + v.width, v.y + v.height * 2 / 3);
+            ctx.stroke();
+            
+            // Vertical Segment (Center)
+            ctx.beginPath();
+            ctx.moveTo(v.x + v.width / 2, v.y);
+            ctx.lineTo(v.x + v.width / 2, v.y + v.height);
+            ctx.stroke();
+
+
+            // 3. Draw Fill (Liquidity)
+            if (v.fillLevel > 0) {
+                // If supplied, the fill color is active green, and it has an inner glow.
+                ctx.fillStyle = isFilled ? COLORS.VAULT_ACTIVE : v.color;
+                ctx.globalAlpha = 0.8;
+                
+                // Add subtle inner glow to the liquidity pool
+                if (isFilled) {
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = COLORS.VAULT_BORDER_ACTIVE;
+                }
+
+                ctx.fillRect(v.x, v.y + v.height - (v.height * v.fillLevel), v.width, v.height * v.fillLevel);
+                
+                ctx.shadowBlur = 0; // Reset shadow
+                ctx.globalAlpha = 1.0;
+            }
+
+            // 4. Draw Label
+            ctx.fillStyle = COLORS.TEXT;
+            ctx.font = '16px "Space Mono"';
+            ctx.textAlign = 'center';
+            ctx.fillText(v.label, v.x + v.width / 2, v.y - 15);
+
+            // 5. Draw APY Status (Post-Supply and Borrow)
+            const apyTextY = v.y + v.height + 65;
+            const costTextY = v.y + v.height + 125;
+
+            if (v.supplyApy > 0) {
+                // Supply APY (Peridot Green)
+                ctx.fillStyle = COLORS.VAULT_BORDER_ACTIVE;
+                ctx.font = '24px "Space Mono"';
+                ctx.fillText(`+${v.supplyApy.toFixed(2)}% APY`, v.x + v.width / 2, v.y + v.height + 40);
+                ctx.font = '14px Inter';
+                ctx.fillText('SUPPLY EARNINGS', v.x + v.width / 2, apyTextY);
+                
+                // Add region for APY tooltip
+                if (currentState === STATES.SUPPLIED || currentState === STATES.BORROW_INTRO || currentState === STATES.BORROWING || currentState === STATES.BORROWED) {
+                    hoverableElements.push({
+                        id: 'APY_EARNINGS',
+                        x: v.x + v.width / 2 - 80, y: apyTextY - 15, w: 160, h: 25, 
+                        isText: true 
+                    });
+                }
+            }
+
+            if (v.borrowApy < 0) {
+                // Borrow Cost (Strategic Cost - using Blue for neutral/strategic)
+                ctx.fillStyle = COLORS.VAULT_BORDER_IDLE; 
+                ctx.font = '24px "Space Mono"';
+                ctx.fillText(`${v.borrowApy.toFixed(2)}% COST`, v.x + v.width / 2, v.y + v.height + 100);
+                ctx.font = '14px Inter';
+                ctx.fillText('STRATEGIC LOAN COST', v.x + v.width / 2, costTextY);
+
+                 // Add region for COST tooltip
+                 if (currentState === STATES.BORROWED) {
+                    hoverableElements.push({
+                        id: 'LOAN_COST',
+                        x: v.x + v.width / 2 - 80, y: costTextY - 15, w: 160, h: 25, 
+                        isText: true 
+                    });
+                }
+            }
+        }
+
+        function drawToken(ctx, t) {
+            // Draw the token circle/sphere
+            ctx.beginPath();
+            
+            let wobbleX = 0;
+            let wobbleY = 0;
+            
+            const isDraggableToken = 
+                (t.label === 'USDC' && currentState === STATES.INTRO) ||
+                (t.label === 'ETH' && currentState === STATES.BORROW_INTRO);
+
+            if (!isDragging && isDraggableToken) {
+                // Continuous subtle wiggle for draggability cue
+                wobbleX = Math.sin(frameCount * 0.1) * 3;
+                wobbleY = Math.cos(frameCount * 0.08) * 3;
+            } else {
+                // Subtle token wobble/rotation for dynamism when not interactive
+                wobbleX = Math.sin(frameCount * 0.05) * 2; 
+            }
+
+            // Adjust position if USDC is collateral (lock it slightly in the vault center)
+            if (t.isCollateral && !isDragging) {
+                // Position USDC exactly in the vault center
+                t.x = vault.x + vault.width / 2;
+                t.y = vault.y + vault.height / 2;
+                
+                // Add a small inner glow to show it's "locked"
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = COLORS.VAULT_BORDER_ACTIVE;
+            } else {
+                 ctx.shadowBlur = isDragging ? 20 : 5;
+                 ctx.shadowColor = t.color;
+            }
+
+            ctx.arc(t.x + wobbleX, t.y + wobbleY, t.size, 0, Math.PI * 2);
+
+            // Create a subtle glow effect 
+            ctx.fillStyle = t.color;
+            ctx.fill();
+
+            // Reset shadow
+            ctx.shadowBlur = 0;
+
+            // Draw the Label inside
+            ctx.fillStyle = COLORS.DARK_BG;
+            ctx.font = 'bold 12px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(t.label, t.x + wobbleX, t.y + wobbleY);
+
+            // If USDC is collateral, label it
+            if (t.isCollateral) {
+                ctx.fillStyle = COLORS.TEXT;
+                ctx.font = '14px Inter';
+                ctx.fillText('COLLATERAL', t.x, t.y + t.size + 15);
+            }
+
+            // --- Draw DRAG ME hint only for the currently draggable token ---
+            if (!isDragging && isDraggableToken) {
+                ctx.fillStyle = COLORS.TEXT;
+                ctx.font = 'bold 12px "Space Mono"';
+                ctx.fillText('DRAG ME', t.x, t.y + t.size + 28);
+                
+                // Add region for Token tooltip
+                const tooltipId = t.label === 'USDC' ? 'TOKEN_USDC_DRAG' : 'TOKEN_ETH_DRAG';
+                hoverableElements.push({
+                    id: tooltipId,
+                    x: t.x - t.size, y: t.y - t.size, w: t.size * 2, h: t.size * 2,
+                    isToken: true
+                });
+            }
+        }
+
+        function drawAchievementBadge(ctx, x, y, size) {
+            // Draws a stylized, glowing diamond/gem (Peridot)
+            
+            ctx.save();
+            ctx.translate(x, y);
+
+            ctx.fillStyle = COLORS.ACHIEVEMENT_COLOR;
+            ctx.strokeStyle = COLORS.TEXT;
+            ctx.lineWidth = 2;
+            
+            // Outer glow
+            ctx.shadowBlur = 30;
+            ctx.shadowColor = COLORS.ACHIEVEMENT_COLOR;
+
+            // Draw Diamond Shape (Peridot Gem)
+            ctx.beginPath();
+            ctx.moveTo(0, -size);             // Top point
+            ctx.lineTo(size * 0.6, 0);        // Right point
+            ctx.lineTo(0, size);              // Bottom point
+            ctx.lineTo(-size * 0.6, 0);       // Left point
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Inner design (Cyber Lines)
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+            ctx.lineWidth = 1;
+            
+            // Draw facet lines
+            ctx.beginPath();
+            ctx.moveTo(0, -size);
+            ctx.lineTo(0, size);
+            ctx.moveTo(-size * 0.6, 0);
+            ctx.lineTo(size * 0.6, 0);
+            ctx.stroke();
+
+            // Title
+            ctx.fillStyle = COLORS.DARK_BG;
+            ctx.font = 'bold 12px "Space Mono"';
+            ctx.textAlign = 'center';
+            ctx.fillText('NAVIGATOR', 0, 5);
+
+            ctx.restore();
+        }
+
+        function drawProtocolNexus(ctx, x, y, size) {
+            
+            ctx.save();
+            
+            // 1. Draw Static Leverage Lines (Electric Blue)
+            ctx.strokeStyle = COLORS.VAULT_BORDER_IDLE;
+            ctx.lineWidth = 1;
+            ctx.globalAlpha = 0.5;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = COLORS.VAULT_BORDER_IDLE;
+            
+            // Draw 4 cardinal lines
+            const lineLength = size * 1.5;
+            for(let i = 0; i < 4; i++) {
+                const angle = i * Math.PI / 2;
+                const endX = x + Math.cos(angle) * lineLength;
+                const endY = y + Math.sin(angle) * lineLength;
+                
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+            }
+
+            // 2. Draw Central Nexus Diamond (Peridot Green)
+            const diamondSize = size * 0.4;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = COLORS.VAULT_BORDER_ACTIVE;
+            ctx.fillStyle = COLORS.VAULT_BORDER_ACTIVE;
+            ctx.strokeStyle = COLORS.TEXT;
+            ctx.lineWidth = 2;
+            ctx.globalAlpha = 0.9;
+            
+            ctx.beginPath();
+            ctx.moveTo(x, y - diamondSize); 
+            ctx.lineTo(x + diamondSize * 0.7, y); 
+            ctx.lineTo(x, y + diamondSize); 
+            ctx.lineTo(x - diamondSize * 0.7, y);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+
+            // 3. Draw Earning Orbitals (Green Particles)
+            ctx.shadowBlur = 15;
+            
+            nexusOrbitals.forEach(orbital => {
+                orbital.angle += orbital.speed;
+                const particleX = x + Math.cos(orbital.angle) * orbital.radius;
+                const particleY = y + Math.sin(orbital.angle) * orbital.radius;
+
+                ctx.shadowColor = orbital.color;
+                ctx.fillStyle = orbital.color;
+                ctx.globalAlpha = 1.0;
+                
+                ctx.beginPath();
+                ctx.arc(particleX, particleY, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw connecting orbital line (faint)
+                ctx.strokeStyle = orbital.color;
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.arc(x, y, orbital.radius, 0, Math.PI * 2);
+                ctx.stroke();
+            });
+
+            ctx.restore();
+        }
+
+        /**
+         * Draws an animated dashed line showing collateral flow from the Vault (USDC) to the ETH loan token.
+         */
+        function drawCollateralFlow(ctx) {
+            const startX = vault.x + vault.width / 2;
+            const startY = vault.y + vault.height + 15; // Bottom of the Vault
+            const endX = tokenETH.targetX;
+            const endY = tokenETH.targetY - TOKEN_SIZE; // Top edge of the ETH token
+
+            ctx.strokeStyle = COLORS.VAULT_BORDER_IDLE; // Electric Blue for Strategy
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 5;
+            ctx.shadowColor = COLORS.VAULT_BORDER_IDLE;
+            
+            const flowOffset = frameCount % 30;
+            ctx.setLineDash([15, 10]); 
+            ctx.lineDashOffset = -flowOffset;
+            
+            ctx.beginPath();
+            // Path: Start at Vault -> Down -> Center -> Up to ETH token
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(startX, canvas.height * 0.95);
+            ctx.lineTo(endX, canvas.height * 0.95);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            ctx.setLineDash([]); // Reset line style
+            ctx.shadowBlur = 0;
+        }
+
+
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                if (particles[i].alpha <= 0) {
+                    particles.splice(i, 1);
+                }
+            }
+        }
+        
+        // --- Tooltip Management Functions ---
+
+        function showTooltip(triggerElement, tooltipId) {
+            const content = TOOLTIPS[tooltipId];
+            if (!content) return;
+
+            isHtmlTooltipActive = true; // Set flag to block canvas hiding logic
+            
+            // Use triggerElement's bounding box for positioning
+            const triggerRect = triggerElement.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+
+            tooltipBox.innerHTML = `<strong class="text-emerald-400">${tooltipId.replace(/_/g, ' ')}:</strong> ${content}`;
+            
+            // Calculate position relative to the container
+            let top = triggerRect.bottom + 5 - containerRect.top;
+            let left = triggerRect.left + (triggerRect.width / 2) - (tooltipBox.offsetWidth / 2) - containerRect.left;
+
+            // Boundary checks
+            if (left < 0) left = 0;
+            // Check right boundary based on calculated width
+            let calculatedWidth = tooltipBox.offsetWidth;
+            if (left + calculatedWidth > containerRect.width) {
+                left = containerRect.width - calculatedWidth;
+            }
+
+            tooltipBox.style.left = `${left}px`;
+            tooltipBox.style.top = `${top}px`;
+            tooltipBox.style.opacity = 1;
+            tooltipBox.style.visibility = 'visible';
+        }
+
+        function hideTooltip() {
+            isHtmlTooltipActive = false;
+            tooltipBox.style.opacity = 0;
+            tooltipBox.style.visibility = 'hidden';
+        }
+        
+        function handleInstructionHover(e) {
+            const trigger = e.target.closest('.tooltip-trigger');
+            if (trigger) {
+                const id = trigger.getAttribute('data-tooltip-id'); // FIX: Use getAttribute for consistency with dataset in older browsers
+                showTooltip(trigger, id);
+            } else if (!isDragging && !isHtmlTooltipActive) {
+                // If not hovering over a trigger and not dragging, hide if mouse leaves the trigger area
+                hideTooltip(); 
+            }
+        }
+
+        function handleInstructionOut(e) {
+            // Use e.relatedTarget to check if the mouse is moving to a child element or outside the box
+            if (!e.relatedTarget || !e.relatedTarget.closest('.tooltip-trigger')) {
+                // If the related target is not a tooltip trigger, hide the tooltip
+                 hideTooltip();
+            }
+        }
+
+        function checkHoveredElement(x, y) {
+            // Check elements in the dynamically generated array (Canvas elements)
+            for (const el of hoverableElements) {
+                if (x >= el.x && x <= el.x + el.w && y >= el.y && y <= el.y + el.h) {
+                    return el;
+                }
+            }
+            return null;
+        }
+
+        function updateCanvasTooltip(hoveredElement) {
+            if (isHtmlTooltipActive) {
+                // Do nothing if an HTML tooltip is already showing
+                return;
+            }
+
+            if (hoveredElement) {
+                const rect = canvas.getBoundingClientRect();
+                const content = TOOLTIPS[hoveredElement.id];
+                
+                // Canvas-specific positioning logic (similar to HTML showTooltip but relative to canvas)
+                const top = hoveredElement.y + hoveredElement.h + 10;
+                let left = hoveredElement.x + (hoveredElement.w / 2) - (tooltipBox.offsetWidth / 2);
+
+                // Boundary checks relative to container width
+                left = Math.max(0, left);
+                left = Math.min(left, container.clientWidth - tooltipBox.offsetWidth);
+
+                tooltipBox.innerHTML = `<strong class="text-emerald-400">${hoveredElement.id.replace(/_/g, ' ')}:</strong> ${content}`;
+                tooltipBox.style.left = `${left}px`;
+                tooltipBox.style.top = `${top}px`;
+                tooltipBox.style.opacity = 1;
+                tooltipBox.style.visibility = 'visible';
+            } else {
+                hideTooltip();
+            }
+        }
+
+        // --- Animation Loop ---
+
+        function draw() {
+            frameCount++;
+            // Clear the canvas
+            ctx.fillStyle = '#0d121c';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            drawGrid(ctx);
+
+            updateParticles();
+            particles.forEach(p => p.draw(ctx));
+
+            // Reset hoverable elements list at the start of each draw cycle
+            hoverableElements = [];
+
+            // --- Only draw interactive/moving elements if we are past the initial greeting ---
+            if (currentState !== STATES.INITIAL_GREETING) {
+                
+                // --- Enhanced Dragging Feedback ---
+                if (isDragging) {
+                    let actionText = '';
+                    let actionColor = '';
+                    
+                    if (currentState === STATES.DRAGGING) {
+                        actionText = 'SUPPLYING USDC...';
+                        actionColor = COLORS.VAULT_BORDER_ACTIVE; // Green
+                    } else if (currentState === STATES.BORROWING) {
+                        actionText = 'INITIATING LOAN...';
+                        actionColor = COLORS.VAULT_BORDER_IDLE; // Blue
+                    }
+                    
+                    ctx.fillStyle = actionColor;
+                    ctx.font = 'bold 16px "Space Mono"';
+                    ctx.textAlign = 'left';
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = actionColor;
+                    ctx.fillText(actionText, mouseX + 25, mouseY - 25);
+                    ctx.shadowBlur = 0;
+                }
+                // --- End Enhanced Dragging Feedback ---
+
+
+                // Interpolation constants for smoothness
+                const INTERP_SPEED = 0.1;
+                const APY_INTERP_SPEED = 0.08;
+
+                // --- STAGE 1 LOGIC (Supply) ---
+                if (currentState === STATES.INTRO || currentState === STATES.DRAGGING) {
+                    const activeToken = tokenUSDC;
+                    
+                    if (isDragging) {
+                        activeToken.x = mouseX;
+                        activeToken.y = mouseY;
+                        activeToken.color = COLORS.TOKEN_DRAGGING;
+                    } else {
+                        activeToken.color = COLORS.TOKEN_USDC;
+                    }
+
+                    // Vault highlighting logic
+                    const vaultHitArea = { x: vault.x, y: vault.y, w: vault.width, h: vault.height };
+                    vault.isTarget = (
+                        activeToken.x > vaultHitArea.x && activeToken.x < vaultHitArea.x + vaultHitArea.w &&
+                        activeToken.y > vaultHitArea.y && activeToken.y < vaultHitArea.y + vaultHitArea.h
+                    );
+
+                    drawWalletContainer(ctx, borrowArea.x, borrowArea.y, WALLET_WIDTH, WALLET_HEIGHT, borrowArea.label, false);
+                    drawToken(ctx, activeToken);
+
+                } else if (currentState === STATES.SUPPLIED) {
+                    // Supplied state - Animate USDC into vault, update APY
+                    const targetX = vault.x + vault.width / 2;
+                    const targetY = vault.y + vault.height / 2;
+                    
+                    // Animate token movement towards center 
+                    tokenUSDC.x += (targetX - tokenUSDC.x) * INTERP_SPEED;
+                    tokenUSDC.y += (targetY - tokenUSDC.y) * INTERP_SPEED;
+
+                    // Animate vault filling and APY counter
+                    vault.fillLevel += (0.8 - vault.fillLevel) * APY_INTERP_SPEED;
+                    vault.supplyApy += (4.25 - vault.supplyApy) * APY_INTERP_SPEED;
+                    
+                    drawWalletContainer(ctx, borrowArea.x, borrowArea.y, WALLET_WIDTH, WALLET_HEIGHT, borrowArea.label, false);
+                    drawToken(ctx, tokenUSDC);
+
+                    // --- NEW: Highlight Supply Advantage ---
+                    ctx.fillStyle = COLORS.VAULT_BORDER_ACTIVE;
+                    ctx.font = 'bold 18px Inter';
+                    ctx.textAlign = 'center';
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = COLORS.VAULT_BORDER_ACTIVE;
+                    
+                    const bannerText = "ADVANTAGE: AUTOMATIC PASSIVE YIELD GENERATION";
+                    ctx.fillText(bannerText, canvas.width / 2, canvas.height * 0.9);
+                    ctx.shadowBlur = 0;
+                    // --- END NEW ---
+
+                }
+
+                // --- STAGE 2 LOGIC (Borrow) ---
+                else if (currentState === STATES.BORROW_INTRO || currentState === STATES.BORROWING) {
+                    
+                    // Draw collateral flow first to establish the link
+                    drawCollateralFlow(ctx);
+
+                    // Static Collateral in Vault (USDC is locked in center)
+                    tokenUSDC.isCollateral = true;
+                    drawToken(ctx, tokenUSDC);
+
+                    const activeToken = tokenETH;
+
+                    if (isDragging) {
+                        activeToken.x = mouseX;
+                        activeToken.y = mouseY;
+                        activeToken.color = COLORS.TOKEN_DRAGGING;
+                    } else {
+                        activeToken.color = COLORS.TOKEN_ETH;
+                    }
+
+                    // Borrow Target Area highlighting logic
+                    const target = borrowArea;
+                    activeToken.isOver = (
+                        activeToken.x > target.x && activeToken.x < target.x + target.w &&
+                        activeToken.y > target.y && activeToken.y < target.y + target.h
+                    );
+                    
+                    // Highlight the wallet area when the token is over it
+                    drawWalletContainer(ctx, borrowArea.x, borrowArea.y, WALLET_WIDTH, WALLET_HEIGHT, borrowArea.label, activeToken.isOver);
+                    drawToken(ctx, activeToken);
+
+                    // Animate Borrow Cost (pre-emptively show it exists)
+                    vault.borrowApy += (-5.5 - vault.borrowApy) * APY_INTERP_SPEED;
+
+
+                } else if (currentState === STATES.BORROWED) {
+                    
+                    // Draw collateral flow
+                    drawCollateralFlow(ctx);
+                    
+                    // Display Collateral (locked)
+                    tokenUSDC.isCollateral = true;
+                    drawToken(ctx, tokenUSDC);
+
+                    // Animate Borrow Cost
+                    vault.borrowApy += (-5.5 - vault.borrowApy) * APY_INTERP_SPEED;
+
+                    // Flow line animation (Borrowed) - This is mostly redundant now due to the drag animation
+                    const flowStart = { x: vault.x + vault.width / 2, y: vault.y + vault.height + 20 };
+                    const flowEnd = { x: borrowArea.x + borrowArea.w / 2, y: borrowArea.y + borrowArea.h / 2 };
+
+                    ctx.strokeStyle = COLORS.TOKEN_ETH;
+                    ctx.lineWidth = 3;
+                    
+                    const flowOffset = frameCount % 60;
+                    ctx.setLineDash([10, 5]); // Dashed line
+                    ctx.lineDashOffset = -flowOffset;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(tokenETH.targetX, tokenETH.targetY - TOKEN_SIZE - 10); // Start from above the ETH's resting spot
+                    ctx.lineTo(flowEnd.x, tokenETH.targetY - TOKEN_SIZE - 10);
+                    ctx.lineTo(flowEnd.x, flowEnd.y);
+                    // Removed the stroke here as the main flow line is now handled by drawCollateralFlow
+                    
+                    ctx.setLineDash([]); // Reset line style
+                    
+                    drawWalletContainer(ctx, borrowArea.x, borrowArea.y, WALLET_WIDTH, WALLET_HEIGHT, borrowArea.label, false);
+
+                    // --- NEW: Highlight Borrow Purpose/Strategy ---
+                    ctx.fillStyle = COLORS.VAULT_BORDER_IDLE;
+                    ctx.font = 'bold 18px Inter';
+                    ctx.textAlign = 'center';
+                    ctx.shadowBlur = 8;
+                    ctx.shadowColor = COLORS.VAULT_BORDER_IDLE;
+                    
+                    const bannerText = "STRATEGY: BORROWING UNLOCKS LEVERAGE (E.G., SHORTING)";
+                    ctx.fillText(bannerText, canvas.width / 2, canvas.height * 0.9);
+                    ctx.shadowBlur = 0;
+                    // --- END NEW ---
+
+                }
+
+
+                // Always draw the vault (except on the final summary screen)
+                if (currentState !== STATES.COMPLETED) {
+                    drawVault(ctx, vault);
+                }
+
+                // --- TOOLTIP CHECK ---
+                if (!isDragging) {
+                    const hovered = checkHoveredElement(mouseX, mouseY);
+                    updateCanvasTooltip(hovered);
+                } else {
+                     hideTooltip();
+                }
+            }
+
+
+            // --- STAGE 3 LOGIC (Completed) ---
+            else if (currentState === STATES.COMPLETED) {
+                
+                const centerW = canvas.width / 2;
+                // Move vertical center down slightly to avoid overlap with instruction box
+                const centerH = canvas.height / 2 + 50; 
+                const coreSize = Math.min(canvas.width, canvas.height) * 0.15;
+
+                // 1. Draw Protocol Mastery Title
+                ctx.fillStyle = COLORS.TEXT;
+                ctx.font = '24px "Space Mono"';
+                ctx.textAlign = 'center';
+                ctx.fillText('PROTOCOL MASTERY ACHIEVED', centerW, centerH - coreSize * 2.2);
+
+                // 2. Draw the Protocol Nexus Visualization
+                drawProtocolNexus(ctx, centerW, centerH, coreSize);
+
+                // 3. Draw Achievement Badge (on top of nexus)
+                drawAchievementBadge(ctx, centerW, centerH, 30);
+
+                // --- 4. Draw Final Summary Data (Centralized and Large) ---
+                
+                // A. Display APY (Earned) - GREEN
+                const apyTextFinalY = centerH - coreSize - 30;
+                const apyLabelFinalY = centerH - coreSize + 5;
+
+                ctx.fillStyle = COLORS.VAULT_BORDER_ACTIVE;
+                ctx.font = '48px "Space Mono"';
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = COLORS.VAULT_BORDER_ACTIVE;
+                ctx.fillText(`+${vault.supplyApy.toFixed(2)}% APY`, centerW, apyTextFinalY);
+                
+                ctx.font = '16px Inter';
+                ctx.shadowBlur = 0;
+                ctx.fillText('NET EARNINGS POWERED', centerW, apyLabelFinalY);
+                
+                // Add region for YIELD GENERATION tooltip (Canvas region remains for general hover)
+                hoverableElements.push({
+                    id: 'YIELD_GENERATION',
+                    x: centerW - 120, y: apyLabelFinalY - 15, w: 240, h: 25, 
+                    isText: true 
+                });
+
+
+                // B. Display Leverage Unlocked - BLUE/NEUTRAL 
+                const leverageText = "LEVERAGE UNLOCKED";
+                const leverageTextY = centerH + coreSize + 40;
+                const leverageLabelY = centerH + coreSize + 65;
+
+                ctx.fillStyle = COLORS.VAULT_BORDER_IDLE; // Electric Blue
+                ctx.font = '24px "Space Mono"';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = COLORS.VAULT_BORDER_IDLE;
+                ctx.fillText(leverageText, centerW, leverageTextY);
+                
+                ctx.font = '16px Inter';
+                ctx.shadowBlur = 0;
+                ctx.fillText('STRATEGIC CAPITAL READY', centerW, leverageLabelY);
+                
+                // Add region for LEVERAGE STRATEGY tooltip (Canvas region remains for general hover)
+                hoverableElements.push({
+                    id: 'LEVERAGE_STRATEGY',
+                    x: centerW - 130, y: leverageLabelY - 15, w: 260, h: 25, 
+                    isText: true 
+                });
+            }
+
+
+            animFrameId = requestAnimationFrame(draw);
+        }
+
+        // --- Event Handlers & Logic ---
+
+        function addDragParticles(x, y, color) {
+            for (let i = 0; i < 2; i++) { // Generate 2 particles per frame while dragging
+                particles.push(new Particle(x, y, color));
+            }
+        }
+
+        window.startGuide = () => {
+            initialGreetingModal.style.opacity = 0;
+            initialGreetingModal.style.pointerEvents = 'none';
+            
+            // Set the state to INTRO after a small delay to allow the fade out animation to happen
+            setTimeout(() => {
+                currentState = STATES.INTRO;
+                setupObjects();
+                updateUI(STATES.INTRO);
+            }, 300);
+        }
+
+        function updateUI(state) {
+            
+            // Manage visibility of the HTML overlay instruction box
+            instructionBox.style.visibility = (state !== STATES.INITIAL_GREETING) ? 'visible' : 'hidden';
+            
+            instructionBox.classList.remove('neon-glow-green', 'border-emerald-500', 'border-blue-500', 'border-red-500');
+            nextButton.classList.add('opacity-0'); 
+            nextButton.innerText = 'NEXT →';
+
+            // IMPORTANT: Wrap key terms in <span class="tooltip-trigger" data-tooltip-id="...">
+            const supplySpan = `<strong class="text-emerald-300 tooltip-trigger" data-tooltip-id="SUPPLY_TITLE">SUPPLY</strong>`;
+            const yieldSpan = `<strong class="text-emerald-300 tooltip-trigger" data-tooltip-id="YIELD_GENERATION">YIELD GENERATION</strong>`;
+            const borrowSpan = `<strong class="text-blue-300 tooltip-trigger" data-tooltip-id="BORROW_TITLE">BORROW</strong>`;
+            const leverageSpan = `<strong class="text-blue-300 tooltip-trigger" data-tooltip-id="LEVERAGE_STRATEGY">LEVERAGE STRATEGY</strong>`;
+
+
+            switch (state) {
+                case STATES.INITIAL_GREETING:
+                    // Handled by the dedicated initial-greeting-modal HTML element
+                    break;
+                case STATES.INTRO:
+                    instructionText.innerHTML = `
+                        <p class="font-bold text-lg">STAGE 1: ${supplySpan}</p>
+                        <p class="mt-1">Drag <strong class="text-emerald-300">USDC</strong> into the Vault.</p>
+                        <ul class="list-disc list-inside ml-4 mt-1 text-sm">
+                            <li>**Action:** Provides Liquidity.</li>
+                            <li>**Benefit:** Generates **Passive APY**.</li>
+                        </ul>
+                    `;
+                    instructionBox.classList.add('border-blue-500');
+                    break;
+                case STATES.SUPPLIED:
+                    instructionText.innerHTML = `
+                        <p class="font-bold text-lg"><strong class="text-emerald-300">SUCCESS: YIELD ACTIVATED.</strong></p>
+                        <p class="mt-1">Your <strong class="text-emerald-300">USDC</strong> is now **Collateral**, earning passive **APY**.</p>
+                        <p class="mt-2">Click **NEXT** to unlock Leverage.</p>
+                    `;
+                    instructionBox.classList.add('neon-glow-green', 'border-emerald-500');
+                    nextButton.classList.remove('opacity-0');
+                    break;
+                case STATES.BORROW_INTRO:
+                    instructionText.innerHTML = `
+                        <p class="font-bold text-lg">STAGE 2: ${borrowSpan}</p>
+                        <p class="mt-1">Prerequisite: <strong class="text-emerald-300">Collateral (USDC)</strong> is required.</p>
+                        <p class="mt-1">Drag <strong class="text-blue-300">ETH</strong> to your Wallet (Outflow) to initiate your loan and **Access Strategic Capital**.</p>
+                    `;
+                    instructionBox.classList.add('border-blue-500');
+                    break;
+                case STATES.BORROWING:
+                     instructionText.innerHTML = 'ACCESSING LIQUIDITY... Completing your **Strategic Loan**.'
+                     instructionBox.classList.add('border-blue-500');
+                     break;
+                case STATES.BORROWED:
+                    instructionText.innerHTML = `
+                        <p class="font-bold text-lg"><strong class="text-blue-300">LOAN INITIATED.</strong> Leverage is **Active**.</p>
+                        <p class="mt-1">The Strategic Loan Cost grants immediate access to capital for advanced strategies.</p>
+                        <p class="mt-2">Click **NEXT** to finalize.</p>
+                    `;
+                    instructionBox.classList.add('border-blue-500', 'neon-glow-green');
+                    nextButton.classList.remove('opacity-0');
+                    break;
+                case STATES.COMPLETED:
+                    // ENHANCED FINAL TEXT STRUCTURE
+                    instructionText.innerHTML = `
+                        <p class="font-bold text-xl">GUIDE COMPLETE. <strong class="text-emerald-300">// PROTOCOL CORE ACTIVATED</strong></p>
+                        <p class="mt-2 mb-2">You have successfully mastered the two core functions:</p>
+                        <ul class="list-disc list-inside ml-4 text-sm md:text-base">
+                            <li>${yieldSpan} (Passive APY from Supply)</li>
+                            <li>${leverageSpan} (Capital Access via Borrowing)</li>
+                        </ul>
+                        <p class="mt-3">Click **LAUNCH APP** to start earning!</p>
+                    `;
+                    instructionBox.classList.add('neon-glow-green', 'border-emerald-500');
+                    nextButton.innerText = 'LAUNCH APP PROTOCOL';
+                    // We'll use alert here since we cannot redirect externally in this environment
+                    nextButton.onclick = () => alert('Launching Peridot App... Time to earn!'); 
+                    break;
+            }
+        }
+
+        function handleStart(e) {
+            e.preventDefault();
+            
+            const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+
+            // FIX: Explicitly check for touches array to prevent TypeError when e.clientX is 0 (falsy)
+            if (e.touches && e.touches.length > 0) {
+                // Touch event
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                // Mouse event
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            mouseX = clientX - rect.left;
+            mouseY = clientY - rect.top;
+
+            let targetToken = null;
+
+            if (currentState === STATES.INTRO) {
+                targetToken = tokenUSDC;
+            } else if (currentState === STATES.BORROW_INTRO) {
+                targetToken = tokenETH;
+            }
+            
+            if (targetToken) {
+                const dx = mouseX - targetToken.x;
+                const dy = mouseY - targetToken.y;
+                if (Math.sqrt(dx * dx + dy * dy) < targetToken.size) {
+                    isDragging = true;
+                    // Update state and UI as soon as dragging begins
+                    const nextState = (currentState === STATES.INTRO) ? STATES.DRAGGING : STATES.BORROWING;
+                    currentState = nextState;
+                    updateUI(nextState); 
+                    canvas.style.cursor = 'grabbing'; 
+                    hideTooltip(); // Hide all tooltips when dragging starts
+                }
+            }
+        }
+
+        function handleMove(e) {
+            e.preventDefault();
+            if (!isDragging) {
+                 // Update mouse position for hover checks
+                const rect = canvas.getBoundingClientRect();
+                let clientX, clientY;
+                
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                mouseX = clientX - rect.left;
+                mouseY = clientY - rect.top;
+            } else {
+                // Handle dragging movement
+                const rect = canvas.getBoundingClientRect();
+                let clientX, clientY;
+                
+                // FIX: Ensure safe access to coordinates for move events
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+                
+                mouseX = clientX - rect.left;
+                mouseY = clientY - rect.top;
+
+                // Add particle trail
+                let particleColor = currentState === STATES.DRAGGING ? COLORS.TOKEN_USDC : COLORS.TOKEN_ETH;
+                addDragParticles(mouseX, mouseY, particleColor);
+            }
+        }
+
+        function handleEnd(e) {
+            e.preventDefault();
+            if (!isDragging) return;
+
+            canvas.style.cursor = 'default';
+            isDragging = false;
+            particles = []; // Clear particles on drop
+
+            if (currentState === STATES.DRAGGING) {
+                // Stage 1 Drop: Vault
+                const vaultHitArea = { x: vault.x, y: vault.y, w: vault.width, h: vault.height };
+                if (
+                    mouseX > vaultHitArea.x && mouseX < vaultHitArea.x + vaultHitArea.w &&
+                    mouseY > vaultHitArea.y && mouseY < vaultHitArea.y + vaultHitArea.h
+                ) {
+                    currentState = STATES.SUPPLIED;
+                    tokenUSDC.isSupplied = true;
+                    vault.isTarget = false; 
+                    updateUI(STATES.SUPPLIED);
+                } else {
+                    // Failed drop, return token to original position
+                    currentState = STATES.INTRO;
+                    tokenUSDC.x = tokenUSDC.targetX;
+                    tokenUSDC.y = tokenUSDC.targetY;
+                    updateUI(STATES.INTRO); 
+                }
+            } else if (currentState === STATES.BORROWING) {
+                 // Stage 2 Drop: Wallet/Borrow Area
+                 const target = borrowArea;
+                 if (
+                     mouseX > target.x && mouseX < target.x + target.w &&
+                     mouseY > target.y && mouseY < target.y + target.h
+                 ) {
+                     currentState = STATES.BORROWED;
+                     tokenETH.isBorrowed = true;
+                     updateUI(STATES.BORROWED);
+                 } else {
+                     // Failed drop, return token to original position
+                     currentState = STATES.BORROW_INTRO;
+                     tokenETH.x = tokenETH.targetX;
+                     tokenETH.y = tokenETH.targetY;
+                     updateUI(STATES.BORROW_INTRO);
+                 }
+            }
+        }
+
+        function resizeCanvas() {
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            setupObjects(); // Recalculate positions based on new size
+        }
+
+        window.goToNextStage = () => {
+            if (currentState === STATES.SUPPLIED) {
+                currentState = STATES.BORROW_INTRO;
+                setupObjects(); 
+                updateUI(STATES.BORROW_INTRO);
+            } else if (currentState === STATES.BORROWED) {
+                currentState = STATES.COMPLETED;
+                // Since this is the final screen, we need to manually set the final values 
+                // for the summary to display correctly, as animation stops.
+                vault.supplyApy = 4.25;
+                vault.borrowApy = -5.5;
+                updateUI(STATES.COMPLETED);
+            }
+        }
+
+        // --- Initialization ---
+
+        function init() {
+            resizeCanvas(); 
+            updateUI(STATES.INITIAL_GREETING); // Start in the greeting state
+            
+            // Event Listeners for Drag/Drop (Mouse and Touch)
+            canvas.addEventListener('mousedown', handleStart);
+            canvas.addEventListener('mousemove', handleMove);
+            canvas.addEventListener('mouseup', handleEnd);
+            // Use a wrapper function for consistency
+            canvas.addEventListener('mouseleave', (e) => isDragging && handleEnd(e)); 
+
+            // Touch events
+            canvas.addEventListener('touchstart', handleStart);
+            canvas.addEventListener('touchmove', handleMove);
+            canvas.addEventListener('touchend', handleEnd);
+            canvas.addEventListener('touchcancel', handleEnd);
+            
+            // HTML Tooltip Listeners (Attached to the instruction box container)
+            instructionBox.addEventListener('mouseover', handleInstructionHover);
+            instructionBox.addEventListener('mouseout', handleInstructionOut);
+
+
+            // Throttle resize listener for performance
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(resizeCanvas, 150);
+            });
+
+            // Start the main animation loop
+            animFrameId = requestAnimationFrame(draw);
+        }
+
+        // Start everything once the document is fully loaded
+        window.onload = init;
+
+    </script>
+</body>
+</html>

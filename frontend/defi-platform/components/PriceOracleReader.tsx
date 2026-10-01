@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ethers } from "ethers";
+import { ethers, Eip1193Provider } from "ethers";
 import { getPriceOracleContract } from "../lib/smart-contracts/priceOracle";
 
 const PriceOracleReader = () => {
@@ -13,8 +13,8 @@ const PriceOracleReader = () => {
     const loadContractData = async () => {
       try {
         if (typeof window !== "undefined" && window.ethereum) {
-          // Use the updated ethers v5 pattern
-          const provider = new ethers.BrowserProvider(window.ethereum);
+          // Use a type assertion to fix the type error
+          const provider = new ethers.BrowserProvider(window.ethereum as Eip1193Provider);
           await provider.send("eth_requestAccounts", []);
           const signer = await provider.getSigner();
 

@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/agents/internal/poll-tick",
+      "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/agents/internal/prune-tick",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}

@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Bio-Reactor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <style>
+        :root {
+            --bg-color: #1A1A1A;
+            --grid-color: rgba(128, 128, 128, 0.2);
+            --text-color: #E0E0E0;
+            --font-family: 'IBM Plex Mono', monospace;
+
+            /* Asset Colors */
+            --btc-color: #FF7A00;
+            --eth-color: #00FFFF;
+            --sol-color: #FF00FF;
+            --usdc-color: #FFFFFF;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-family);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            cursor: default;
+        }
+
+        #reactor-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        #reactor-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #label-renderer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .asset-label {
+            color: white;
+            font-family: var(--font-family);
+            font-size: 16px;
+            text-shadow: 0 0 5px black;
+            font-weight: bold;
+        }
+
+        .overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 14px;
+            animation: fadeIn 2s ease-in-out;
+            pointer-events: none;
+        }
+
+        #asset-info {
+            position: absolute;
+            visibility: hidden;
+            opacity: 0;
+            background: rgba(10, 10, 10, 0.7);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+            transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+            transform: scale(0.95);
+            pointer-events: none;
+            width: 300px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        #asset-info.visible {
+            visibility: visible;
+            opacity: 1;
+            transform: scale(1);
+        }
+        
+        #asset-info .label {
+            opacity: 0.7;
+        }
+
+        #asset-info .value {
+            font-weight: bold;
+        }
+        
+        #asset-info .apy-info {
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 15px;
+            padding-top: 15px;
+            font-size: 14px;
+        }
+        
+        #unmute-button {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            font-family: var(--font-family);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 12px;
+            opacity: 0.5;
+            transition: opacity 0.3s, background 0.3s;
+        }
+        
+        #unmute-button:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        #gemini-button {
+            position: absolute;
+            bottom: 20px;
+            right: 180px; /* Adjust position */
+            padding: 10px 15px;
+            background: rgba(128, 0, 255, 0.2);
+            border: 1px solid rgba(128, 0, 255, 0.5);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            backdrop-filter: blur(5px);
+            font-family: var(--font-family);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 12px;
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        #gemini-button:hover {
+            background: rgba(128, 0, 255, 0.4);
+            box-shadow: 0 0 15px rgba(128, 0, 255, 0.5);
+        }
+
+        .gemini-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+
+        .gemini-modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .gemini-modal-content {
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 30px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            position: relative;
+            transform: scale(0.95);
+            transition: transform 0.3s;
+        }
+
+        .gemini-modal-overlay.visible .gemini-modal-content {
+            transform: scale(1);
+        }
+
+        .gemini-modal-content h3 {
+            margin-top: 0;
+            color: var(--eth-color);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #gemini-response {
+            min-height: 50px;
+            line-height: 1.7;
+            font-size: 16px;
+            white-space: pre-wrap;
+        }
+
+        .gemini-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+        }
+        .gemini-modal-close:hover {
+            opacity: 1;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--sol-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="reactor-container">
+        <canvas id="reactor-canvas"></canvas>
+        <div id="label-renderer"></div>
+        <div class="overlay">LIVE FEED: BIO-REACTOR 734</div>
+        <div id="asset-info"></div>
+        <button id="unmute-button">Activate Audio</button>
+        <button id="gemini-button">✨ Consult the Core</button>
+    </div>
+
+    <div id="gemini-modal" class="gemini-modal-overlay">
+        <div class="gemini-modal-content">
+            <button class="gemini-modal-close">&times;</button>
+            <h3>Core Analysis</h3>
+            <div id="gemini-response">
+                <!-- Gemini response will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- START HELPER: CSS2DRenderer ---
+        // This is embedded to keep it to a single file.
+        class CSS2DObject extends THREE.Object3D {
+            constructor(element) {
+                super();
+                this.element = element;
+                this.element.style.position = 'absolute';
+                this.addEventListener('removed', function () {
+                    if (this.element.parentNode) {
+                        this.element.parentNode.removeChild(this.element);
+                    }
+                });
+            }
+        }
+
+        const CSS2DRenderer = function () {
+            const _this = this;
+            let _width, _height;
+            let _widthHalf, _heightHalf;
+            const vector = new THREE.Vector3();
+            const viewMatrix = new THREE.Matrix4();
+            const viewProjectionMatrix = new THREE.Matrix4();
+            const cache = {
+                objects: new WeakMap()
+            };
+            const domElement = document.createElement('div');
+            domElement.style.overflow = 'hidden';
+            this.domElement = domElement;
+
+            this.getSize = function () {
+                return {
+                    width: _width,
+                    height: _height
+                };
+            };
+
+            this.setSize = function (width, height) {
+                _width = width;
+                _height = height;
+                _widthHalf = _width / 2;
+                _heightHalf = _height / 2;
+                domElement.style.width = width + 'px';
+                domElement.style.height = height + 'px';
+            };
+
+            const renderObject = function (object, scene, camera) {
+                if (object instanceof CSS2DObject) {
+                    vector.setFromMatrixPosition(object.matrixWorld);
+                    vector.project(camera);
+                    const element = object.element;
+                    const style = 'translate(-50%,-50%) translate(' + (vector.x * _widthHalf + _widthHalf) + 'px,' + (-vector.y * _heightHalf + _heightHalf) + 'px)';
+                    element.style.WebkitTransform = style;
+                    element.style.MozTransform = style;
+                    element.style.oTransform = style;
+                    element.style.transform = style;
+                    const objectData = {
+                        style: style
+                    };
+                    cache.objects.set(object, objectData);
+                    if (element.parentNode !== domElement) {
+                        domElement.appendChild(element);
+                    }
+                }
+                for (let i = 0, l = object.children.length; i < l; i++) {
+                    renderObject(object.children[i], scene, camera);
+                }
+            };
+
+            this.render = function (scene, camera) {
+                viewMatrix.copy(camera.matrixWorldInverse);
+                viewProjectionMatrix.multiplyMatrices(camera.projectionMatrix, viewMatrix);
+                renderObject(scene, scene, camera);
+            };
+        };
+        // --- END HELPER ---
+
+        // --- SCENE SETUP ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 400;
+
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('reactor-canvas'), antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        
+        const labelRenderer = new CSS2DRenderer();
+        labelRenderer.setSize(window.innerWidth, window.innerHeight);
+        document.getElementById('label-renderer').appendChild(labelRenderer.domElement);
+
+        const assetInfoEl = document.getElementById('asset-info');
+        
+        // --- LIGHTS AND HELPERS ---
+        scene.add(new THREE.AmbientLight(0xcccccc, 0.5));
+        const pointLight = new THREE.PointLight(0xffffff, 0.8);
+        camera.add(pointLight);
+        scene.add(camera);
+        
+        const grid = new THREE.GridHelper(1000, 25, 0x808080, 0x808080);
+        grid.material.transparent = true;
+        grid.material.opacity = 0.2;
+        grid.rotation.x = Math.PI / 2;
+        scene.add(grid);
+
+
+        // --- MOCK DATA ---
+        const assets = [
+            { id: 'BTC', allocation: 35.5, value_eur: 25000.00, color: new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--btc-color')), supplyAPY: 3.1, borrowAPY: 4.5 },
+            { id: 'ETH', allocation: 31.45, value_eur: 12811.38, color: new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--eth-color')), supplyAPY: 4.2, borrowAPY: 5.8 },
+            { id: 'SOL', allocation: 15.2, value_eur: 6500.00, color: new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--sol-color')), supplyAPY: 5.5, borrowAPY: 7.1 },
+            { id: 'USDC', allocation: 17.85, value_eur: 8000.00, color: new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--usdc-color')), supplyAPY: 2.5, borrowAPY: 3.9 },
+                        { id: 'ETH', allocation: 31.45, value_eur: 12811.38, color: new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--eth-color')), supplyAPY: 4.2, borrowAPY: 5.8 },
+            { id: 'SOL', allocation: 15.2, value_eur: 6500.00, color: new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--sol-color')), supplyAPY: 5.5, borrowAPY: 7.1 },
+            { id: 'USDC', allocation: 17.85, value_eur: 8000.00, color: new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--usdc-color')), supplyAPY: 2.5, borrowAPY: 3.9 },
+                        { id: 'ETH', allocation: 31.45, value_eur: 12811.38, color: new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--eth-color')), supplyAPY: 4.2, borrowAPY: 5.8 },
+            { id: 'SOL', allocation: 15.2, value_eur: 6500.00, color: new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--sol-color')), supplyAPY: 5.5, borrowAPY: 7.1 },
+            { id: 'USDC', allocation: 17.85, value_eur: 8000.00, color: new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--usdc-color')), supplyAPY: 2.5, borrowAPY: 3.9 }
+        ];
+
+        // --- AUDIO SETUP ---
+        let audioReady = false;
+        const synth = new Tone.MembraneSynth().toDestination();
+        const hum = new Tone.Oscillator({ frequency: 50, type: 'sine', volume: -24 }).toDestination();
+        document.getElementById('unmute-button').addEventListener('click', async () => {
+            if (!audioReady) {
+                await Tone.start();
+                hum.start();
+                audioReady = true;
+                document.getElementById('unmute-button').textContent = "Audio Active";
+            }
+        });
+
+        // --- GEMINI API INTEGRATION ---
+        const geminiButton = document.getElementById('gemini-button');
+        const geminiModal = document.getElementById('gemini-modal');
+        const geminiResponseEl = document.getElementById('gemini-response');
+        const geminiModalClose = document.querySelector('.gemini-modal-close');
+        
+        const apiKey = ""; // If you want to use models other than gemini-2.5-flash-preview-05-20 or imagen-3.0-generate-002, provide an API key here. Otherwise, leave this as-is.
+
+        async function callGeminiApi(payload, retries = 3, delay = 1000) {
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            for (let i = 0; i < retries; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorBody = await response.json();
+                        throw new Error(`API request failed with status ${response.status}: ${errorBody.error.message}`);
+                    }
+                    
+                    const result = await response.json();
+                    const candidate = result.candidates?.[0];
+
+                    if (candidate && candidate.content?.parts?.[0]?.text) {
+                        return candidate.content.parts[0].text;
+                    } else {
+                        throw new Error("Invalid response structure from Gemini API.");
+                    }
+
+                } catch (error) {
+                    console.error(`Attempt ${i + 1} failed:`, error.message);
+                    if (i === retries - 1) throw error; 
+                    await new Promise(resolve => setTimeout(resolve, delay * Math.pow(2, i))); 
+                }
+            }
+        }
+
+        async function consultTheCore() {
+            geminiResponseEl.innerHTML = '<div class="loader"></div>';
+            geminiModal.classList.add('visible');
+
+            const systemPrompt = "You are the AI core of a futuristic Bio-Reactor that visualizes a crypto portfolio. Your name is 'Oracle 734'. The user is consulting you for a brief, cryptic, and futuristic analysis of their holdings. Provide your response in 1-3 short, enigmatic sentences. Maintain a sophisticated, slightly mysterious, and all-knowing persona. Do not offer financial advice. Speak in the present tense about the 'energy signatures' of the assets.";
+            
+            const portfolioDetails = assets.map(a => `${a.id}: ${a.allocation.toFixed(2)}%`).join(', ');
+            const userQuery = `My current asset allocation is: ${portfolioDetails}. Analyze the reactor's energy signature.`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+            };
+            
+            try {
+                const responseText = await callGeminiApi(payload);
+                geminiResponseEl.textContent = responseText;
+            } catch (error) {
+                console.error("Failed to get response from Gemini API:", error);
+                geminiResponseEl.textContent = "CORE CONNECTION FAILED // Anomaly detected in data stream. Ensure API configuration is correct and try again.";
+            }
+        }
+        
+        geminiButton.addEventListener('click', consultTheCore);
+        geminiModalClose.addEventListener('click', () => geminiModal.classList.remove('visible'));
+        geminiModal.addEventListener('click', (e) => {
+             if (e.target === geminiModal) {
+                geminiModal.classList.remove('visible');
+             }
+        });
+
+        // --- BLOB CLASS & SETUP ---
+        const blobs = [];
+        class Blob {
+            constructor(asset, scene) {
+                this.asset = asset;
+                this.radius = Math.sqrt(asset.value_eur) * 1.6; // Increased blob size
+                this.position = new THREE.Vector3(
+                    (Math.random() - 0.5) * (window.innerWidth / 4),
+                    (Math.random() - 0.5) * (window.innerHeight / 4),
+                    0
+                );
+                this.velocity = new THREE.Vector3((Math.random() - 0.5) * 2, (Math.random() - 0.5) * 2, 0);
+                this.damping = 0.98;
+
+                // Create label
+                const labelDiv = document.createElement('div');
+                labelDiv.className = 'asset-label';
+                labelDiv.textContent = asset.id;
+                this.label = new CSS2DObject(labelDiv);
+                this.label.position.copy(this.position);
+                scene.add(this.label);
+            }
+
+            update(delta) {
+                 // Attract to center
+                const attraction = this.position.clone().multiplyScalar(-0.0005);
+                this.velocity.add(attraction);
+
+                this.position.add(this.velocity.clone().multiplyScalar(delta * 60));
+                this.velocity.multiplyScalar(this.damping);
+
+                // Wall collision
+                const halfWidth = window.innerWidth / 2 - this.radius;
+                const halfHeight = window.innerHeight / 2 - this.radius;
+                 if (Math.abs(this.position.x) > halfWidth) {
+                    this.position.x = Math.sign(this.position.x) * halfWidth;
+                    this.velocity.x *= -0.8;
+                }
+                if (Math.abs(this.position.y) > halfHeight) {
+                    this.position.y = Math.sign(this.position.y) * halfHeight;
+                    this.velocity.y *= -0.8;
+                }
+                
+                this.label.position.copy(this.position);
+                const labelMargin = 15; // A small margin in 3D world units
+                this.label.position.x += this.radius * 0.015;
+            }
+        }
+        
+        // --- POST-PROCESSING & METABALLS ---
+        const postProcScene = new THREE.Scene();
+        const postProcCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+        const screenQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2));
+        postProcScene.add(screenQuad);
+        
+        const backgroundRenderTarget = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight);
+
+        const metaballShader = {
+             uniforms: {
+                tBackground: { value: backgroundRenderTarget.texture },
+                u_blobs: { value: [] },
+                u_colors: { value: [] },
+                u_resolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) }
+            },
+            vertexShader: `
+                varying vec2 vUv;
+                void main() {
+                    vUv = uv;
+                    gl_Position = vec4(position, 1.0);
+                }
+            `,
+            fragmentShader: `
+                uniform sampler2D tBackground;
+                uniform vec4 u_blobs[${assets.length}]; // x, y, z=radius, w=unused
+                uniform vec3 u_colors[${assets.length}];
+                uniform vec2 u_resolution;
+                varying vec2 vUv;
+
+                void main() {
+                    vec2 screenPos = gl_FragCoord.xy;
+                    float sum = 0.0;
+                    
+                    for(int i = 0; i < ${assets.length}; i++) {
+                        vec2 blobPos = u_blobs[i].xy;
+                        float radius = u_blobs[i].z;
+                        float d = distance(screenPos, blobPos);
+                        sum += (radius * radius) / (d * d);
+                    }
+                    
+                    vec3 finalColor = texture2D(tBackground, vUv).rgb;
+
+                    if (sum > 0.8) {
+                        float influence_sum = 0.0;
+                        vec3 mixed_color = vec3(0.0);
+
+                        for(int i = 0; i < ${assets.length}; i++) {
+                            vec2 blobPos = u_blobs[i].xy;
+                            float radius = u_blobs[i].z;
+                            float d = distance(screenPos, blobPos);
+                            float influence = (radius * radius) / (d * d);
+                            mixed_color += u_colors[i] * influence;
+                            influence_sum += influence;
+                        }
+                        mixed_color /= influence_sum;
+                        
+                        // Fake lighting/normal calculation
+                        vec2 grad;
+                        grad.x = sum - texture2D(tBackground, (gl_FragCoord.xy + vec2(1.0, 0.0)) / u_resolution).r;
+                        grad.y = sum - texture2D(tBackground, (gl_FragCoord.xy + vec2(0.0, 1.0)) / u_resolution).r;
+                        vec3 normal = vec3(normalize(grad), 1.0);
+                        float light = dot(normal, normalize(vec3(0.5, 0.5, 1.0)));
+                        
+                        float falloff = smoothstep(0.8, 1.2, sum);
+                        finalColor = mix(finalColor, mixed_color + light * 0.3, falloff);
+                    }
+
+                    gl_FragColor = vec4(finalColor, 1.0);
+                }
+            `
+        };
+        screenQuad.material = new THREE.ShaderMaterial(metaballShader);
+
+
+        // --- INTERACTIONS ---
+        const mouse = new THREE.Vector2();
+        const raycaster = new THREE.Raycaster();
+        const dragPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+        const intersectionPoint = new THREE.Vector3();
+        let selectedBlob = null;
+        let hoverBlob = null;
+        
+        function updateMousePosition(x, y) {
+            mouse.x = (x / window.innerWidth) * 2 - 1;
+            mouse.y = -(y / window.innerHeight) * 2 + 1;
+        }
+
+        function onPointerMove(event) {
+            const x = event.clientX || event.touches[0].clientX;
+            const y = event.clientY || event.touches[0].clientY;
+            updateMousePosition(x, y);
+
+            raycaster.setFromCamera(mouse, camera);
+
+            // AFTER
+            if (selectedBlob) { // Dragging
+                if (raycaster.ray.intersectPlane(dragPlane, intersectionPoint)) {
+                    // Define the boundaries based on the window size and blob radius
+                    const halfWidth = window.innerWidth / 2 - selectedBlob.radius;
+                    const halfHeight = window.innerHeight / 2 - selectedBlob.radius;
+
+                    // Clamp the intersection point's coordinates to stay within the boundaries
+                    intersectionPoint.x = THREE.MathUtils.clamp(intersectionPoint.x, -halfWidth, halfWidth);
+                    intersectionPoint.y = THREE.MathUtils.clamp(intersectionPoint.y, -halfHeight, halfHeight);
+
+                    // Now, apply the clamped position to the blob
+                    selectedBlob.position.copy(intersectionPoint);
+                    selectedBlob.velocity.set(0, 0, 0);
+                }
+            
+            } else { // Hovering
+                let closestBlob = null;
+                let minDistance = Infinity;
+                if(raycaster.ray.intersectPlane(dragPlane, intersectionPoint)){
+                    blobs.forEach(blob => {
+                        const distance = intersectionPoint.distanceTo(blob.position);
+                        if (distance < blob.radius && distance < minDistance) {
+                            minDistance = distance;
+                            closestBlob = blob;
+                        }
+                    });
+                }
+                
+                if (hoverBlob !== closestBlob) {
+                    hoverBlob = closestBlob;
+                    if (hoverBlob) {
+                        displayAssetInfo(hoverBlob, x, y);
+                    } else {
+                        assetInfoEl.classList.remove('visible');
+                    }
+                }
+            }
+        }
+        
+        function onPointerDown(event) {
+            const x = event.clientX || event.touches[0].clientX;
+            const y = event.clientY || event.touches[0].clientY;
+            updateMousePosition(x,y);
+
+            if (hoverBlob) {
+                selectedBlob = hoverBlob;
+                if(audioReady) synth.triggerAttackRelease("C2", "8n");
+            }
+        }
+        
+        function onPointerUp() {
+            if(selectedBlob && audioReady) {
+                 const releaseVelocity = selectedBlob.position.clone().sub(intersectionPoint).multiplyScalar(-0.1);
+                 selectedBlob.velocity.copy(releaseVelocity);
+            }
+            selectedBlob = null;
+        }
+        
+        function displayAssetInfo(blob, x, y) {
+            const a = blob.asset;
+            assetInfoEl.innerHTML = `
+                <div><span class="label">ASSET_ID:</span> <span class="value" style="color:${getComputedStyle(document.documentElement).getPropertyValue('--'+a.id.toLowerCase()+'-color')}">${a.id}</span></div>
+                <div><span class="label">ALLOCATION:</span> <span class="value">${a.allocation.toFixed(2)}%</span></div>
+                <div><span class="label">VALUE_EUR:</span> <span class="value">${a.value_eur.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })}</span></div>
+                <div class="apy-info">
+                  <div><span class="label">Supply APY:</span> <span class="value">${a.supplyAPY}%</span></div>
+                  <div><span class="label">Borrow APY:</span> <span class="value">${a.borrowAPY}%</span></div>
+                </div>
+            `;
+            assetInfoEl.classList.add('visible');
+
+            const rect = assetInfoEl.getBoundingClientRect();
+            let newX = x + 20;
+            let newY = y + 20;
+            if (newX + rect.width > window.innerWidth) newX = x - rect.width - 20;
+            if (newY + rect.height > window.innerHeight) newY = y - rect.height - 20;
+            assetInfoEl.style.left = `${newX}px`;
+            assetInfoEl.style.top = `${newY}px`;
+        }
+
+        // --- MAIN LOOP ---
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            
+            // Update blobs if not being dragged
+            if(!selectedBlob) {
+              for (let i = 0; i < blobs.length; i++) {
+                for (let j = i + 1; j < blobs.length; j++) {
+                    const blobA = blobs[i];
+                    const blobB = blobs[j];
+                    const distanceVec = blobB.position.clone().sub(blobA.position);
+                    const distance = distanceVec.length();
+                    const totalRadius = blobA.radius + blobB.radius;
+
+                        if (distance < totalRadius) {
+                            const overlap = totalRadius - distance;
+                            // Reduced the multiplier from 0.5 to 0.1 for a much weaker push
+                            const pushVec = distanceVec.normalize().multiplyScalar(overlap * 0.1); 
+                            blobA.position.sub(pushVec);
+                            blobB.position.add(pushVec);
+                        }
+                }
+              }
+            }
+
+            blobs.forEach(blob => {
+              if (blob !== selectedBlob) {
+                blob.update(delta);
+              }
+            });
+
+            // Update uniforms for metaball shader
+            const blobData = [];
+            const colorData = [];
+            blobs.forEach(blob => {
+                 const screenPos = blob.position.clone().project(camera);
+                 const x = (screenPos.x * 0.5 + 0.5) * window.innerWidth;
+                 const y = (screenPos.y * 0.5 + 0.5) * window.innerHeight;
+                 const projectedRadius = (blob.radius / blob.position.clone().sub(camera.position).length()) * window.innerHeight * 0.2; // Approximate screen radius
+
+                 blobData.push(new THREE.Vector4(x, y, projectedRadius, 0));
+                 colorData.push(blob.asset.color);
+            });
+            screenQuad.material.uniforms.u_blobs.value = blobData;
+            screenQuad.material.uniforms.u_colors.value = colorData;
+
+            // 1. Render background to texture
+            renderer.setRenderTarget(backgroundRenderTarget);
+            renderer.render(scene, camera);
+
+            // 2. Render metaballs to screen
+            renderer.setRenderTarget(null);
+            renderer.render(postProcScene, postProcCamera);
+
+            // 3. Render labels
+            labelRenderer.render(scene, camera);
+        }
+
+        // --- INITIALIZATION ---
+        function init() {
+            assets.forEach(asset => blobs.push(new Blob(asset, scene)));
+            
+            window.addEventListener('resize', onWindowResize, false);
+            window.addEventListener('pointermove', onPointerMove);
+            window.addEventListener('pointerdown', onPointerDown);
+            window.addEventListener('pointerup', onPointerUp);
+            animate();
+        }
+
+        function onWindowResize() {
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+
+            renderer.setSize(width, height);
+            labelRenderer.setSize(width, height);
+            backgroundRenderTarget.setSize(width, height);
+            screenQuad.material.uniforms.u_resolution.value.set(width,height);
+        }
+
+        init();
+    </script>
+</body>
+</html>
+

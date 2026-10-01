@@ -1,91 +1,44 @@
 "use client"
 
-import { useState, useEffect, useRef, useMemo } from "react"
+import { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { useMobile } from "@/hooks/use-mobile"
 import { useReducedMotion } from "@/lib/use-reduced-motion"
 import { cn } from "@/lib/utils"
 import {
   ArrowRight,
-  BarChart3,
-  Lock,
-  Wallet,
   Coins,
-  ArrowUpDown,
-  Shield,
   Globe,
   Users,
-  ExternalLink,
 } from "lucide-react"
 import { useTheme } from "next-themes"
-import { SubscribePopup } from "@/components/SubscribePopup"
+import { CookieConsentBanner } from "@/components/CookieConsentBanner"
 
-// Interactive 3D card component with performance optimizations
-const InteractiveCard = ({ children, className }) => {
-  const { isLowPerfDevice } = useReducedMotion()
-  const cardRef = useRef(null)
-  const [rotateX, setRotateX] = useState(0)
-  const [rotateY, setRotateY] = useState(0)
-  const [scale, setScale] = useState(1)
+import { HeroLiveRates } from "@/components/landing/HeroLiveRates"
+import { trackCta } from "@/lib/analytics/cta"
+import { FeaturesSection } from "@/components/landing/FeaturesSection"
+import { HowItWorksSection } from "@/components/landing/HowItWorksSection"
+import { TrustAndSecuritySection } from "@/components/landing/TrustAndSecuritySection"
+import { AwardsSection } from "@/components/landing/AwardsSection"
+import { CTASection } from "@/components/landing/CTASection"
+import { PartnersSection } from "@/components/landing/PartnersSection"
+import { CubeAnimation } from "@/components/landing/CubeAnimation"
+import { FloatingElement } from "@/components/shared/FloatingElement"
+import { ErrorBoundary } from "@/components/ErrorBoundary"
+import StructuredData from "@/components/StructuredData"
 
-  // Skip 3D effects on low performance devices
-  if (isLowPerfDevice) {
-    return (
-      <div className={cn("relative overflow-hidden transition-all duration-200", className)}>
-        <div className="relative z-10">{children}</div>
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"></div>
-      </div>
-    )
-  }
-
-  const handleMouseMove = (e) => {
-    if (!cardRef.current) return
-    const card = cardRef.current
-    const rect = card.getBoundingClientRect()
-    const centerX = rect.left + rect.width / 2
-    const centerY = rect.top + rect.height / 2
-    const posX = e.clientX - centerX
-    const posY = e.clientY - centerY
-
-    // Calculate rotation based on mouse position
-    const rotateXValue = (posY / (rect.height / 2)) * -5
-    const rotateYValue = (posX / (rect.width / 2)) * 5
-
-    setRotateX(rotateXValue)
-    setRotateY(rotateYValue)
-    setScale(1.02)
-  }
-
-  const handleMouseLeave = () => {
-    setRotateX(0)
-    setRotateY(0)
-    setScale(1)
-  }
-
-  return (
-    <motion.div
-      ref={cardRef}
-      className={cn("relative overflow-hidden transition-all duration-200", className)}
-      style={{
-        transformStyle: "preserve-3d",
-        transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(${scale})`,
-      }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
-      <div className="relative z-10">{children}</div>
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-0"></div>
-    </motion.div>
-  )
-}
 
 // Optimized parallax text effect
-const ParallaxText = ({ children, baseVelocity = 100 }) => {
+const ParallaxText = ({ 
+  children, 
+  baseVelocity = 100 
+}: { 
+  children: React.ReactNode; 
+  baseVelocity?: number;
+}) => {
   const { isLowPerfDevice } = useReducedMotion()
   const baseX = useMotionValue(0)
   const { scrollY } = useScroll()
@@ -116,12 +69,12 @@ const ParallaxText = ({ children, baseVelocity = 100 }) => {
 
   // Create a more robust animation with Framer Motion
   const [contentWidth, setContentWidth] = useState(0)
-  const containerRef = useRef(null)
+  const containerRef = useRef<HTMLDivElement>(null)
   
   useEffect(() => {
     if (containerRef.current) {
       // Measure the width of one copy of the content
-      const firstChild = containerRef.current.firstChild
+      const firstChild = containerRef.current.firstChild as HTMLElement
       if (firstChild) {
         setContentWidth(firstChild.offsetWidth)
       }
@@ -130,7 +83,7 @@ const ParallaxText = ({ children, baseVelocity = 100 }) => {
 
   useEffect(() => {
     let prevT = 0
-    let ticker = null
+    let ticker: number | null = null
 
     // Initialize starting point based on direction
     if (direction > 0) {
@@ -138,7 +91,7 @@ const ParallaxText = ({ children, baseVelocity = 100 }) => {
       baseX.set(-contentWidth)
     }
 
-    const tick = (t) => {
+    const tick = (t: number) => {
       if (prevT) {
         const delta = (t - prevT) / 1000
         let newX = baseX.get() + delta * velocity.get()
@@ -194,51 +147,56 @@ const ParallaxText = ({ children, baseVelocity = 100 }) => {
 }
 
 // Optimized 3D isomorphic text component
-const IsomorphicText = ({ text, className }) => {
+const IsomorphicText = ({ 
+  text, 
+  className 
+}: { 
+  text: string; 
+  className?: string; 
+}) => {
   const { isLowPerfDevice } = useReducedMotion()
   const isMobile = useMobile()
-  const letters = text.split("")
 
   // For low performance devices, render static text
   if (isLowPerfDevice) {
     return <div className={cn("relative", className)}>{text}</div>
   }
 
+  const letters = text.split("")
+
+  // CSS animation instead of Framer Motion: the resting state is the *base*
+  // style, so if the animation never runs (backgrounded tab on load, bfcache
+  // restore, reduced motion) the headline is still readable instead of stuck
+  // at its invisible start frame.
   return (
     <div className={cn("relative", className)}>
-      {letters.map((letter, index) => (
-        <motion.span
+      {letters.map((letter: string, index: number) => (
+        <span
           key={index}
-          className="inline-block relative"
-          initial={{ opacity: 0, y: 20, rotateX: -30 }}
-          animate={{
-            opacity: 1,
-            y: 0,
-            rotateX: 0,
-            transition: {
-              duration: 0.8,
-              delay: 0.05 * index,
-              ease: [0.215, 0.61, 0.355, 1],
-            },
-          }}
+          className="iso-letter"
           style={{
+            animationDelay: `${0.05 * index}s`,
             textShadow: !isMobile ? `0px 10px 20px rgba(0, 0, 0, 0.2)` : "none",
-            transform: "preserve-3d", // Changed from transformStyle
-            transformOrigin: "center bottom",
           }}
         >
           {letter === " " ? "\u00A0" : letter}
-        </motion.span>
+        </span>
       ))}
     </div>
   )
 }
 
 // Simplified magnetic button effect
-const MagneticButton = ({ children, className, ...props }) => {
+interface MagneticButtonProps {
+  children: React.ReactNode;
+  className?: string;
+  [key: string]: any;
+}
+
+const MagneticButton = ({ children, className = "", ...props }: MagneticButtonProps) => {
   const { isLowPerfDevice } = useReducedMotion()
 
-  // Skip animation on low performance devices
+  // Skip animation on low performance devices only
   if (isLowPerfDevice) {
     return (
       <div className={cn("relative", className)} {...props}>
@@ -256,75 +214,27 @@ const MagneticButton = ({ children, className, ...props }) => {
     >
       {children}
       <motion.div
-        className="absolute -inset-4 pointer-events-none"
+        className="absolute -inset-2 pointer-events-none"
         style={{
-          background: "radial-gradient(circle, rgba(127, 183, 113, 0.15) 0%, rgba(127, 183, 113, 0) 50%)",
+          background: `radial-gradient(circle, hsl(var(--primary) / 0.08) 0%, hsl(var(--primary) / 0) 60%)`,
           borderRadius: "50%",
           opacity: 0,
         }}
         whileHover={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.3 }}
       />
     </motion.div>
   )
 }
 
 // Optimized feature card
-const FeatureCard = ({ icon: Icon, title, description, delay = 0 }) => {
-  const { isLowPerfDevice } = useReducedMotion()
-
-  // Simplified version for low performance devices
-  if (isLowPerfDevice) {
-    return (
-      <div className="bg-card border-border/50 h-full group rounded-xl p-6">
-        <div className="relative mb-4">
-          <div className="relative z-10 h-12 w-12 text-primary flex items-center justify-center">
-            <Icon className="h-8 w-8" />
-          </div>
-        </div>
-        <h3 className="text-xl font-bold mb-2">{title}</h3>
-        <p className="text-text/70">{description}</p>
-      </div>
-    )
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-100px" }}
-      transition={{ duration: 0.5, delay }}
-    >
-      <InteractiveCard className="bg-card border-border/50 h-full group">
-        <CardHeader>
-          <div className="relative mb-4">
-            <motion.div
-              className="absolute inset-0 bg-primary/20 rounded-full blur-xl"
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.5, 0.8, 0.5],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Number.POSITIVE_INFINITY,
-                repeatType: "reverse",
-              }}
-            />
-            <motion.div
-              className="relative z-10 h-12 w-12 text-primary flex items-center justify-center"
-              whileHover={{ rotate: 5, scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            >
-              <Icon className="h-8 w-8" />
-            </motion.div>
-          </div>
-          <CardTitle className="text-xl">{title}</CardTitle>
-          <CardDescription className="text-text/70">{description}</CardDescription>
-        </CardHeader>
-      </InteractiveCard>
-    </motion.div>
-  )
+interface FeatureCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  delay?: number;
 }
+
 
 // Optimized scroll indicator
 const ScrollIndicator = () => {
@@ -359,36 +269,15 @@ const ScrollIndicator = () => {
   )
 }
 
-// Optimized floating elements animation
-const FloatingElement = ({ children, xOffset = 0, yOffset = 0, duration = 3 }) => {
-  const { isLowPerfDevice } = useReducedMotion()
-
-  // Skip animation on low performance devices
-  if (isLowPerfDevice) {
-    return <div style={{ transform: `translate(${xOffset}px, ${yOffset}px)` }}>{children}</div>
-  }
-
-  return (
-    <motion.div
-      animate={{
-        y: [yOffset, yOffset - 15, yOffset],
-        x: [xOffset, xOffset + 5, xOffset],
-        rotate: [0, 2, 0],
-      }}
-      transition={{
-        duration,
-        repeat: Number.POSITIVE_INFINITY,
-        repeatType: "reverse",
-        ease: "easeInOut",
-      }}
-    >
-      {children}
-    </motion.div>
-  )
-}
 
 // Optimized animated value visualization component
-const AnimatedValueVisualization = ({ value, icon, description }) => {
+interface AnimatedValueVisualizationProps {
+  value: string;
+  icon: string;
+  description: string;
+}
+
+const AnimatedValueVisualization = ({ value, icon, description }: AnimatedValueVisualizationProps) => {
   const [isHovered, setIsHovered] = useState(false)
   const isMobile = useMobile()
   const { isLowPerfDevice } = useReducedMotion()
@@ -430,7 +319,7 @@ const AnimatedValueVisualization = ({ value, icon, description }) => {
                   initial={{ height: 0 }}
                   animate={{
                     height: [`${Math.random() * 40 + 20}%`, `${Math.random() * 40 + 40}%`],
-                    backgroundColor: isHovered ? "rgba(127, 183, 113, 0.4)" : "rgba(127, 183, 113, 0.2)",
+                    backgroundColor: isHovered ? "hsl(var(--primary) / 0.4)" : "hsl(var(--primary) / 0.2)",
                   }}
                   transition={{
                     duration: 2,
@@ -515,7 +404,7 @@ const AnimatedValueVisualization = ({ value, icon, description }) => {
               <div className="relative w-full h-full flex items-center justify-center">
                 {[...Array(8)].map((_, i) => {
                   const angle = (i / 8) * Math.PI * 2
-                  const radius = isMobile ? 30 : 40
+                  const radius = isMobile ? 25 : 40
                   const x = Math.cos(angle) * radius
                   const y = Math.sin(angle) * radius
 
@@ -562,7 +451,7 @@ const AnimatedValueVisualization = ({ value, icon, description }) => {
                 <svg className="absolute inset-0 w-full h-full" style={{ overflow: "visible" }}>
                   {[...Array(8)].map((_, i) => {
                     const angle = (i / 8) * Math.PI * 2
-                    const radius = isMobile ? 30 : 40
+                    const radius = isMobile ? 25 : 40
                     const x = Math.cos(angle) * radius
                     const y = Math.sin(angle) * radius
 
@@ -573,7 +462,7 @@ const AnimatedValueVisualization = ({ value, icon, description }) => {
                         y1="0"
                         x2={x}
                         y2={y}
-                        stroke="rgba(127, 183, 113, 0.3)"
+                        stroke="hsl(var(--primary) / 0.3)"
                         strokeWidth="1"
                         initial={{ pathLength: 0, opacity: 0 }}
                         animate={{
@@ -703,7 +592,15 @@ const AnimatedValueVisualization = ({ value, icon, description }) => {
 }
 
 // Optimized donut chart
-const DonutChart = ({ value, max = 100, size = 120, strokeWidth = 10, color = "var(--primary)" }) => {
+interface DonutChartProps {
+  value: number;
+  max?: number;
+  size?: number;
+  strokeWidth?: number;
+  color?: string;
+}
+
+const DonutChart = ({ value, max = 100, size = 120, strokeWidth = 10, color = "var(--primary)" }: DonutChartProps) => {
   const { isLowPerfDevice } = useReducedMotion()
   const percentage = (value / max) * 100
   const radius = (size - strokeWidth) / 2
@@ -711,10 +608,10 @@ const DonutChart = ({ value, max = 100, size = 120, strokeWidth = 10, color = "v
   const strokeDashoffset = circumference - (percentage / 100) * circumference
 
   const [displayPercentage, setDisplayPercentage] = useState(0)
-  const [isAnimating, setIsAnimating] = useState(false) // Add a state to track animation
+  const [isAnimating, setIsAnimating] = useState(false) 
 
   // Use a ref to track the animation frame ID
-  const animationFrameIdRef = useRef(null)
+  const animationFrameIdRef = useRef<number | null>(null)
 
   useEffect(() => {
     // Skip animation on low performance devices
@@ -791,7 +688,12 @@ const DonutChart = ({ value, max = 100, size = 120, strokeWidth = 10, color = "v
 }
 
 // Token component with optimized hover effect
-const TokenIcon = ({ name, image }) => {
+interface TokenIconProps {
+  name: string;
+  image: string;
+}
+
+const TokenIcon = ({ name, image }: TokenIconProps) => {
   const { isLowPerfDevice } = useReducedMotion()
 
   if (isLowPerfDevice) {
@@ -809,7 +711,7 @@ const TokenIcon = ({ name, image }) => {
     <div className="flex items-center space-x-3">
       <motion.div
         className="w-8 h-8 rounded-full bg-card/80 backdrop-blur-sm flex items-center justify-center p-1 shadow-sm"
-        whileHover={{ scale: 1.2, boxShadow: "0 0 8px rgba(127, 183, 113, 0.6)" }}
+        whileHover={{ scale: 1.2, boxShadow: "0 0 8px hsl(var(--primary) / 0.6)" }}
         transition={{ type: "spring", stiffness: 400, damping: 10 }}
       >
         <Image src={image || "/placeholder.svg"} width={24} height={24} alt={name} className="object-contain" />
@@ -819,27 +721,89 @@ const TokenIcon = ({ name, image }) => {
   )
 }
 
+
 export default function Home() {
-  const { scrollYProgress } = useScroll()
-  const isMobile = useMobile()
-  const { isLowPerfDevice, prefersReducedMotion } = useReducedMotion()
+  const { resolvedTheme } = useTheme();
+  const isMobile = useMobile();
+  const { isLowPerfDevice, prefersReducedMotion } = useReducedMotion(); 
+  const [showPopup, setShowPopup] = useState(false); 
   const heroRef = useRef(null)
-  const { theme } = useTheme()
+
+  // Global error handler for unhandled errors
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('[LandingPage] Unhandled error:', {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        error: event.error,
+        stack: event.error?.stack,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+        timestamp: new Date().toISOString(),
+      })
+    }
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('[LandingPage] Unhandled promise rejection:', {
+        reason: event.reason,
+        stack: event.reason?.stack,
+        userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+        timestamp: new Date().toISOString(),
+      })
+    }
+
+    window.addEventListener('error', handleError)
+    window.addEventListener('unhandledrejection', handleUnhandledRejection)
+
+    // Log page load info
+    console.log('[LandingPage] Page loaded', {
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
+      viewport: {
+        width: typeof window !== 'undefined' ? window.innerWidth : 0,
+        height: typeof window !== 'undefined' ? window.innerHeight : 0,
+      },
+      hasIntersectionObserver: typeof window !== 'undefined' && typeof window.IntersectionObserver !== 'undefined',
+      isLowPerfDevice,
+      prefersReducedMotion,
+    })
+
+    return () => {
+      window.removeEventListener('error', handleError)
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection)
+    }
+  }, [isLowPerfDevice, prefersReducedMotion])
+
+  // Existing useEffect for popup
+  useEffect(() => {
+    const timer = setTimeout(() => setShowPopup(true), 15000);
+    return () => clearTimeout(timer);
+  }, []);
+
+
 
   // Memoize token data to prevent unnecessary re-renders
   const tokenRow1 = useMemo(
     () => [
       { name: "Ethereum", image: "/tokenimages/eth.png" },
+      { name: "Stellar", image: "/tokenimages/stellar.png" },
       { name: "Polygon", image: "/tokenimages/matic.png" },
       { name: "Avalanche", image: "/tokenimages/avax.png" },
+      { name: "Monad", image: "/tokenimages/app/Monad-Logo.svg" },
+      { name: "Somnia", image: "/tokenimages/app/somnia_logo_color.jpg" },
+      { name: "BNB Chain", image: "/tokenimages/app/bnb-logo.svg" },
+      { name: "Arbitrum", image: "/tokenimages/arb.png" },
+      { name: "Base", image: "/tokenimages/app/base-logo.svg" },
       { name: "Solana", image: "/tokenimages/sol.png" },
       { name: "Chainlink", image: "/tokenimages/link.png" },
+      { name: "USDC", image: "/tokenimages/usdc.png" },
     ],
     [],
   )
 
   const tokenRow2 = useMemo(
     () => [
+      { name: "Stellar", image: "/tokenimages/stellar.png" },
       { name: "Arbitrum", image: "/tokenimages/arb.png" },
       { name: "Cosmos", image: "/tokenimages/cosm.png" },
       { name: "USDC", image: "/tokenimages/usdc.png" },
@@ -849,90 +813,22 @@ export default function Home() {
     [],
   )
 
-  // Optimize mouse tracking for performance
-  const mouseX = useMotionValue(0)
-  const mouseY = useMotionValue(0)
 
-  // Parallax effect for hero section - disable on low performance devices
-  const heroY = useTransform(scrollYProgress, [0, 0.5], [0, isLowPerfDevice ? 0 : -150])
-  const heroOpacity = useTransform(scrollYProgress, [0, 0.25], [1, 0])
 
-  // Optimize mouse movement tracking
-  useEffect(() => {
-    // Define the handler outside of the conditional to avoid hook ordering issues
-    const handleMouseMove = (e) => {
-      const x = e.clientX / window.innerWidth
-      const y = e.clientY / window.innerHeight
-
-      // Update motion values directly instead of state
-      mouseX.set(x)
-      mouseY.set(y)
-    }
-
-    // Skip on low performance devices
-    if (isLowPerfDevice) {
-      return () => {} // Return an empty cleanup function
-    }
-
-    // Use a throttled function to reduce updates
-    let lastUpdateTime = 0
-    const THROTTLE_MS = 50 // Only update every 50ms
-
-    const throttledHandleMouseMove = (e) => {
-      const currentTime = Date.now()
-      if (currentTime - lastUpdateTime < THROTTLE_MS) return
-
-      lastUpdateTime = currentTime
-      handleMouseMove(e)
-    }
-
-    const addMouseMoveListener = () => {
-      window.addEventListener("mousemove", throttledHandleMouseMove)
-    }
-
-    const removeMouseMoveListener = () => {
-      window.removeEventListener("mousemove", throttledHandleMouseMove)
-    }
-
-    addMouseMoveListener()
-
-    return () => {
-      removeMouseMoveListener()
-    }
-  }, [mouseX, mouseY, isLowPerfDevice])
-
-  // Optimize background transform
-  const backgroundX = useTransform(mouseX, [0, 1], ["-2%", "2%"])
-  const backgroundY = useTransform(mouseY, [0, 1], ["-2%", "2%"])
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Subscribe Popup */}
-      <SubscribePopup />
-      
-      {/* Hero Section */}
-      <motion.section
-        ref={heroRef}
-        className="relative pt-28 md:pt-40 pb-20 md:pb-32 overflow-hidden"
-        style={{
-          y: heroY,
-          opacity: heroOpacity,
-        }}
-      >
-        {/* Dynamic background - simplified for mobile */}
-        {!isLowPerfDevice && (
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-accent/5 z-0"
-            style={{
-              x: backgroundX,
-              y: backgroundY,
-              scale: 1.1,
-            }}
-            transition={{ type: "spring", damping: 25, stiffness: 100 }}
-          />
-        )}
+    <ErrorBoundary>
+      <div className="flex flex-col min-h-screen">
+        <StructuredData />
+        {/* Cookie Consent Banner */}
+        <CookieConsentBanner />
 
-        {/* Floating elements - only on desktop */}
+      {/* Hero Section */}
+      <section
+        ref={heroRef}
+        className="relative pt-16 md:pt-20 pb-12 md:pb-20 overflow-hidden"
+      >
+        {/* Floating elements - CSS-based for better performance */}
         {!isLowPerfDevice && (
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <FloatingElement xOffset={100} yOffset={100} duration={4}>
@@ -952,64 +848,65 @@ export default function Home() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
-              {/* Animated subtitle */}
-              <motion.p
-                className="text-primary font-medium tracking-wider"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-              >
-                THE FUTURE OF DECENTRALIZED FINANCE
-              </motion.p>
+              {/* Category claim. Sits where the plain "Peridot Finance" kicker used
+                  to be — the brand name is already in the header and the logo, so
+                  this line carries the positioning instead of repeating it. */}
+              <p className="animate-fade-in-up-delay-0">
+                <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/5 px-3 py-1 text-sm font-medium tracking-wider text-primary">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
+                  The first DeFi broker
+                </span>
+              </p>
 
               {/* 3D Isomorphic title - Fixed to prevent word breaks */}
-              <div className="space-y-2">
-                <div className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight gradient-text whitespace-nowrap">
-                  <IsomorphicText text="Peridot" className="text-foreground" />{" "}
+              <h1 className="space-y-2 animate-fade-in-up-delay-0">
+                {/* No `gradient-text` here: its background-clip:text layer paints a
+                    second, green copy of the glyphs that can't follow the animated
+                    letters — it showed up as a ghost behind the headline. The letters
+                    carry their own color via `text-foreground`. */}
+                <div className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight whitespace-nowrap">
+                  <IsomorphicText text="NOW YOU CAN" className="text-foreground" />{" "}
                   {/* Changed from "Cross-Chain" to "Peridot" and fixed visibility */}
                 </div>
-                <div className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight whitespace-nowrap">
-                  <IsomorphicText text="Lend & Borrow Crypto" />
+                {/* One promise, not three. This line used to rotate through
+                    "Grow Your Money." / "Earn without selling." / "Use crypto
+                    like FIAT." on a 12-second loop, so the headline agreed with
+                    the button underneath it roughly a third of the time. Borrowing
+                    is also the claim no competitor on Stellar can make: Blend has
+                    no consumer surface, and Beans is deposit-only by design. */}
+                <div className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight whitespace-nowrap h-[1.2em] overflow-visible">
+                  <span className="cyber-typewriter-solo" style={{ ["--tw-chars" as any]: "21ch" }}>
+                    Earn without selling.
+                  </span>
                 </div>
-              </div>
+              </h1>
 
-              <motion.p
-                className="text-lg md:text-xl text-text/80 max-w-xl"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
+              <p
+                className="text-lg md:text-xl text-text/80 max-w-xl animate-fade-in-up-delay-400"
               >
-                Earn interest on your crypto and borrow funds without selling—all with smart, fair rates across multiple
-                blockchains.
-              </motion.p>
+                Borrow against the crypto you already hold instead of selling it — and keep earning on it while you do. No bank, no paperwork, and your assets never leave your hands.
+              </p>
 
-              <motion.div
-                className="flex flex-col sm:flex-row gap-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.6 }}
+              <HeroLiveRates />
+
+              <div
+                className="flex flex-col sm:flex-row gap-4 animate-fade-in-up-delay-600"
               >
                 <MagneticButton>
                   <Button
                     asChild
                     size="lg"
-                    className="bg-primary text-background hover:bg-primary/90 rounded-xl group relative overflow-hidden"
+                    className="bg-primary text-primary-foreground hover:bg-primary-foreground hover:text-primary border border-primary/20 hover:border-primary/40 rounded-2xl group relative transition-all duration-300 button-slide-effect"
                   >
-                    <Link href="/app" className="flex items-center">
-                      <span className="relative z-10">Launch App</span>
-                      <motion.div
-                        className="relative z-10 ml-2"
-                        animate={{ x: [0, 4, 0] }}
-                        transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
-                      >
+                    {/* "Launch App" named the software, not the thing the visitor
+                        came for, and pointed at /app — the Earn surface — even
+                        though the headline above it is about borrowing. This says
+                        what happens next and lands on the matching screen. */}
+                    <Link href="/app/borrow" className="flex items-center" onClick={() => trackCta("hero_primary", { to: "/app/borrow" })}>
+                      <span className="relative z-10">See what you can borrow</span>
+                      <div className="relative z-10 ml-2 animate-arrow-bounce">
                         <ArrowRight className="h-4 w-4" />
-                      </motion.div>
-                      <motion.div
-                        className="absolute inset-0 bg-primary-foreground/10"
-                        initial={{ x: "-100%" }}
-                        whileHover={{ x: "100%" }}
-                        transition={{ duration: 0.6 }}
-                      />
+                      </div>
                     </Link>
                   </Button>
                 </MagneticButton>
@@ -1019,111 +916,60 @@ export default function Home() {
                     asChild
                     size="lg"
                     variant="outline"
-                    className="border-primary/20 hover:border-primary/40 rounded-xl group"
+                    className="border-primary/20 hover:border-primary/40 hover:bg-primary/5 text-primary hover:text-primary rounded-2xl group transition-all duration-300"
                   >
-                    <Link href="/how-it-works" className="flex items-center">
-                      Learn More
-                      <motion.div
-                        animate={{
-                          x: [0, 5, 0],
-                          opacity: [1, 0.8, 1],
-                        }}
-                        transition={{
-                          duration: 1.5,
-                          repeat: Number.POSITIVE_INFINITY,
-                          repeatType: "reverse",
-                        }}
-                        className="ml-2"
-                      >
+                    <Link href="/app" className="flex items-center" onClick={() => trackCta("hero_secondary", { to: "/app" })}>
+                      Earn on savings
+                      <div className="ml-2 animate-arrow-bounce-opacity">
                         <ArrowRight className="h-4 w-4" />
-                      </motion.div>
+                      </div>
                     </Link>
                   </Button>
                 </MagneticButton>
-              </motion.div>
+              </div>
+
+              {/* The AI agent work is real and worth showing, but as a second
+                  destination beside the primary one it competed for the click and
+                  led out of the funnel entirely — /agents draws visitors and
+                  converts almost none. It keeps a line, not a button. */}
+              <p className="text-sm text-text/50 animate-fade-in-up-delay-600">
+                Building with agents?{" "}
+                <Link href="/agents" className="text-primary/80 underline underline-offset-2 hover:text-primary">
+                  Peridot has an MCP server and an open toolkit
+                </Link>
+                .
+              </p>
             </div>
 
-            {/* Only render the animated 3D tile section on desktop */}
-            {!isMobile && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                className="relative"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-2xl blur-3xl opacity-30"></div>
-                <InteractiveCard className="relative bg-card/80 backdrop-blur-sm border border-border/50 rounded-2xl p-6 shadow-2xl">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <motion.div
-                      className="relative overflow-hidden rounded-xl"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <div className="p-4">
-                        <p className="text-sm text-primary font-medium mb-2">Total Value Locked</p>
-                        <AnimatedValueVisualization value="$1.2B+" icon="tvl" description="Across all supported chains" />
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      className="relative overflow-hidden rounded-xl"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <div className="p-4">
-                        <p className="text-sm text-primary font-medium mb-2">Total Users</p>
-                        <AnimatedValueVisualization value="125K+" icon="users" description="Active platform users" />
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      className="relative overflow-hidden rounded-xl"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <div className="p-4">
-                        <p className="text-sm text-primary font-medium mb-2">Supported Chains</p>
-                        <AnimatedValueVisualization value="8+" icon="chains" description="Cross-chain compatibility" />
-                      </div>
-                    </motion.div>
-
-                    <motion.div
-                      className="relative overflow-hidden rounded-xl"
-                      whileHover={{ scale: 1.02 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
-                    >
-                      <div className="p-4">
-                        <p className="text-sm text-primary font-medium mb-2">Interest Earned</p>
-                        <AnimatedValueVisualization value="$45M+" icon="interest" description="Total user earnings" />
-                      </div>
-                    </motion.div>
-                  </div>
-
-                  {/* Animated decorative elements - simplified for mobile */}
-                  {!isLowPerfDevice && (
-                    <>
-                      <div className="absolute -top-6 -right-6 w-12 h-12 bg-primary/20 rounded-full blur-xl animate-pulse" />
-                      <div className="absolute -bottom-8 -left-8 w-16 h-16 bg-accent/20 rounded-full blur-xl animate-pulse" />
-                    </>
-                  )}
-                </InteractiveCard>
-              </motion.div>
-            )}
           </div>
 
-          {!isLowPerfDevice && <ScrollIndicator />}
+          {/* Cube Animation - Right Side */}
+          {/* Temporarily hidden for now — $P glyph cube. */}
+          {/* <CubeAnimation /> */}
+
+          {!isLowPerfDevice && !isMobile && <ScrollIndicator />}
         </div>
-      </motion.section>
+      </section>
+
+      {/* Partners marquee */}
+      <PartnersSection />
+
+      {/* Rest of the page content - optimized for performance */}
+      {/* Features Section */}
+      <FeaturesSection />
 
       {/* Animated marquee section - optimized for mobile */}
-      <motion.section
-        className="py-4 bg-muted/50 overflow-hidden"
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.8 }}
+      <section
+        className="py-6 relative overflow-hidden border-y border-white/10 dark:border-white/5"
+        style={{
+          background: 'linear-gradient(90deg, rgba(94,121,69,0.05), rgba(99,102,241,0.05))',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)'
+        }}
       >
-        <div className="space-y-6">
+        <div className="absolute inset-0 pointer-events-none bg-white/40 dark:bg-black/20" />
+
+        <div className="space-y-6 relative z-10">
           {/* Use CSS animation for low performance devices */}
           {isLowPerfDevice ? (
             <div className="overflow-hidden">
@@ -1146,630 +992,22 @@ export default function Home() {
             </ParallaxText>
           )}
 
-          {isLowPerfDevice ? (
-            <div className="overflow-hidden">
-              <div className="flex items-center space-x-12 animate-marquee-reverse">
-                {tokenRow2.map((token) => (
-                  <TokenIcon key={token.name} name={token.name} image={token.image} />
-                ))}
-                {tokenRow2.map((token) => (
-                  <TokenIcon key={`repeat-${token.name}`} name={token.name} image={token.image} />
-                ))}
-              </div>
-            </div>
-          ) : (
-            <ParallaxText baseVelocity={15}>
-              <div className="flex items-center space-x-12">
-                {tokenRow2.map((token) => (
-                  <TokenIcon key={token.name} name={token.name} image={token.image} />
-                ))}
-              </div>
-            </ParallaxText>
-          )}
-        </div>
-      </motion.section>
-
-      {/* Rest of the page content - optimized for performance */}
-      {/* Features Section */}
-      <section className="py-20 bg-background relative overflow-hidden">
-        {/* Content remains the same but with optimized components */}
-        {/* ... */}
-        <div className="absolute inset-0 pointer-events-none">
-          <FloatingElement xOffset={-100} yOffset={100} duration={7}>
-            <div className="w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl absolute -left-64 top-1/4" />
-          </FloatingElement>
-          <FloatingElement xOffset={100} yOffset={-50} duration={8}>
-            <div className="w-[600px] h-[600px] rounded-full bg-accent/5 blur-3xl absolute -right-96 bottom-0" />
-          </FloatingElement>
-        </div>
-
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            className="text-center max-w-3xl mx-auto mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-          >
-            <motion.h2
-              className="text-3xl font-bold mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              Why Choose <span className="gradient-text">Peridot</span>?
-            </motion.h2>
-            <motion.p
-              className="text-text/70"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              Our platform offers unique advantages for both lenders and borrowers in the DeFi ecosystem.
-            </motion.p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <FeatureCard
-              icon={Coins}
-              title="Get Liquidity Without Selling"
-              description="Borrow cash or stablecoins while still holding your crypto."
-              delay={0.1}
-            />
-
-            <FeatureCard
-              icon={ArrowUpDown}
-              title="Earn Interest on Idle Assets"
-              description="Put your crypto to work and earn money on assets you're just holding."
-              delay={0.2}
-            />
-
-            <FeatureCard
-              icon={Lock}
-              title="Trustless and Transparent"
-              description="No middleman; everything runs on smart contracts you can check on-chain."
-              delay={0.3}
-            />
-
-            <FeatureCard
-              icon={BarChart3}
-              title="Instant Access to Funds"
-              description="Quickly get the cash you need without long waits or paperwork."
-              delay={0.4}
-            />
-
-            <FeatureCard
-              icon={Shield}
-              title="Market-Driven Rates"
-              description="Interest rates adjust automatically based on demand, keeping things fair."
-              delay={0.5}
-            />
-
-            <FeatureCard
-              icon={Wallet}
-              title="Secure Borrowing"
-              description="Your loans are backed by collateral, reducing risk for both you and the system."
-              delay={0.6}
-            />
-
-            <FeatureCard
-              icon={Globe}
-              title="Open Ecosystem"
-              description="Anyone can join without permission, and the platform works well with other dApps."
-              delay={0.7}
-            />
-
-            <FeatureCard
-              icon={Users}
-              title="Community Governance"
-              description="Over time, you can help decide how the platform evolves through decentralized governance."
-              delay={0.8}
-            />
-          </div>
         </div>
       </section>
 
       {/* How It Works Section */}
-      <section className="py-20 bg-muted relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <FloatingElement xOffset={50} yOffset={-50} duration={6}>
-            <div className="w-[400px] h-[400px] rounded-full bg-primary/5 blur-3xl absolute right-0 top-0" />
-          </FloatingElement>
-        </div>
+      <HowItWorksSection />
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            className="text-center max-w-3xl mx-auto mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-          >
-            <motion.h2
-              className="text-3xl font-bold mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              How <span className="gradient-text">Peridot</span> Works
-            </motion.h2>
-            <motion.p
-              className="text-text/70"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              Our platform creates efficient money markets for crypto assets with algorithmically determined interest
-              rates.
-            </motion.p>
-          </motion.div>
+      {/* Trust & Security Section */}
+      <TrustAndSecuritySection />
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <motion.div
-              className="bg-card border border-border/50 rounded-xl p-6 relative"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6 }}
-              whileHover={{ y: -5 }}
-            >
-              <div className="absolute -top-6 -left-6 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-background font-bold text-xl shadow-lg">
-                <motion.span
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY }}
-                >
-                  1
-                </motion.span>
-              </div>
-              <motion.div
-                className="absolute -z-10 inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-xl opacity-0"
-                whileHover={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              />
-              <h3 className="text-xl font-bold mb-4 mt-2">Supply Assets</h3>
-              <p className="text-text/70 mb-4">Deposit your crypto to start earning interest.</p>
-              <ul className="space-y-3 text-sm text-text/70">
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.1 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Receive tokens (cTokens) that show your deposit</span>
-                </motion.li>
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.2 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Your balance automatically grows with interest</span>
-                </motion.li>
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.3 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Withdraw your crypto whenever you want—no waiting period</span>
-                </motion.li>
-              </ul>
-            </motion.div>
-
-            <motion.div
-              className="bg-card border border-border/50 rounded-xl p-6 relative"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              whileHover={{ y: -5 }}
-            >
-              <div className="absolute -top-6 -left-6 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-background font-bold text-xl shadow-lg">
-                <motion.span
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: 0.3 }}
-                >
-                  2
-                </motion.span>
-              </div>
-              <motion.div
-                className="absolute -z-10 inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-xl opacity-0"
-                whileHover={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              />
-              <h3 className="text-xl font-bold mb-4 mt-2">Collateralize</h3>
-              <p className="text-text/70 mb-4">
-                Your deposited crypto acts as collateral, letting you borrow other assets.
-              </p>
-              <ul className="space-y-3 text-sm text-text/70">
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.3 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Each asset has a limit on how much you can borrow</span>
-                </motion.li>
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.4 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Keep a healthy balance so you don't risk liquidation</span>
-                </motion.li>
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.5 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Supports collateral from different blockchains for extra flexibility</span>
-                </motion.li>
-              </ul>
-            </motion.div>
-
-            <motion.div
-              className="bg-card border border-border/50 rounded-xl p-6 relative"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              whileHover={{ y: -5 }}
-            >
-              <div className="absolute -top-6 -left-6 w-12 h-12 rounded-full bg-primary flex items-center justify-center text-background font-bold text-xl shadow-lg">
-                <motion.span
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 2, repeat: Number.POSITIVE_INFINITY, delay: 0.6 }}
-                >
-                  3
-                </motion.span>
-              </div>
-              <motion.div
-                className="absolute -z-10 inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-xl opacity-0"
-                whileHover={{ opacity: 1 }}
-                transition={{ duration: 0.3 }}
-              />
-              <h3 className="text-xl font-bold mb-4 mt-2">Borrow Assets</h3>
-              <p className="text-text/70 mb-4">
-                Borrow up to your allowed limit based on the value of your collateral.
-              </p>
-              <ul className="space-y-3 text-sm text-text/70">
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.5 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>Borrow up to your allowed limit based on collateral value</span>
-                </motion.li>
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.6 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>The interest rate you pay changes automatically with market demand</span>
-                </motion.li>
-                <motion.li
-                  className="flex items-start"
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: 0.7 }}
-                >
-                  <div className="mr-2 mt-1 bg-primary/20 p-1 rounded-full">
-                    <ArrowRight className="h-3 w-3 text-primary" />
-                  </div>
-                  <span>You can repay your loan at any time, including the accrued interest</span>
-                </motion.li>
-              </ul>
-            </motion.div>
-          </div>
-
-          <motion.div
-            className="text-center mt-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.6 }}
-          >
-            <MagneticButton>
-              <Button
-                asChild
-                size="lg"
-                className="bg-primary text-background hover:bg-primary/90 rounded-xl group relative overflow-hidden"
-              >
-                <Link href="/how-it-works" className="flex items-center">
-                  Learn More About Our Protocol
-                  <motion.div
-                    className="ml-2"
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                  </motion.div>
-                </Link>
-              </Button>
-            </MagneticButton>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="py-20 bg-background relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <FloatingElement xOffset={-50} yOffset={100} duration={8}>
-            <div className="w-[400px] h-[400px] rounded-full bg-primary/5 blur-3xl absolute left-0 bottom-0" />
-          </FloatingElement>
-        </div>
-
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            className="text-center max-w-3xl mx-auto mb-16"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-          >
-            <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-            <p className="text-text/70">Find answers to common questions about Peridot and how to use our platform.</p>
-          </motion.div>
-
-          <motion.div
-            className="max-w-3xl mx-auto"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <Accordion type="single" collapsible className="space-y-4">
-              <AccordionItem value="item-1" className="bg-card border border-border/50 rounded-xl px-6 overflow-hidden">
-                <AccordionTrigger className="text-lg font-medium py-4 group">
-                  <span>What is Peridot?</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-text/80 pb-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    Peridot is a decentralized cross-chain lending and borrowing platform that enables users to earn
-                    interest on their crypto assets and borrow against their collateral. The platform uses algorithmic
-                    interest rates based on supply and demand to create efficient money markets for various crypto
-                    assets across multiple blockchains.
-                  </motion.div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-2" className="bg-card border border-border/50 rounded-xl px-6 overflow-hidden">
-                <AccordionTrigger className="text-lg font-medium py-4 group">
-                  <span>How do I start using Peridot?</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-text/80 pb-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    To start using Peridot, you need to connect your wallet (such as MetaMask, Phantom, or other
-                    supported wallets) to our platform. Once connected, you can supply assets to earn interest or borrow
-                    against your collateral. Visit our "Launch App" page and click on "Connect Wallet" to get started.
-                  </motion.div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-3" className="bg-card border border-border/50 rounded-xl px-6 overflow-hidden">
-                <AccordionTrigger className="text-lg font-medium py-4 group">
-                  <span>What blockchains does Peridot support?</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-text/80 pb-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    Peridot currently supports Ethereum, Polygon, Avalanche, Binance Smart Chain, Arbitrum, Optimism,
-                    Solana, and more. We're continuously working to add support for additional blockchains to enhance
-                    cross-chain functionality and provide users with more options.
-                  </motion.div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-4" className="bg-card border border-border/50 rounded-xl px-6 overflow-hidden">
-                <AccordionTrigger className="text-lg font-medium py-4 group">
-                  <span>How are interest rates determined?</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-text/80 pb-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    Interest rates on Peridot are determined algorithmically based on the utilization rate of each
-                    asset. When demand for borrowing an asset is high (high utilization), interest rates increase to
-                    incentivize more supply. When demand is low, rates decrease to encourage more borrowing. This
-                    dynamic adjustment ensures optimal capital efficiency and fair rates for all users.
-                  </motion.div>
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-5" className="bg-card border border-border/50 rounded-xl px-6 overflow-hidden">
-                <AccordionTrigger className="text-lg font-medium py-4 group">
-                  <span>Is Peridot secure?</span>
-                </AccordionTrigger>
-                <AccordionContent className="text-text/80 pb-4">
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    Peridot prioritizes security through multiple measures: our smart contracts have undergone rigorous
-                    security audits by leading firms, we implement robust risk management protocols, and we maintain a
-                    conservative approach to collateral factors. Additionally, our non-custodial architecture means
-                    users always maintain control of their assets.
-                  </motion.div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-
-            <motion.div
-              className="text-center mt-8"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <Button asChild variant="outline" className="rounded-xl group">
-                <Link href="/faq" className="flex items-center">
-                  View All FAQs
-                  <motion.div
-                    className="ml-2"
-                    animate={{ x: [0, 4, 0] }}
-                    transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
-                  >
-                    <ArrowRight className="h-4 w-4" />
-                  </motion.div>
-                </Link>
-              </Button>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+      {/* Awards & Recognition Section — temporarily hidden */}
+      {/* <AwardsSection /> */}
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-secondary to-accent/70 relative overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none">
-          <motion.div
-            className="absolute inset-0 bg-[url('/interconnected-geometric-finance.png')] bg-no-repeat bg-cover opacity-5"
-            animate={{
-              backgroundPosition: ["0% 0%", "100% 100%"],
-            }}
-            transition={{
-              duration: 50,
-              repeat: Number.POSITIVE_INFINITY,
-              repeatType: "reverse",
-            }}
-          />
-        </div>
+      <CTASection />
 
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <motion.div
-            className="max-w-3xl mx-auto text-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
-          >
-            <motion.h2
-              className="text-3xl font-bold mb-6"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-            >
-              Ready to Start Earning?
-            </motion.h2>
-            <motion.p
-              className="text-lg mb-8"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              Join thousands of users already earning interest and accessing liquidity on Peridot.
-            </motion.p>
-            <motion.div
-              className="flex flex-col sm:flex-row gap-4 justify-center"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <MagneticButton>
-                <Button
-                  asChild
-                  size="lg"
-                  className="bg-primary text-background hover:bg-primary/90 rounded-xl group relative overflow-hidden"
-                >
-                  <Link href="/app" className="flex items-center">
-                    <span className="relative z-10">Launch App</span>
-                    <motion.div
-                      className="relative z-10 ml-2"
-                      animate={{ x: [0, 4, 0] }}
-                      transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
-                    >
-                      <ArrowRight className="h-4 w-4" />
-                    </motion.div>
-                    <motion.div
-                      className="absolute inset-0 bg-primary-foreground/10"
-                      initial={{ x: "-100%" }}
-                      whileHover={{ x: "100%" }}
-                      transition={{ duration: 0.6 }}
-                    />
-                  </Link>
-                </Button>
-              </MagneticButton>
-
-              <MagneticButton>
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className="bg-background/10 border-text/20 hover:bg-background/20 rounded-xl"
-                >
-                  <Link href="/docs" className="flex items-center">
-                    Read Documentation
-                    <motion.div
-                      className="ml-2"
-                      animate={{ x: [0, 4, 0] }}
-                      transition={{ duration: 1.5, repeat: Number.POSITIVE_INFINITY, repeatType: "reverse" }}
-                    >
-                      <ArrowRight className="h-4 w-4" />
-                    </motion.div>
-                  </Link>
-                </Button>
-              </MagneticButton>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-    </div>
+      </div>
+    </ErrorBoundary>
   )
 }

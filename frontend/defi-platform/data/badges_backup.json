@@ -1,0 +1,476 @@
+[
+    {
+      "id": "s1_initiate",
+      "name": "Initiate",
+      "description": "Make your first transaction on Peridot.",
+      "icon": "🎯",
+      "tier": "bronze",
+      "allowLeaderboardDisplay": false,
+      "criteria": [
+        {
+          "type": "transactions_at_least",
+          "count": 1
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "common",
+      "sortOrder": 10
+    },
+    {
+      "id": "s1_depositor",
+      "name": "Depositor",
+      "description": "Supply any amount of assets for the first time.",
+      "icon": "📥",
+      "tier": "bronze",
+      "criteria": [
+        {
+          "type": "transactions_at_least",
+          "count": 1,
+          "actionTypes": [
+            "supply"
+          ]
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "common",
+      "sortOrder": 20
+    },
+    {
+      "id": "s1_borrower",
+      "name": "Borrower",
+      "description": "Borrow any amount of assets for the first time.",
+      "icon": "📤",
+      "tier": "bronze",
+      "criteria": [
+        {
+          "type": "transactions_at_least",
+          "count": 1,
+          "actionTypes": [
+            "borrow"
+          ]
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "common",
+      "sortOrder": 25
+    },
+    {
+      "id": "s1_hatchling",
+      "name": "Hatchling",
+      "description": "Earn your first 100 points.",
+      "icon": "🥚",
+      "tier": "bronze",
+      "allowLeaderboardDisplay": false,
+      "criteria": [
+        {
+          "type": "xp_at_least",
+          "value": 100
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "common",
+      "hiddenUntilXp": 50,
+      "sortOrder": 30,
+      "unlockEmoji": "🥚"
+    },
+    {
+      "id": "s1_weekender",
+      "name": "Weekender",
+      "description": "Log in on 3 separate days.",
+      "icon": "🗓️",
+      "tier": "silver",
+      "criteria": [
+        {
+          "type": "login_streak_at_least",
+          "days": 3
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "common",
+      "unlockEmoji": "✨",
+      "unlockBorderColor": "#5e7945",
+      "sortOrder": 100
+    },
+    {
+      "id": "s1_high_five",
+      "name": "High Five",
+      "description": "Complete 5 total transactions.",
+      "icon": "🖐️",
+      "tier": "silver",
+      "criteria": [
+        {
+          "type": "transactions_at_least",
+          "count": 5
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "common",
+      "unlockBorderColor": "#B3C2A6",
+      "sortOrder": 110
+    },
+    {
+      "id": "s1_steady_hand",
+      "name": "Steady Hand",
+      "description": "Maintain a supply position for 7 consecutive days.",
+      "icon": "🧘",
+      "tier": "silver",
+      "criteria": [
+        {
+          "type": "supply_position_days_at_least",
+          "days": 7
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "uncommon",
+      "pointsReward": 10,
+      "sortOrder": 115
+    },
+    {
+      "id": "s1_collector",
+      "name": "Collector",
+      "description": "Accrue 500 points.",
+      "icon": "🪙",
+      "tier": "silver",
+      "criteria": [
+        {
+          "type": "xp_at_least",
+          "value": 500
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "common",
+      "sortOrder": 120
+    },
+    {
+      "id": "s1_polymath",
+      "name": "Polymath",
+      "description": "Perform a supply, borrow, repay, and redeem action.",
+      "icon": "⚗️",
+      "tier": "silver",
+      "criteria": [
+        {
+          "type": "transactions_at_least",
+          "count": 1,
+          "actionTypes": [
+            "supply"
+          ]
+        },
+        {
+          "type": "transactions_at_least",
+          "count": 1,
+          "actionTypes": [
+            "borrow"
+          ]
+        },
+        {
+          "type": "transactions_at_least",
+          "count": 1,
+          "actionTypes": [
+            "repay"
+          ]
+        },
+        {
+          "type": "transactions_at_least",
+          "count": 1,
+          "actionTypes": [
+            "redeem"
+          ]
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "uncommon",
+      "sortOrder": 130
+    },
+    {
+      "id": "s1_loyalist",
+      "name": "Loyalist",
+      "description": "Maintain a supply position for 14 consecutive days.",
+      "icon": "🛡️",
+      "tier": "gold",
+      "criteria": [
+        {
+          "type": "supply_position_days_at_least",
+          "days": 14
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "uncommon",
+      "unlockBorderColor": "#8BA376",
+      "sortOrder": 200
+    },
+    {
+      "id": "s1_power_user",
+      "name": "Power User",
+      "description": "Complete 25 total transactions.",
+      "icon": "⚡",
+      "tier": "gold",
+      "criteria": [
+        {
+          "type": "transactions_at_least",
+          "count": 25
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "rare",
+      "unlockEmoji": "🔗",
+      "sortOrder": 210
+    },
+    {
+      "id": "s1_artisan",
+      "name": "Artisan",
+      "description": "Complete 50 total transactions.",
+      "icon": "🛠️",
+      "tier": "gold",
+      "criteria": [
+        {
+          "type": "transactions_at_least",
+          "count": 50
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "rare",
+      "sortOrder": 215
+    },
+    {
+      "id": "s1_heavy_lifter",
+      "name": "Heavy Lifter",
+      "description": "Reach a total supply or borrow volume of $10,000.",
+      "icon": "🏋️",
+      "tier": "gold",
+      "criteria": [
+        {
+          "type": "usd_volume_at_least",
+          "amount": 10000
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "rare",
+      "unlockBorderColor": "#797D62",
+      "sortOrder": 220
+    },
+    {
+      "id": "s1_marathon",
+      "name": "Marathon",
+      "description": "Achieve a 14-day login streak.",
+      "icon": "🏃",
+      "tier": "gold",
+      "criteria": [
+        {
+          "type": "login_streak_at_least",
+          "days": 14
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "rare",
+      "sortOrder": 230
+    },
+    {
+      "id": "s1_diamond_hands",
+      "name": "Diamond Hands",
+      "description": "Maintain a supply position for 30 consecutive days.",
+      "icon": "💎",
+      "tier": "platinum",
+      "criteria": [
+        {
+          "type": "supply_position_days_at_least",
+          "days": 30
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "superrare",
+      "unlockEmoji": "💎",
+      "unlockBorderColor": "#CED6C7",
+      "sortOrder": 300
+    },
+    {
+      "id": "s1_firestarter",
+      "name": "Firestarter",
+      "description": "Achieve a 7-day login streak.",
+      "icon": "🔥",
+      "tier": "platinum",
+      "allowLeaderboardDisplay": false,
+      "criteria": [
+        {
+          "type": "login_streak_at_least",
+          "days": 7
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "rare",
+      "unlockEmoji": "🔥",
+      "sortOrder": 310
+    },
+    {
+      "id": "s1_centurion",
+      "name": "Centurion",
+      "description": "Complete 100 total transactions.",
+      "icon": "💯",
+      "tier": "platinum",
+      "criteria": [
+        {
+          "type": "transactions_at_least",
+          "count": 100
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "superrare",
+      "sortOrder": 320
+    },
+    {
+      "id": "s1_magnate",
+      "name": "Magnate",
+      "description": "Reach $250,000 in total volume.",
+      "icon": "💼",
+      "tier": "platinum",
+      "criteria": [
+        {
+          "type": "usd_volume_at_least",
+          "amount": 250000
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "superrare",
+      "sortOrder": 330
+    },
+    {
+      "id": "s1_eternal_flame",
+      "name": "Eternal Flame",
+      "description": "Achieve a 21-day login streak.",
+      "icon": "🔥",
+      "tier": "platinum",
+      "criteria": [
+        {
+          "type": "login_streak_at_least",
+          "days": 21
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "superrare",
+      "sortOrder": 340
+    },
+    {
+      "id": "s1_grandmaster",
+      "name": "Grandmaster",
+      "description": "Complete 250 total transactions.",
+      "icon": "🥋",
+      "tier": "diamond",
+      "criteria": [
+        {
+          "type": "transactions_at_least",
+          "count": 250
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "legendary",
+      "sortOrder": 400
+    },
+    {
+      "id": "s1_rock_solid",
+      "name": "Rock Solid",
+      "description": "Maintain a supply position for 60 consecutive days.",
+      "icon": "🗿",
+      "tier": "diamond",
+      "criteria": [
+        {
+          "type": "supply_position_days_at_least",
+          "days": 60
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "legendary",
+      "sortOrder": 410
+    },
+    {
+      "id": "s1_genesis_voyager",
+      "name": "Genesis Voyager",
+      "description": "A true pioneer of the first season.",
+      "icon": "🌌",
+      "tier": "diamond",
+      "criteria": [
+        {
+          "type": "xp_at_least",
+          "value": 50000
+        },
+        {
+          "type": "usd_volume_at_least",
+          "amount": 100000
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "legendary",
+      "unlockEmoji": "🚀",
+      "unlockBorderColor": "linear-gradient(135deg, #5e7945 0%, #CED6C7 100%)",
+      "sortOrder": 420
+    },
+    {
+      "id": "s1_secret_gem",
+      "name": "Gemologist",
+      "description": "???",
+      "icon": "🤫",
+      "tier": "diamond",
+      "allowLeaderboardDisplay": false,
+      "criteria": [
+        {
+          "type": "transactions_at_least",
+          "count": 1,
+          "actionTypes": [
+            "redeem"
+          ]
+        },
+        {
+          "type": "usd_volume_at_least",
+          "amount": 777
+        }
+      ],
+      "seasonIds": [
+        "s1"
+      ],
+      "rarity": "secret",
+      "hiddenUntilXp": 1000000,
+      "sortOrder": 500
+    }
+]
